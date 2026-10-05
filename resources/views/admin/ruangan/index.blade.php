@@ -288,7 +288,7 @@
                         <textarea name="fasilitas" rows="2" class="input-saas w-full px-4 py-2.5 text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-white" placeholder="AC, Proyektor, Whiteboard"></textarea>
                     </div>
                     <div class="flex items-center gap-2">
-                        <input type="checkbox" name="is_active" id="createIsActive" checked class="rounded border-siakad-light text-siakad-primary focus:ring-siakad-primary dark:border-gray-700 dark:bg-gray-900">
+                        <input type="checkbox" name="is_active" id="createIsActive" value="1" checked class="rounded border-siakad-light text-siakad-primary focus:ring-siakad-primary dark:border-gray-700 dark:bg-gray-900">
                         <label for="createIsActive" class="text-sm text-siakad-dark dark:text-gray-300">Ruangan aktif</label>
                     </div>
                 </div>
@@ -338,7 +338,7 @@
                         <textarea name="fasilitas" id="editFasilitas" rows="2" class="input-saas w-full px-4 py-2.5 text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-white"></textarea>
                     </div>
                     <div class="flex items-center gap-2">
-                        <input type="checkbox" name="is_active" id="editIsActive" class="rounded border-siakad-light text-siakad-primary focus:ring-siakad-primary dark:border-gray-700 dark:bg-gray-900">
+                        <input type="checkbox" name="is_active" id="editIsActive" value="1" class="rounded border-siakad-light text-siakad-primary focus:ring-siakad-primary dark:border-gray-700 dark:bg-gray-900">
                         <label for="editIsActive" class="text-sm text-siakad-dark dark:text-gray-300">Ruangan aktif</label>
                     </div>
                 </div>
