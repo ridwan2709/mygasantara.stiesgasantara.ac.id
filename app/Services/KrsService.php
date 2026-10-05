@@ -88,7 +88,10 @@ class KrsService
             }
 
             // 3. Cek Batas SKS berdasarkan IPS semester lalu
-            $sksSaatIni = $krs->krsDetail->sum(fn($detail) => $detail->kelas->mataKuliah->sks);
+            $sksSaatIni = $krs->krsDetail()
+                ->with('kelas.mataKuliah')
+                ->get()
+                ->sum(fn($detail) => $detail->kelas->mataKuliah->sks);
             $sksBaru = $kelas->mataKuliah->sks;
             
             // Get mahasiswa from KRS and calculate max SKS based on IPS

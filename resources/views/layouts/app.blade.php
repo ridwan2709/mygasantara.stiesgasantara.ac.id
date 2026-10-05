@@ -454,9 +454,13 @@
                     <div class="pt-4 pb-1">
                         <p class="px-3 text-[10px] font-semibold text-siakad-secondary/60 uppercase tracking-widest sidebar-section-title">Akademik</p>
                     </div>
+                    <a href="{{ route('admin.krs.create') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('admin/krs*') && !request()->is('admin/krs-approval*') ? 'active' : '' }}">
+                        <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 4v16m8-8H4"></path></svg>
+                        <span class="sidebar-text">Buat KRS</span>
+                    </a>
                     <a href="{{ url('admin/krs-approval') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('admin/krs-approval*') ? 'active' : '' }}">
                         <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                        <span class="sidebar-text">Approval KRS</span>
+                        <span class="sidebar-text">Data &amp; Approval KRS</span>
                         @php $pendingCount = \App\Models\Krs::where('status', 'pending')->count(); @endphp
                         @if($pendingCount > 0)
                         <span class="ml-auto px-2 py-0.5 text-[10px] font-semibold bg-amber-100 text-amber-700 rounded-full">{{ $pendingCount }}</span>
