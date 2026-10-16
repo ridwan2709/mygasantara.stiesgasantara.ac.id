@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Dosen;
+use App\Models\KehadiranMengajar;
 use App\Models\JadwalKuliah;
 use App\Models\KehadiranDosen;
 use App\Models\Kelas;
@@ -63,6 +64,23 @@ it('records lecturer check-in and checkout coordinates within the configured rad
     $kehadiran = KehadiranDosen::firstOrFail();
     expect((float) $kehadiran->latitude_masuk)->toBe(-6.2001)
         ->and((float) $kehadiran->longitude_masuk)->toBe(106.8167);
+    $catatanHonorarium = KehadiranMengajar::where('kehadiran_dosen_id', $kehadiran->id)->firstOrFail();
+    expect($catatanHonorarium->dosen_id)->toBe($dosen->id)
+        ->and($catatanHonorarium->kelas_id)->toBe($jadwal->kelas_id)
+        ->and($catatanHonorarium->mata_kuliah_id)->toBe($jadwal->kelas->mata_kuliah_id)
+        ->and($catatanHonorarium->status_hadir)->toBe('hadir')
+        ->and($catatanHonorarium->status_verifikasi)->toBe(KehadiranMengajar::STATUS_PENDING);
+
+    $this->actingAs($dosen->user)
+        ->post(route('dosen.kehadiran.store'), [
+            'jadwal_kuliah_id' => $jadwal->id,
+            'status' => 'hadir',
+            'latitude' => -6.2001,
+            'longitude' => 106.8167,
+        ])
+        ->assertSessionHasNoErrors();
+
+    $this->assertDatabaseCount('kehadiran_mengajar', 1);
 
     $this->actingAs($dosen->user)
         ->post(route('dosen.kehadiran.checkout', $kehadiran), [
@@ -75,6 +93,8 @@ it('records lecturer check-in and checkout coordinates within the configured rad
     expect((float) $kehadiran->latitude_keluar)->toBe(-6.2001)
         ->and((float) $kehadiran->longitude_keluar)->toBe(106.8167)
         ->and($kehadiran->jam_keluar)->not->toBeNull();
+
+    expect($catatanHonorarium->fresh()->jam_selesai)->toBe($kehadiran->jam_keluar);
 });
 
 it('rejects lecturer check-in outside the configured campus radius', function () {
@@ -108,6 +128,22 @@ it('rejects lecturer check-in until an administrator configures a campus locatio
         ->assertSessionHasErrors('gps');
 
     $this->assertDatabaseCount('kehadiran_dosen', 0);
+});
+
+it('does not create a payable teaching attendance for non-present statuses', function () {
+    $dosen = Dosen::factory()->create();
+    $jadwal = buatJadwalDosen($dosen);
+
+    $this->actingAs($dosen->user)
+        ->post(route('dosen.kehadiran.store'), [
+            'jadwal_kuliah_id' => $jadwal->id,
+            'status' => 'izin',
+            'keterangan' => 'Izin berhalangan',
+        ])
+        ->assertSessionHasNoErrors();
+
+    $this->assertDatabaseCount('kehadiran_dosen', 1);
+    $this->assertDatabaseCount('kehadiran_mengajar', 0);
 });
 
 it('requires an administrator to configure the campus GPS location', function () {

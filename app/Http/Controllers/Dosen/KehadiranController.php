@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Dosen;
 
 use App\Http\Controllers\Controller;
 use App\Models\KehadiranDosen;
+use App\Models\KehadiranMengajar;
 use App\Models\JadwalKuliah;
 use App\Models\PengaturanGpsKehadiran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class KehadiranController extends Controller
 {
@@ -66,11 +67,12 @@ class KehadiranController extends Controller
             'longitude' => 'required_if:status,hadir|nullable|numeric|between:-180,180',
         ]);
 
-        $jadwalMilikDosen = JadwalKuliah::where('id', $validated['jadwal_kuliah_id'])
+        $jadwal = JadwalKuliah::with('kelas.mataKuliah')
+            ->whereKey($validated['jadwal_kuliah_id'])
             ->whereHas('kelas', fn ($query) => $query->where('dosen_id', $dosen->id))
-            ->exists();
+            ->first();
 
-        if (! $jadwalMilikDosen) {
+        if (! $jadwal) {
             abort(403, 'Jadwal ini bukan milik Anda.');
         }
 
@@ -82,20 +84,41 @@ class KehadiranController extends Controller
             }
         }
 
-        KehadiranDosen::updateOrCreate(
-            [
-                'dosen_id' => $dosen->id,
-                'jadwal_kuliah_id' => $validated['jadwal_kuliah_id'],
-                'tanggal' => now()->toDateString(),
-            ],
-            [
-                'jam_masuk' => $validated['jam_masuk'] ?? now()->format('H:i'),
-                'status' => $validated['status'],
-                'keterangan' => $validated['keterangan'] ?? null,
-                'latitude_masuk' => $coordinates['latitude'] ?? null,
-                'longitude_masuk' => $coordinates['longitude'] ?? null,
-            ]
-        );
+        DB::transaction(function () use ($dosen, $jadwal, $validated, $coordinates): void {
+            $kehadiran = KehadiranDosen::updateOrCreate(
+                [
+                    'dosen_id' => $dosen->id,
+                    'jadwal_kuliah_id' => $jadwal->id,
+                    'tanggal' => now()->toDateString(),
+                ],
+                [
+                    'jam_masuk' => $validated['jam_masuk'] ?? now()->format('H:i'),
+                    'status' => $validated['status'],
+                    'keterangan' => $validated['keterangan'] ?? null,
+                    'latitude_masuk' => $coordinates['latitude'] ?? null,
+                    'longitude_masuk' => $coordinates['longitude'] ?? null,
+                ]
+            );
+
+            if ($validated['status'] === KehadiranDosen::STATUS_HADIR) {
+                KehadiranMengajar::query()->firstOrCreate(
+                    [
+                        'dosen_id' => $dosen->id,
+                        'mata_kuliah_id' => $jadwal->kelas->mata_kuliah_id,
+                        'kelas_id' => $jadwal->kelas_id,
+                        'tanggal' => $kehadiran->tanggal,
+                        'jam_mulai' => $kehadiran->jam_masuk,
+                        'jam_selesai' => $jadwal->jam_selesai->format('H:i:s'),
+                        'status_hadir' => KehadiranDosen::STATUS_HADIR,
+                        'status_verifikasi' => KehadiranMengajar::STATUS_PENDING,
+                    ]
+                );
+            } else {
+                $kehadiran->kehadiranMengajar()
+                    ->where('status_verifikasi', KehadiranMengajar::STATUS_PENDING)
+                    ->delete();
+            }
+        });
 
         return redirect()->back()->with('success', 'Kehadiran berhasil dicatat');
     }
@@ -114,11 +137,18 @@ class KehadiranController extends Controller
             return $coordinates;
         }
 
-        $kehadiran->update([
-            'jam_keluar' => now()->format('H:i:s'),
-            'latitude_keluar' => $coordinates['latitude'],
-            'longitude_keluar' => $coordinates['longitude'],
-        ]);
+        DB::transaction(function () use ($kehadiran, $coordinates): void {
+            $jamKeluar = now()->format('H:i:s');
+            $kehadiran->update([
+                'jam_keluar' => $jamKeluar,
+                'latitude_keluar' => $coordinates['latitude'],
+                'longitude_keluar' => $coordinates['longitude'],
+            ]);
+
+            $kehadiran->kehadiranMengajar()
+                ->where('status_verifikasi', KehadiranMengajar::STATUS_PENDING)
+                ->update(['jam_selesai' => $jamKeluar]);
+        });
 
         return redirect()->back()->with('success', 'Checkout berhasil');
     }

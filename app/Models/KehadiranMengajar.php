@@ -42,6 +42,11 @@ class KehadiranMengajar extends Model
         return $this->belongsTo(Dosen::class);
     }
 
+    public function kehadiranDosen(): BelongsTo
+    {
+        return $this->belongsTo(KehadiranDosen::class);
+    }
+
     public function mataKuliah(): BelongsTo
     {
         return $this->belongsTo(MataKuliah::class);

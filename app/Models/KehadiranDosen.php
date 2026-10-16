@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class KehadiranDosen extends Model
 {
@@ -78,6 +79,11 @@ class KehadiranDosen extends Model
     public function pertemuan()
     {
         return $this->belongsTo(Pertemuan::class);
+    }
+
+    public function kehadiranMengajar(): HasOne
+    {
+        return $this->hasOne(KehadiranMengajar::class);
     }
 
     public function scopeByDosen($query, $dosenId)
