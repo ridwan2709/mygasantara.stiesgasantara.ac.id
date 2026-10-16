@@ -3,6 +3,8 @@
         Data Kelas
     </x-slot>
 
+    @include('admin.partials.master-data-import', ['importType' => 'kelas', 'importLabel' => 'Kelas'])
+
     <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
             <p class="text-sm text-siakad-secondary dark:text-gray-400">Kelola data kelas dan jadwal kuliah dalam sistem</p>

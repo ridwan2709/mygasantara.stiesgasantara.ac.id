@@ -3,6 +3,8 @@
         Data Mata Kuliah
     </x-slot>
 
+    @include('admin.partials.master-data-import', ['importType' => 'mata-kuliah', 'importLabel' => 'Mata Kuliah'])
+
     <!-- Toolbar: Filter, Search, Action -->
     <div class="mb-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <form action="{{ route('admin.mata-kuliah.index') }}" method="GET" class="flex flex-col md:flex-row gap-3 w-full lg:w-auto">
@@ -385,4 +387,3 @@
         }
     </script>
 </x-app-layout>
-

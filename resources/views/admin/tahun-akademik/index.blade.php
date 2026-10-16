@@ -3,6 +3,10 @@
         Tahun Akademik
     </x-slot>
 
+    @if(auth()->user()->isSuperAdmin())
+        @include('admin.partials.master-data-import', ['importType' => 'tahun-akademik', 'importLabel' => 'Tahun Akademik'])
+    @endif
+
     <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <p class="text-sm text-siakad-secondary dark:text-gray-400">Kelola data tahun akademik</p>
         @if(auth()->user()->isSuperAdmin())
@@ -166,4 +170,3 @@
         }
     </script>
 </x-app-layout>
-

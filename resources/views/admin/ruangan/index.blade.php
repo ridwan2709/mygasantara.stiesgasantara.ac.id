@@ -3,6 +3,8 @@
         Master Data Ruangan
     </x-slot>
 
+    @include('admin.partials.master-data-import', ['importType' => 'ruangan', 'importLabel' => 'Ruangan'])
+
     <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
             <p class="text-sm text-siakad-secondary dark:text-gray-400">Kelola data ruangan kelas dalam sistem</p>
