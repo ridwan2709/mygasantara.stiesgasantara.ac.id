@@ -41,6 +41,15 @@
         $percentAlpa = $totalKehadiran > 0 ? round((($stats['alpa'] ?? 0) / $totalKehadiran) * 100) : 0;
     @endphp
 
+    @if(session('success'))
+        <div class="mb-4 rounded-lg bg-emerald-50 p-4 text-sm text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">{{ session('success') }}</div>
+    @endif
+    @if($errors->any())
+        <div class="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800 dark:bg-red-900/30 dark:text-red-300">
+            <ul class="list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+        </div>
+    @endif
+
     <!-- Two Cards Grid with Equal Height -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
         <!-- Card 1: Kelas Berikutnya -->
@@ -159,8 +168,11 @@
                                     Selesai
                                 </span>
                             @elseif($isAbsen)
-                                <form action="{{ route('dosen.kehadiran.checkout', $kehadiranData) }}" method="POST">
+                                <form action="{{ route('dosen.kehadiran.checkout', $kehadiranData) }}" method="POST" onsubmit="return captureAttendanceGps(event, this)">
                                     @csrf
+                                    <input type="hidden" name="latitude">
+                                    <input type="hidden" name="longitude">
+                                    <p data-gps-status role="status" aria-live="polite" class="mb-2 text-xs text-siakad-secondary"></p>
                                     <button type="submit" class="px-5 py-2.5 bg-siakad-primary text-white rounded-lg text-sm font-semibold hover:bg-siakad-primary/90 transition min-h-[44px]">
                                         Absen Keluar
                                     </button>
@@ -380,9 +392,12 @@
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
             <h3 class="text-lg font-bold text-siakad-dark dark:text-white mb-1">Absen Kehadiran</h3>
             <p id="modalMatkul" class="text-sm text-siakad-secondary dark:text-gray-400 mb-5"></p>
-            <form action="{{ route('dosen.kehadiran.store') }}" method="POST" class="space-y-4">
+            <form action="{{ route('dosen.kehadiran.store') }}" method="POST" class="space-y-4" onsubmit="return captureAttendanceGps(event, this)">
                 @csrf
                 <input type="hidden" name="jadwal_kuliah_id" id="modalJadwalId">
+                <input type="hidden" name="latitude">
+                <input type="hidden" name="longitude">
+                <p data-gps-status role="status" aria-live="polite" class="text-xs text-siakad-secondary dark:text-gray-400">Lokasi GPS akan diperiksa sebelum presensi disimpan. GPS memerlukan HTTPS dan izin lokasi browser.</p>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-siakad-dark dark:text-gray-300 mb-1">Jam Masuk</label>
@@ -410,6 +425,47 @@
     </div>
 
     <script>
+        function captureAttendanceGps(event, form) {
+            if (form.elements.status && form.elements.status.value !== 'hadir') {
+                return true;
+            }
+
+            if (form.dataset.gpsReady === 'true') {
+                return true;
+            }
+
+            event.preventDefault();
+            const status = form.querySelector('[data-gps-status]');
+            const submitButton = form.querySelector('button[type="submit"]');
+            if (!navigator.geolocation) {
+                status.textContent = 'Browser ini tidak mendukung GPS. Gunakan browser lain untuk presensi.';
+                return false;
+            }
+
+            status.textContent = 'Mengambil lokasi GPS...';
+            submitButton.disabled = true;
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    form.elements.latitude.value = position.coords.latitude;
+                    form.elements.longitude.value = position.coords.longitude;
+                    form.dataset.gpsReady = 'true';
+                    form.requestSubmit();
+                },
+                (error) => {
+                    const messages = {
+                        1: 'Izin lokasi ditolak. Aktifkan izin lokasi pada browser untuk melanjutkan.',
+                        2: 'Lokasi tidak dapat ditemukan. Pastikan GPS perangkat aktif lalu coba lagi.',
+                        3: 'Pengambilan lokasi terlalu lama. Silakan coba lagi.',
+                    };
+                    status.textContent = messages[error.code] || 'Gagal mengambil lokasi GPS. Silakan coba lagi.';
+                    submitButton.disabled = false;
+                },
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+            );
+
+            return false;
+        }
+
         function showModal(id, matkul) {
             document.getElementById('modalJadwalId').value = id;
             document.getElementById('modalMatkul').textContent = matkul;

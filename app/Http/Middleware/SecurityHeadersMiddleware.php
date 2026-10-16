@@ -28,7 +28,10 @@ class SecurityHeadersMiddleware
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
         // Permissions policy (formerly Feature-Policy)
-        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+        $geolocationPolicy = $request->routeIs('dosen.kehadiran.index', 'admin.kehadiran-gps.edit')
+            ? '(self)'
+            : '()';
+        $response->headers->set('Permissions-Policy', "camera=(), microphone=(), geolocation={$geolocationPolicy}");
 
         // Only add HSTS in production with HTTPS
         if (config('app.env') === 'production' && $request->secure()) {

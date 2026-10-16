@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\KehadiranDosen;
 use App\Models\Dosen;
+use App\Models\PengaturanGpsKehadiran;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 
 class KehadiranDosenController extends Controller
 {
@@ -81,5 +83,21 @@ class KehadiranDosenController extends Controller
         $stats = $kehadiranList->groupBy('status')->map->count();
 
         return view('admin.kehadiran-dosen.show', compact('dosen', 'kehadiranList', 'stats', 'month', 'year'));
+    }
+
+    public function updateGpsSettings(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+            'radius_meter' => ['required', 'integer', 'between:10,5000'],
+        ]);
+
+        PengaturanGpsKehadiran::query()->updateOrCreate(
+            ['id' => 1],
+            $validated,
+        );
+
+        return redirect()->route('admin.kehadiran-gps.edit')->with('success', 'Pengaturan GPS presensi berhasil disimpan.');
     }
 }

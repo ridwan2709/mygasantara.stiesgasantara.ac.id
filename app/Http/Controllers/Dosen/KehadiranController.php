@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dosen;
 use App\Http\Controllers\Controller;
 use App\Models\KehadiranDosen;
 use App\Models\JadwalKuliah;
+use App\Models\PengaturanGpsKehadiran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -59,10 +60,27 @@ class KehadiranController extends Controller
         $validated = $request->validate([
             'jadwal_kuliah_id' => 'required|exists:jadwal_kuliah,id',
             'jam_masuk' => 'nullable|date_format:H:i',
-            'jam_keluar' => 'nullable|date_format:H:i',
             'status' => 'required|in:' . implode(',', array_keys(KehadiranDosen::getStatusList())),
             'keterangan' => 'nullable|string',
+            'latitude' => 'required_if:status,hadir|nullable|numeric|between:-90,90',
+            'longitude' => 'required_if:status,hadir|nullable|numeric|between:-180,180',
         ]);
+
+        $jadwalMilikDosen = JadwalKuliah::where('id', $validated['jadwal_kuliah_id'])
+            ->whereHas('kelas', fn ($query) => $query->where('dosen_id', $dosen->id))
+            ->exists();
+
+        if (! $jadwalMilikDosen) {
+            abort(403, 'Jadwal ini bukan milik Anda.');
+        }
+
+        $coordinates = null;
+        if ($validated['status'] === KehadiranDosen::STATUS_HADIR) {
+            $coordinates = $this->validatedGpsCoordinates($validated['latitude'], $validated['longitude']);
+            if ($coordinates instanceof \Illuminate\Http\RedirectResponse) {
+                return $coordinates;
+            }
+        }
 
         KehadiranDosen::updateOrCreate(
             [
@@ -72,9 +90,10 @@ class KehadiranController extends Controller
             ],
             [
                 'jam_masuk' => $validated['jam_masuk'] ?? now()->format('H:i'),
-                'jam_keluar' => $validated['jam_keluar'] ?? null,
                 'status' => $validated['status'],
                 'keterangan' => $validated['keterangan'] ?? null,
+                'latitude_masuk' => $coordinates['latitude'] ?? null,
+                'longitude_masuk' => $coordinates['longitude'] ?? null,
             ]
         );
 
@@ -86,8 +105,47 @@ class KehadiranController extends Controller
         $dosen = Auth::user()->dosen;
         if ($kehadiran->dosen_id !== $dosen->id) abort(403);
 
-        $kehadiran->update(['jam_keluar' => now()->format('H:i:s')]);
+        $validated = $request->validate([
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+        ]);
+        $coordinates = $this->validatedGpsCoordinates($validated['latitude'], $validated['longitude']);
+        if ($coordinates instanceof \Illuminate\Http\RedirectResponse) {
+            return $coordinates;
+        }
+
+        $kehadiran->update([
+            'jam_keluar' => now()->format('H:i:s'),
+            'latitude_keluar' => $coordinates['latitude'],
+            'longitude_keluar' => $coordinates['longitude'],
+        ]);
 
         return redirect()->back()->with('success', 'Checkout berhasil');
+    }
+
+    /**
+     * @return array{latitude: float, longitude: float}|\Illuminate\Http\RedirectResponse
+     */
+    private function validatedGpsCoordinates(float|string $latitude, float|string $longitude): array|\Illuminate\Http\RedirectResponse
+    {
+        $setting = PengaturanGpsKehadiran::query()->first();
+        if (! $setting) {
+            return redirect()->back()->withErrors([
+                'gps' => 'Pengaturan lokasi presensi belum tersedia. Hubungi administrator.',
+            ])->withInput();
+        }
+
+        $coordinates = [
+            'latitude' => (float) $latitude,
+            'longitude' => (float) $longitude,
+        ];
+
+        if (! $setting->contains($coordinates['latitude'], $coordinates['longitude'])) {
+            return redirect()->back()->withErrors([
+                'gps' => 'Lokasi Anda berada di luar radius presensi kampus.',
+            ])->withInput();
+        }
+
+        return $coordinates;
     }
 }
