@@ -7,9 +7,10 @@
         $today = \Carbon\Carbon::now()->locale('id')->isoFormat('dddd');
         $now = \Carbon\Carbon::now();
         $hariOrder = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        $selectedDay = $jadwalPerHari->has($today) ? $today : ($jadwalPerHari->keys()->first() ?? $hariOrder[0]);
     @endphp
 
-    <div x-data="{ selectedDay: '{{ $today }}', viewMode: 'card' }">
+    <div x-data="{ selectedDay: '{{ $selectedDay }}', viewMode: 'card' }">
         @if(!$activeTA)
         <div class="bg-amber-50 border border-amber-100 rounded-2xl p-6 text-center max-w-md mx-auto">
             <div class="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">

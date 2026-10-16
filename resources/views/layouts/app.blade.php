@@ -478,6 +478,14 @@
                         <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <span class="sidebar-text">Kehadiran Dosen</span>
                     </a>
+
+                    <div class="pt-4 pb-1">
+                        <p class="px-3 text-[10px] font-semibold text-siakad-secondary/60 uppercase tracking-widest sidebar-section-title">Keuangan</p>
+                    </div>
+                    <a href="{{ route('admin.honorarium.index') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('admin/keuangan*') ? 'active' : '' }}">
+                        <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2zm0 0V6m0 8v4m0 0H9m3 0h3"></path></svg>
+                        <span class="sidebar-text">Honorarium</span>
+                    </a>
                     @endif
 
                     @if(Auth::user()->role === 'mahasiswa')
@@ -595,6 +603,10 @@
                         <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <span class="sidebar-text">Kehadiran Saya</span>
                     </a>
+                    <a href="{{ route('dosen.honorarium.index') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('dosen/honorarium*') ? 'active' : '' }}">
+                        <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 8v4m8-6a8 8 0 11-16 0 8 8 0 0116 0z"></path></svg>
+                        <span class="sidebar-text">Honorarium Saya</span>
+                    </a>
 
                     <div class="pt-4 pb-1">
                         <p class="px-3 text-[10px] font-semibold text-siakad-secondary/60 uppercase tracking-widest sidebar-section-title">E-Learning</p>
@@ -703,6 +715,8 @@
                                 @endif
                             </div>
                         </div>
+
+                        <time id="headerClock" data-digital-clock class="font-mono text-sm md:text-base font-semibold tabular-nums tracking-wide whitespace-nowrap" style="color: var(--text-primary);" aria-label="Jam saat ini">{{ now()->format('H:i:s') }}</time>
                         
                         <div class="text-right hidden md:block">
                             <p class="text-sm font-medium" style="color: var(--text-primary);">{{ Auth::user()->name }}</p>

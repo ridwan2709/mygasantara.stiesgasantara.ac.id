@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Dosen extends Model
 {
@@ -68,5 +69,19 @@ class Dosen extends Model
     {
         return $this->hasMany(KehadiranDosen::class);
     }
-}
 
+    public function kehadiranMengajar(): HasMany
+    {
+        return $this->hasMany(KehadiranMengajar::class);
+    }
+
+    public function insentifManual(): HasMany
+    {
+        return $this->hasMany(InsentifManual::class);
+    }
+
+    public function honorarium(): HasMany
+    {
+        return $this->hasMany(Honorarium::class);
+    }
+}
