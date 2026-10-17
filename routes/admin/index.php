@@ -5,6 +5,7 @@
 require __DIR__.'/master-data/index.php';
 require __DIR__.'/dashboard.php';
 require __DIR__.'/dosen.php';
+require __DIR__.'/dosen-dokumen.php';
 require __DIR__.'/honorarium.php';
 require __DIR__.'/kehadiran.php';
 require __DIR__.'/kp.php';

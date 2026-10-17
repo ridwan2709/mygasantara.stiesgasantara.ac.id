@@ -11,6 +11,7 @@ use App\Models\Nilai;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class DosenController extends Controller
 {
@@ -134,6 +135,10 @@ class DosenController extends Controller
             return back()->withErrors(['error' => 'Tidak dapat menghapus dosen yang menjadi dosen PA.']);
         }
 
+        if (! Storage::disk('local')->deleteDirectory('dosen-dokumen/'.$dosen->id)) {
+            return back()->withErrors(['error' => 'Dokumen penunjang dosen gagal dihapus. Silakan coba lagi.']);
+        }
+
         DB::transaction(function () use ($dosen) {
             $userId = $dosen->user_id;
             $dosen->delete();
@@ -206,4 +211,3 @@ class DosenController extends Controller
             ->header('Content-Disposition', 'attachment; filename="dosen_export_' . date('Y-m-d') . '.xls"');
     }
 }
-

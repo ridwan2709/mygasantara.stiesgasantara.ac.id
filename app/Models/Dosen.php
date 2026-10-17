@@ -84,4 +84,9 @@ class Dosen extends Model
     {
         return $this->hasMany(Honorarium::class);
     }
+
+    public function dokumenPenunjang(): HasMany
+    {
+        return $this->hasMany(DosenDokumen::class);
+    }
 }
