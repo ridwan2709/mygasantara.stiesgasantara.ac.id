@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\JadwalKuliah;
 use App\Services\AkademikService;
 use Illuminate\Http\Request;
 
@@ -75,24 +74,9 @@ class KelasController extends Controller
             'dosen_id'       => 'required|exists:dosen,id',
             'nama_kelas'     => 'required|string',
             'kapasitas'      => 'nullable|integer|min:1',
-            'hari'           => 'nullable|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
-            'jam_mulai'      => 'nullable|date_format:H:i',
-            'jam_selesai'    => 'nullable|date_format:H:i',
-            'ruangan'        => 'nullable|string|max:50',
         ]);
         
         $kelas = $this->akademikService->createKelas($validated);
-        
-        // Create jadwal if provided
-        if (!empty($validated['hari']) && !empty($validated['jam_mulai']) && !empty($validated['jam_selesai'])) {
-            JadwalKuliah::create([
-                'kelas_id' => $kelas->id,
-                'hari' => $validated['hari'],
-                'jam_mulai' => $validated['jam_mulai'],
-                'jam_selesai' => $validated['jam_selesai'],
-                'ruangan' => $validated['ruangan'] ?? null,
-            ]);
-        }
         
         return redirect()->back()->with('success', 'Kelas berhasil ditambahkan');
     }
@@ -104,10 +88,6 @@ class KelasController extends Controller
             'dosen_id'       => 'required|exists:dosen,id',
             'nama_kelas'     => 'required|string',
             'kapasitas'      => 'nullable|integer|min:1',
-            'hari'           => 'nullable|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
-            'jam_mulai'      => 'nullable|date_format:H:i',
-            'jam_selesai'    => 'nullable|date_format:H:i',
-            'ruangan'        => 'nullable|string|max:50',
         ]);
         
         $kelas->update([
@@ -117,49 +97,58 @@ class KelasController extends Controller
             'kapasitas' => $validated['kapasitas'],
         ]);
         
-        // Update or create jadwal with notification
-        if (!empty($validated['hari']) && !empty($validated['jam_mulai']) && !empty($validated['jam_selesai'])) {
-            $oldJadwal = $kelas->jadwal()->first();
-            
-            // Track changes
-            $changes = [];
-            if ($oldJadwal) {
-                if ($oldJadwal->hari !== $validated['hari']) {
-                    $changes['hari'] = ['old' => $oldJadwal->hari, 'new' => $validated['hari']];
-                }
-                $oldJam = \Carbon\Carbon::parse($oldJadwal->jam_mulai)->format('H:i') . '-' . \Carbon\Carbon::parse($oldJadwal->jam_selesai)->format('H:i');
-                $newJam = $validated['jam_mulai'] . '-' . $validated['jam_selesai'];
-                if ($oldJam !== $newJam) {
-                    $changes['jam'] = ['old' => $oldJam, 'new' => $newJam];
-                }
-                if (($oldJadwal->ruangan ?? '') !== ($validated['ruangan'] ?? '')) {
-                    $changes['ruangan'] = ['old' => $oldJadwal->ruangan ?? '-', 'new' => $validated['ruangan'] ?? '-'];
-                }
+        return redirect()->back()->with('success', 'Kelas berhasil diupdate');
+    }
+
+    public function updateJadwal(Request $request, \App\Models\Kelas $kelas)
+    {
+        $validated = $request->validate([
+            'hari'        => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
+            'jam_mulai'   => 'required|date_format:H:i',
+            'jam_selesai' => 'required|date_format:H:i',
+            'ruangan'     => 'nullable|string|max:50',
+        ]);
+
+        $oldJadwal = $kelas->jadwal()->first();
+        $changes = [];
+
+        if ($oldJadwal) {
+            if ($oldJadwal->hari !== $validated['hari']) {
+                $changes['hari'] = ['old' => $oldJadwal->hari, 'new' => $validated['hari']];
             }
-            
-            $jadwal = $kelas->jadwal()->updateOrCreate(
-                ['kelas_id' => $kelas->id],
-                [
-                    'hari' => $validated['hari'],
-                    'jam_mulai' => $validated['jam_mulai'],
-                    'jam_selesai' => $validated['jam_selesai'],
-                    'ruangan' => $validated['ruangan'] ?? null,
-                ]
-            );
-            
-            // Send notification if there are changes
-            if (!empty($changes)) {
-                $kelas->load('mataKuliah');
-                $notificationService = app(\App\Services\NotificationService::class);
-                $count = $notificationService->notifyJadwalChange($kelas, $jadwal, $changes);
-                
-                if ($count > 0) {
-                    return redirect()->back()->with('success', "Kelas berhasil diupdate. Notifikasi terkirim ke {$count} mahasiswa.");
-                }
+
+            $oldJam = \Carbon\Carbon::parse($oldJadwal->jam_mulai)->format('H:i') . '-' . \Carbon\Carbon::parse($oldJadwal->jam_selesai)->format('H:i');
+            $newJam = $validated['jam_mulai'] . '-' . $validated['jam_selesai'];
+            if ($oldJam !== $newJam) {
+                $changes['jam'] = ['old' => $oldJam, 'new' => $newJam];
+            }
+
+            if (($oldJadwal->ruangan ?? '') !== ($validated['ruangan'] ?? '')) {
+                $changes['ruangan'] = ['old' => $oldJadwal->ruangan ?? '-', 'new' => $validated['ruangan'] ?? '-'];
             }
         }
-        
-        return redirect()->back()->with('success', 'Kelas berhasil diupdate');
+
+        $jadwal = $kelas->jadwal()->updateOrCreate(
+            ['kelas_id' => $kelas->id],
+            [
+                'hari' => $validated['hari'],
+                'jam_mulai' => $validated['jam_mulai'],
+                'jam_selesai' => $validated['jam_selesai'],
+                'ruangan' => $validated['ruangan'] ?? null,
+            ]
+        );
+
+        if (!empty($changes)) {
+            $kelas->load('mataKuliah');
+            $notificationService = app(\App\Services\NotificationService::class);
+            $count = $notificationService->notifyJadwalChange($kelas, $jadwal, $changes);
+
+            if ($count > 0) {
+                return redirect()->back()->with('success', "Jadwal berhasil diupdate. Notifikasi terkirim ke {$count} mahasiswa.");
+            }
+        }
+
+        return redirect()->back()->with('success', 'Jadwal kelas berhasil disimpan');
     }
 
     public function destroy(\App\Models\Kelas $kelas)
@@ -168,4 +157,3 @@ class KelasController extends Controller
         return redirect()->back()->with('success', 'Kelas berhasil dihapus');
     }
 }
-

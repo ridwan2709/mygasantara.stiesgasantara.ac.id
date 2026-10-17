@@ -121,12 +121,18 @@
                                     'mata_kuliah_id' => $k->mata_kuliah_id,
                                     'dosen_id' => $k->dosen_id,
                                     'kapasitas' => $k->kapasitas,
+                                ]) }})" class="p-2 text-siakad-secondary hover:text-siakad-primary hover:bg-siakad-primary/10 rounded-lg transition" title="Edit">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                </button>
+                                <button onclick="editJadwal({{ json_encode([
+                                    'id' => $k->id,
+                                    'nama_kelas' => $k->nama_kelas,
                                     'hari' => $jadwal?->hari,
                                     'jam_mulai' => $jadwal ? \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') : null,
                                     'jam_selesai' => $jadwal ? \Carbon\Carbon::parse($jadwal->jam_selesai)->format('H:i') : null,
                                     'ruangan' => $jadwal?->ruangan,
-                                ]) }})" class="p-2 text-siakad-secondary hover:text-siakad-primary hover:bg-siakad-primary/10 rounded-lg transition" title="Edit">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                ]) }})" class="p-2 text-siakad-secondary hover:text-siakad-primary hover:bg-siakad-primary/10 rounded-lg transition" title="Atur Jadwal">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                 </button>
                                 <form action="{{ route('admin.kelas.destroy', $k) }}" method="POST" onsubmit="return confirm('Hapus kelas ini?')">
                                     @csrf @method('DELETE')
@@ -212,12 +218,18 @@
                     'mata_kuliah_id' => $k->mata_kuliah_id,
                     'dosen_id' => $k->dosen_id,
                     'kapasitas' => $k->kapasitas,
+                ]) }})" class="flex-1 py-2 text-sm font-medium text-siakad-secondary bg-siakad-light/50 dark:bg-gray-700 dark:text-gray-300 rounded-lg hover:bg-siakad-light hover:text-siakad-primary dark:hover:bg-gray-600 transition text-center">
+                    Edit
+                </button>
+                <button onclick="editJadwal({{ json_encode([
+                    'id' => $k->id,
+                    'nama_kelas' => $k->nama_kelas,
                     'hari' => $jadwal?->hari,
                     'jam_mulai' => $jadwal ? \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') : null,
                     'jam_selesai' => $jadwal ? \Carbon\Carbon::parse($jadwal->jam_selesai)->format('H:i') : null,
                     'ruangan' => $jadwal?->ruangan,
-                ]) }})" class="flex-1 py-2 text-sm font-medium text-siakad-secondary bg-siakad-light/50 dark:bg-gray-700 dark:text-gray-300 rounded-lg hover:bg-siakad-light hover:text-siakad-primary dark:hover:bg-gray-600 transition text-center">
-                    Edit
+                ]) }})" class="flex-1 py-2 text-sm font-medium text-siakad-primary bg-siakad-primary/10 dark:text-blue-400 rounded-lg hover:bg-siakad-primary/20 transition text-center">
+                    Jadwal
                 </button>
                 <form action="{{ route('admin.kelas.destroy', $k) }}" method="POST" onsubmit="return confirm('Hapus kelas ini?')" class="flex-1">
                     @csrf @method('DELETE')
@@ -280,41 +292,6 @@
                         </select>
                     </div>
                     
-                    <!-- Jadwal Section -->
-                    <div class="pt-4 border-t border-siakad-light dark:border-gray-700">
-                        <h4 class="text-sm font-semibold text-siakad-dark dark:text-white mb-3 flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            Jadwal Kuliah (Opsional)
-                        </h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-siakad-dark dark:text-gray-300 mb-2">Hari</label>
-                                <select name="hari" class="input-saas w-full px-4 py-2.5 text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-white">
-                                    <option value="">Pilih Hari</option>
-                                    <option value="Senin">Senin</option>
-                                    <option value="Selasa">Selasa</option>
-                                    <option value="Rabu">Rabu</option>
-                                    <option value="Kamis">Kamis</option>
-                                    <option value="Jumat">Jumat</option>
-                                    <option value="Sabtu">Sabtu</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-siakad-dark dark:text-gray-300 mb-2">Ruangan</label>
-                                <input type="text" name="ruangan" class="input-saas w-full px-4 py-2.5 text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-white" placeholder="Contoh: LT-101">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4 mt-4">
-                            <div>
-                                <label class="block text-sm font-medium text-siakad-dark dark:text-gray-300 mb-2">Jam Mulai</label>
-                                <input type="time" name="jam_mulai" class="input-saas w-full px-4 py-2.5 text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-white">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-siakad-dark dark:text-gray-300 mb-2">Jam Selesai</label>
-                                <input type="time" name="jam_selesai" class="input-saas w-full px-4 py-2.5 text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-white">
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <div class="px-6 py-4 border-t border-siakad-light dark:border-gray-700 flex items-center justify-end gap-3">
                     <button type="button" onclick="document.getElementById('createModal').classList.add('hidden')" class="btn-ghost-saas px-4 py-2 rounded-lg text-sm font-medium dark:text-white">Batal</button>
@@ -359,46 +336,57 @@
                             @endforeach
                         </select>
                     </div>
-                    
-                    <!-- Jadwal Section -->
-                    <div class="pt-4 border-t border-siakad-light dark:border-gray-700">
-                        <h4 class="text-sm font-semibold text-siakad-dark dark:text-white mb-3 flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            Jadwal Kuliah
-                        </h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-siakad-dark dark:text-gray-300 mb-2">Hari</label>
-                                <select name="hari" id="editHari" class="input-saas w-full px-4 py-2.5 text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-white">
-                                    <option value="">Pilih Hari</option>
-                                    <option value="Senin">Senin</option>
-                                    <option value="Selasa">Selasa</option>
-                                    <option value="Rabu">Rabu</option>
-                                    <option value="Kamis">Kamis</option>
-                                    <option value="Jumat">Jumat</option>
-                                    <option value="Sabtu">Sabtu</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-siakad-dark dark:text-gray-300 mb-2">Ruangan</label>
-                                <input type="text" name="ruangan" id="editRuangan" class="input-saas w-full px-4 py-2.5 text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-white" placeholder="Contoh: LT-101">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4 mt-4">
-                            <div>
-                                <label class="block text-sm font-medium text-siakad-dark dark:text-gray-300 mb-2">Jam Mulai</label>
-                                <input type="time" name="jam_mulai" id="editJamMulai" class="input-saas w-full px-4 py-2.5 text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-white">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-siakad-dark dark:text-gray-300 mb-2">Jam Selesai</label>
-                                <input type="time" name="jam_selesai" id="editJamSelesai" class="input-saas w-full px-4 py-2.5 text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-white">
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <div class="px-6 py-4 border-t border-siakad-light dark:border-gray-700 flex items-center justify-end gap-3">
                     <button type="button" onclick="document.getElementById('editModal').classList.add('hidden')" class="btn-ghost-saas px-4 py-2 rounded-lg text-sm font-medium dark:text-white">Batal</button>
                     <button type="submit" class="btn-primary-saas px-4 py-2 rounded-lg text-sm font-medium">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Schedule Modal -->
+    <div id="jadwalModal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl w-full max-w-lg animate-fade-in max-h-[90vh] overflow-y-auto">
+            <div class="px-6 py-4 border-b border-siakad-light dark:border-gray-700">
+                <h3 class="text-lg font-semibold text-siakad-dark dark:text-white">Jadwal Kuliah</h3>
+                <p id="jadwalKelasNama" class="text-sm text-siakad-secondary dark:text-gray-400"></p>
+            </div>
+            <form id="jadwalForm" method="POST">
+                @csrf @method('PUT')
+                <div class="p-6 space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-siakad-dark dark:text-gray-300 mb-2">Hari</label>
+                            <select name="hari" id="jadwalHari" class="input-saas w-full px-4 py-2.5 text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-white" required>
+                                <option value="">Pilih Hari</option>
+                                <option value="Senin">Senin</option>
+                                <option value="Selasa">Selasa</option>
+                                <option value="Rabu">Rabu</option>
+                                <option value="Kamis">Kamis</option>
+                                <option value="Jumat">Jumat</option>
+                                <option value="Sabtu">Sabtu</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-siakad-dark dark:text-gray-300 mb-2">Ruangan</label>
+                            <input type="text" name="ruangan" id="jadwalRuangan" class="input-saas w-full px-4 py-2.5 text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-white" placeholder="Contoh: LT-101">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-siakad-dark dark:text-gray-300 mb-2">Jam Mulai</label>
+                            <input type="time" name="jam_mulai" id="jadwalJamMulai" class="input-saas w-full px-4 py-2.5 text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-white" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-siakad-dark dark:text-gray-300 mb-2">Jam Selesai</label>
+                            <input type="time" name="jam_selesai" id="jadwalJamSelesai" class="input-saas w-full px-4 py-2.5 text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-white" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 border-t border-siakad-light dark:border-gray-700 flex items-center justify-end gap-3">
+                    <button type="button" onclick="document.getElementById('jadwalModal').classList.add('hidden')" class="btn-ghost-saas px-4 py-2 rounded-lg text-sm font-medium dark:text-white">Batal</button>
+                    <button type="submit" class="btn-primary-saas px-4 py-2 rounded-lg text-sm font-medium">Simpan Jadwal</button>
                 </div>
             </form>
         </div>
@@ -411,11 +399,17 @@
             document.getElementById('editMK').value = data.mata_kuliah_id;
             document.getElementById('editDosen').value = data.dosen_id;
             document.getElementById('editKapasitas').value = data.kapasitas;
-            document.getElementById('editHari').value = data.hari || '';
-            document.getElementById('editJamMulai').value = data.jam_mulai || '';
-            document.getElementById('editJamSelesai').value = data.jam_selesai || '';
-            document.getElementById('editRuangan').value = data.ruangan || '';
             document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function editJadwal(data) {
+            document.getElementById('jadwalForm').action = `/admin/kelas/${data.id}/jadwal`;
+            document.getElementById('jadwalKelasNama').textContent = `Kelas ${data.nama_kelas}`;
+            document.getElementById('jadwalHari').value = data.hari || '';
+            document.getElementById('jadwalJamMulai').value = data.jam_mulai || '';
+            document.getElementById('jadwalJamSelesai').value = data.jam_selesai || '';
+            document.getElementById('jadwalRuangan').value = data.ruangan || '';
+            document.getElementById('jadwalModal').classList.remove('hidden');
         }
     </script>
 </x-app-layout>
