@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <link rel="icon" href="{{ asset('asset/favicon-nobg.png') }}" type="image/png">
 
         <title>{{ config('app.name') }}</title>
 
@@ -720,11 +721,17 @@
                             </div>
                         </div>
 
-                        <time id="headerClock" data-digital-clock class="font-mono text-sm md:text-base font-semibold tabular-nums tracking-wide whitespace-nowrap" style="color: var(--text-primary);" aria-label="Jam saat ini">{{ now()->format('H:i:s') }}</time>
+                        <time id="headerClock" data-digital-clock class="flex items-center gap-1.5 font-mono text-sm md:text-base font-semibold tabular-nums tracking-wide whitespace-nowrap" style="color: var(--text-primary);" aria-label="Jam saat ini">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            {{ now()->format('H:i:s') }}
+                        </time>
                         
-                        <div class="text-right hidden md:block">
-                            <p class="text-sm font-medium" style="color: var(--text-primary);">{{ Auth::user()->name }}</p>
-                            <p class="text-[11px]" style="color: var(--text-secondary);">{{ now()->format('l, d M Y') }}</p>
+                        <div class="hidden md:flex items-center gap-2">
+                            <svg class="w-8 h-8 flex-shrink-0 rounded-full p-1.5" style="color: var(--siakad-primary); background-color: rgba(35, 76, 106, 0.08);" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M20 21a8 8 0 00-16 0m8-10a4 4 0 100-8 4 4 0 000 8z"></path></svg>
+                            <div class="text-right">
+                                <p class="text-sm font-medium" style="color: var(--text-primary);">{{ Auth::user()->name }}</p>
+                                <p class="text-[11px]" style="color: var(--text-secondary);">{{ now()->format('l, d M Y') }}</p>
+                            </div>
                         </div>
                     </div>
                 </header>
