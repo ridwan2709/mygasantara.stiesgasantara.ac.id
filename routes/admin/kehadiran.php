@@ -7,6 +7,7 @@ use App\Models\PengaturanGpsKehadiran;
 Route::middleware(['auth', 'role:admin', 'fakultas.scope'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/kehadiran-dosen', [KehadiranDosenController::class, 'index'])->name('kehadiran-dosen.index');
     Route::get('/kehadiran-dosen/{dosen}', [KehadiranDosenController::class, 'show'])->name('kehadiran-dosen.show');
+    
 });
 
 Route::middleware(['auth', 'role:superadmin'])->prefix('admin')->name('admin.')->group(function () {
@@ -19,3 +20,4 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('admin')->name('admin.')-
     Route::put('/pengaturan-gps-kehadiran', [KehadiranDosenController::class, 'updateGpsSettings'])
         ->name('kehadiran-gps.update');
 });
+

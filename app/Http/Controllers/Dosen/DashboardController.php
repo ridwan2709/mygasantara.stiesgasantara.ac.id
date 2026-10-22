@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dosen;
 
 use App\Http\Controllers\Controller;
+use App\Models\KehadiranDosen;
 use App\Models\Kelas;
 use App\Models\Krs;
 use App\Models\Nilai;
@@ -74,22 +75,52 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        // Kelas dengan jadwal hari ini
+        // Jadwal hari ini
         $hariMapping = [
             'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu',
             'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu'
         ];
         $hariIni = $hariMapping[now()->format('l')] ?? now()->format('l');
-        
-        $kelasHariIni = $kelasList->filter(function ($kelas) use ($hariIni) {
-            return $kelas->jadwal->contains('hari', $hariIni);
-        });
+        $currentTime = now()->format('H:i:s');
+        $kehadiranHariIni = KehadiranDosen::query()
+            ->where('dosen_id', $dosen->id)
+            ->whereDate('tanggal', now())
+            ->get()
+            ->keyBy('jadwal_kuliah_id');
+
+        $jadwalHariIni = $kelasList->flatMap(function ($kelas) use ($hariIni) {
+            return $kelas->jadwal
+                ->where('hari', $hariIni)
+                ->map(fn ($jadwal) => ['kelas' => $kelas, 'jadwal' => $jadwal]);
+        })->sortBy(fn ($item) => $item['jadwal']->jam_mulai->format('H:i:s'))->values();
+
+        $belumCheckout = fn ($item) => ! $kehadiranHariIni->get($item['jadwal']->id)?->jam_keluar;
+        $utama = $jadwalHariIni->first(function ($item) use ($belumCheckout, $currentTime) {
+            $jadwal = $item['jadwal'];
+
+            return $belumCheckout($item)
+                && $jadwal->jam_mulai->format('H:i:s') <= $currentTime
+                && $jadwal->jam_selesai->format('H:i:s') >= $currentTime;
+        }) ?? $jadwalHariIni->first(function ($item) use ($belumCheckout, $currentTime) {
+            return $belumCheckout($item)
+                && $item['jadwal']->jam_mulai->format('H:i:s') > $currentTime;
+        }) ?? $jadwalHariIni->first($belumCheckout) ?? $jadwalHariIni->last();
+
+        $kelasUtamaHariIni = $utama['kelas'] ?? null;
+        $jadwalUtamaHariIni = $utama['jadwal'] ?? null;
+        $kehadiranUtama = $jadwalUtamaHariIni
+            ? $kehadiranHariIni->get($jadwalUtamaHariIni->id)
+            : null;
+        $jadwalLainnyaHariIni = $jadwalHariIni
+            ->reject(fn ($item) => $item['jadwal']->id === $jadwalUtamaHariIni?->id)
+            ->values();
 
         return view('dosen.dashboard.index', compact(
             'dosen', 'activeTA', 'kelasList', 'totalKelas', 'totalMahasiswa',
             'nilaiDiinput', 'totalNilai', 'persentaseNilai', 'totalPertemuan',
             'presensiStats', 'mahasiswaBimbingan', 'pendingKrs', 'recentNilai',
-            'kelasHariIni', 'hariIni'
+            'kelasUtamaHariIni', 'jadwalUtamaHariIni', 'kehadiranUtama',
+            'jadwalLainnyaHariIni', 'kehadiranHariIni', 'hariIni'
         ));
     }
 }

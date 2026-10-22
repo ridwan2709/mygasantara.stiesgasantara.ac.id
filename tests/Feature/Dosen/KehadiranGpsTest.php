@@ -13,6 +13,10 @@ use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
+afterEach(function () {
+    \Carbon\Carbon::setTestNow();
+});
+
 function buatJadwalDosen(Dosen $dosen): JadwalKuliah
 {
     $mataKuliah = MataKuliah::create([
@@ -45,6 +49,82 @@ function buatPengaturanGps(): PengaturanGpsKehadiran
         'radius_meter' => 100,
     ]);
 }
+
+it('renders the dashboard attendance button with its class schedule', function () {
+    $this->withoutVite();
+    $dosen = Dosen::factory()->create();
+    $jadwal = buatJadwalDosen($dosen);
+    $hariMapping = [
+        'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu',
+        'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu',
+    ];
+    $jadwal->update(['hari' => $hariMapping[now()->format('l')]]);
+
+    $this->actingAs($dosen->user)
+        ->get(route('dosen.dashboard'))
+        ->assertOk()
+        ->assertSee('showModal('.$jadwal->id)
+        ->assertSee('Pengujian GPS');
+});
+
+it('shows the class currently in progress instead of the first scheduled class', function () {
+    $this->withoutVite();
+    $this->travelTo(\Carbon\Carbon::parse('2026-10-20 10:30:00'));
+
+    $dosen = Dosen::factory()->create();
+    $pastSchedule = buatJadwalDosen($dosen);
+    $ongoingSchedule = buatJadwalDosen($dosen);
+    $upcomingSchedule = buatJadwalDosen($dosen);
+    $today = now()->format('l');
+    $dayMapping = [
+        'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu',
+        'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu',
+    ];
+
+    $pastSchedule->update(['hari' => $dayMapping[$today], 'jam_mulai' => '08:00', 'jam_selesai' => '09:00']);
+    $ongoingSchedule->update(['hari' => $dayMapping[$today], 'jam_mulai' => '10:00', 'jam_selesai' => '11:00']);
+    $upcomingSchedule->update(['hari' => $dayMapping[$today], 'jam_mulai' => '12:00', 'jam_selesai' => '13:00']);
+
+    $this->actingAs($dosen->user)
+        ->get(route('dosen.dashboard'))
+        ->assertOk()
+        ->assertSee('showModal('.$ongoingSchedule->id)
+        ->assertDontSee('showModal('.$pastSchedule->id)
+        ->assertDontSee('showModal('.$upcomingSchedule->id);
+});
+
+it('shows the next class when no class is currently in progress', function () {
+    $this->withoutVite();
+    $this->travelTo(\Carbon\Carbon::parse('2026-10-20 10:30:00'));
+
+    $dosen = Dosen::factory()->create();
+    $pastSchedule = buatJadwalDosen($dosen);
+    $upcomingSchedule = buatJadwalDosen($dosen);
+    $today = now()->format('l');
+    $dayMapping = [
+        'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu',
+        'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu',
+    ];
+
+    $pastSchedule->update(['hari' => $dayMapping[$today], 'jam_mulai' => '08:00', 'jam_selesai' => '09:00']);
+    $upcomingSchedule->update(['hari' => $dayMapping[$today], 'jam_mulai' => '12:00', 'jam_selesai' => '13:00']);
+
+    $this->actingAs($dosen->user)
+        ->get(route('dosen.dashboard'))
+        ->assertOk()
+        ->assertSee('showModal('.$upcomingSchedule->id)
+        ->assertDontSee('showModal('.$pastSchedule->id);
+});
+
+it('renders the lecturer attendance page with attendance data', function () {
+    $this->withoutVite();
+    $dosen = Dosen::factory()->create();
+
+    $this->actingAs($dosen->user)
+        ->get(route('dosen.kehadiran.index'))
+        ->assertOk()
+        ->assertSee('Kehadiran Mengajar');
+});
 
 it('records lecturer check-in and checkout coordinates within the configured radius', function () {
     $this->withoutVite();
