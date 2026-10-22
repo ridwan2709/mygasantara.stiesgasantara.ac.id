@@ -120,7 +120,7 @@ class KehadiranController extends Controller
             }
         });
 
-        return redirect()->back()->with('success', 'Kehadiran berhasil dicatat');
+       return redirect()->route('dosen.kehadiran.index')->with('success', 'Kehadiran berhasil dicatat');
     }
 
     public function checkout(Request $request, KehadiranDosen $kehadiran)

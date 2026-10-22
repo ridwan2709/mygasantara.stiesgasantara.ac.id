@@ -28,7 +28,7 @@ class SecurityHeadersMiddleware
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
         // Permissions policy (formerly Feature-Policy)
-        $geolocationPolicy = $request->routeIs('dosen.kehadiran.index', 'admin.kehadiran-gps.edit')
+        $geolocationPolicy = $request->routeIs('dosen.kehadiran.index', 'admin.kehadiran-gps.edit', 'dosen.dashboard')
             ? '(self)'
             : '()';
         $response->headers->set('Permissions-Policy', "camera=(), microphone=(), geolocation={$geolocationPolicy}");
