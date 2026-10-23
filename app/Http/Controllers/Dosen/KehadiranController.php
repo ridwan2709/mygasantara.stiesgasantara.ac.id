@@ -51,7 +51,7 @@ class KehadiranController extends Controller
             ->orderBy('tanggal', 'desc')
             ->get();
 
-        return view('dosen.kehadiran.index', compact('dosen', 'jadwalHariIni', 'kehadiranHariIni', 'stats', 'riwayat', 'month', 'year'));
+        return view('dosen.presensi.index', compact('dosen', 'jadwalHariIni', 'kehadiranHariIni', 'stats', 'riwayat', 'month', 'year'));
     }
 
     public function store(Request $request)
@@ -120,7 +120,7 @@ class KehadiranController extends Controller
             }
         });
 
-       return redirect()->route('dosen.kehadiran.index')->with('success', 'Kehadiran berhasil dicatat');
+       return redirect()->route('dosen.presensi.kelas', $jadwal->kelas_id)->with('success', 'Kehadiran berhasil dicatat');
     }
 
     public function checkout(Request $request, KehadiranDosen $kehadiran)
