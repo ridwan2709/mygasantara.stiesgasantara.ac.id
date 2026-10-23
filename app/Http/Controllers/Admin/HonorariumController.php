@@ -11,6 +11,7 @@ use App\Models\KehadiranMengajar;
 use App\Models\Kelas;
 use App\Models\MataKuliah;
 use App\Models\TarifHonorarium;
+use App\Services\HonorariumService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -24,6 +25,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class HonorariumController extends Controller
 {
+    public function __construct(private HonorariumService $honorariumService) {}
+
     public function index(Request $request): Response
     {
         $validated = $request->validate([
@@ -125,13 +128,21 @@ class HonorariumController extends Controller
         abort_unless($kehadiranMengajar->status_verifikasi === KehadiranMengajar::STATUS_PENDING, 409);
         $this->assertPeriodIsNotPaid($kehadiranMengajar->dosen_id, $kehadiranMengajar->tanggal);
 
-        $kehadiranMengajar->update([
-            'status_verifikasi' => $validated['status_verifikasi'],
-            'diverifikasi_oleh' => $request->user()->id,
-            'diverifikasi_pada' => now(),
-        ]);
+        DB::transaction(function () use ($request, $validated, $kehadiranMengajar): void {
+            $kehadiranMengajar->update([
+                'status_verifikasi' => $validated['status_verifikasi'],
+                'diverifikasi_oleh' => $request->user()->id,
+                'diverifikasi_pada' => now(),
+            ]);
 
-        return back()->with('success', 'Status verifikasi kehadiran berhasil disimpan.');
+            $this->honorariumService->recalculate(
+                $kehadiranMengajar->dosen_id,
+                $kehadiranMengajar->tanggal->month,
+                $kehadiranMengajar->tanggal->year,
+            );
+        });
+
+        return back()->with('success', 'Status verifikasi disimpan dan rekap honorarium diperbarui.');
     }
 
     public function storeInsentif(Request $request): RedirectResponse
@@ -214,58 +225,7 @@ class HonorariumController extends Controller
 
         DB::transaction(function () use ($dosenList, $bulan, $tahun): void {
             foreach ($dosenList as $dosen) {
-                $summary = Honorarium::query()
-                    ->where('dosen_id', $dosen->id)
-                    ->where('bulan', $bulan)
-                    ->where('tahun', $tahun)
-                    ->lockForUpdate()
-                    ->first();
-
-                if ($summary?->status_pembayaran === Honorarium::STATUS_PAID) {
-                    continue;
-                }
-
-                $kehadiranList = KehadiranMengajar::with('mataKuliah')
-                    ->where('dosen_id', $dosen->id)
-                    ->whereYear('tanggal', $tahun)
-                    ->whereMonth('tanggal', $bulan)
-                    ->where('status_hadir', 'hadir')
-                    ->where('status_verifikasi', KehadiranMengajar::STATUS_APPROVED)
-                    ->get();
-
-                $totalHonorMengajar = 0.0;
-                foreach ($kehadiranList as $kehadiran) {
-                    $tarif = $this->tarifForDate($kehadiran->tanggal->toDateString());
-                    if (! $tarif) {
-                        throw ValidationException::withMessages([
-                            'tarif' => "Tarif honorarium belum tersedia untuk tanggal {$kehadiran->tanggal->toDateString()}.",
-                        ]);
-                    }
-
-                    $totalHonorMengajar += $tarif->basis_tarif === 'per_sks'
-                        ? (float) $tarif->nominal * (int) $kehadiran->mataKuliah->sks
-                        : (float) $tarif->nominal;
-                }
-
-                $totalInsentif = (float) InsentifManual::query()
-                    ->where('dosen_id', $dosen->id)
-                    ->whereYear('tanggal', $tahun)
-                    ->whereMonth('tanggal', $bulan)
-                    ->sum('nominal');
-                $totals = [
-                    'total_kehadiran' => $kehadiranList->count(),
-                    'total_honor_mengajar' => round($totalHonorMengajar, 2),
-                    'total_insentif_manual' => round($totalInsentif, 2),
-                    'total_penerimaan' => round($totalHonorMengajar + $totalInsentif, 2),
-                    'status_pembayaran' => Honorarium::STATUS_DRAFT,
-                    'tanggal_bayar' => null,
-                    'direkap_pada' => now(),
-                ];
-
-                Honorarium::updateOrCreate(
-                    ['dosen_id' => $dosen->id, 'bulan' => $bulan, 'tahun' => $tahun],
-                    $totals,
-                );
+                $this->honorariumService->recalculate($dosen->id, $bulan, $tahun);
             }
         });
 
@@ -319,15 +279,6 @@ class HonorariumController extends Controller
             ->get();
 
         return [$bulan, $tahun, $honorariumList];
-    }
-
-    private function tarifForDate(string $date): ?TarifHonorarium
-    {
-        return TarifHonorarium::query()
-            ->whereDate('berlaku_mulai', '<=', $date)
-            ->where(fn (Builder $query) => $query->whereNull('berlaku_sampai')->orWhereDate('berlaku_sampai', '>=', $date))
-            ->latest('berlaku_mulai')
-            ->first();
     }
 
     private function scopedDosenQuery(): Builder

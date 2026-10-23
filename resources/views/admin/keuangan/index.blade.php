@@ -122,7 +122,6 @@
                 @csrf
                 <input type="hidden" name="bulan" value="{{ $bulan }}">
                 <input type="hidden" name="tahun" value="{{ $tahun }}">
-                <button class="btn-primary-saas rounded-lg px-4 py-2">Generate / hitung ulang rekap</button>
             </form>
         </div>
         <div class="overflow-x-auto">
