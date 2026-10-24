@@ -30,6 +30,6 @@ class HonorariumController extends Controller
         abort_unless($dosen && $honorarium->dosen_id === $dosen->id, 404);
 
         return Pdf::loadView('dosen.honorarium.slip', compact('honorarium'))
-            ->download("slip-honor-{$honorarium->tahun}-".str_pad((string) $honorarium->bulan, 2, '0', STR_PAD_LEFT).'.pdf');
+            ->stream("slip-honor-{$honorarium->tahun}-".str_pad((string) $honorarium->bulan, 2, '0', STR_PAD_LEFT).'.pdf');
     }
 }

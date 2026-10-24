@@ -18,7 +18,7 @@
                             <td class="px-5 py-3 text-right">Rp{{ number_format((float) $honorarium->total_insentif_manual, 0, ',', '.') }}</td>
                             <td class="px-5 py-3 text-right font-semibold">Rp{{ number_format((float) $honorarium->total_penerimaan, 0, ',', '.') }}</td>
                             <td class="px-5 py-3">{{ $honorarium->status_pembayaran === 'paid' ? 'Dibayar' : 'Draft' }}</td>
-                            <td class="px-5 py-3"><a href="{{ route('dosen.honorarium.slip', $honorarium) }}" class="text-siakad-primary underline dark:text-blue-400">Unduh PDF</a></td>
+                            <td class="px-5 py-3"><a href="{{ route('dosen.honorarium.slip', $honorarium) }}" target="_blank" class="text-siakad-primary underline dark:text-blue-400">Lihat Slip</a></td>
                         </tr>
                     @empty
                         <tr><td colspan="7" class="px-5 py-8 text-center text-siakad-secondary">Belum ada rekap honorarium.</td></tr>

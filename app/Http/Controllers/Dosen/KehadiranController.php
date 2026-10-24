@@ -123,7 +123,7 @@ class KehadiranController extends Controller
        return redirect()->route('dosen.presensi.kelas', $jadwal->kelas_id)->with('success', 'Kehadiran berhasil dicatat');
     }
 
-    public function checkout(Request $request, KehadiranDosen $kehadiran)
+public function checkout(Request $request, KehadiranDosen $kehadiran)
     {
         $dosen = Auth::user()->dosen;
         if ($kehadiran->dosen_id !== $dosen->id) abort(403);
@@ -152,6 +152,7 @@ class KehadiranController extends Controller
 
         return redirect()->back()->with('success', 'Checkout berhasil');
     }
+
 
     /**
      * @return array{latitude: float, longitude: float}|\Illuminate\Http\RedirectResponse
