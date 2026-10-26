@@ -124,34 +124,24 @@ class KehadiranController extends Controller
     }
 
 public function checkout(Request $request, KehadiranDosen $kehadiran)
-    {
-        $dosen = Auth::user()->dosen;
-        if ($kehadiran->dosen_id !== $dosen->id) abort(403);
+{
+    $dosen = Auth::user()->dosen;
+    if ($kehadiran->dosen_id !== $dosen->id) abort(403);
 
-        $validated = $request->validate([
-            'latitude' => ['required', 'numeric', 'between:-90,90'],
-            'longitude' => ['required', 'numeric', 'between:-180,180'],
+    DB::transaction(function () use ($kehadiran): void {
+        $jamKeluar = now()->format('H:i:s');
+
+        $kehadiran->update([
+            'jam_keluar' => $jamKeluar,
         ]);
-        $coordinates = $this->validatedGpsCoordinates($validated['latitude'], $validated['longitude']);
-        if ($coordinates instanceof \Illuminate\Http\RedirectResponse) {
-            return $coordinates;
-        }
 
-        DB::transaction(function () use ($kehadiran, $coordinates): void {
-            $jamKeluar = now()->format('H:i:s');
-            $kehadiran->update([
-                'jam_keluar' => $jamKeluar,
-                'latitude_keluar' => $coordinates['latitude'],
-                'longitude_keluar' => $coordinates['longitude'],
-            ]);
+        $kehadiran->kehadiranMengajar()
+            ->where('status_verifikasi', KehadiranMengajar::STATUS_PENDING)
+            ->update(['jam_selesai' => $jamKeluar]);
+    });
 
-            $kehadiran->kehadiranMengajar()
-                ->where('status_verifikasi', KehadiranMengajar::STATUS_PENDING)
-                ->update(['jam_selesai' => $jamKeluar]);
-        });
-
-        return redirect()->back()->with('success', 'Checkout berhasil');
-    }
+    return redirect()->back()->with('success', 'Checkout berhasil');
+}
 
 
     /**
