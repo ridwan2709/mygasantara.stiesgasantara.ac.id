@@ -310,6 +310,10 @@ class HonorariumController extends Controller
             ->where('status_pembayaran', Honorarium::STATUS_PAID)
             ->exists();
 
-        abort_if($periodIsPaid, 409, 'Data honorarium periode ini sudah dibayar dan tidak dapat diubah.');
+        if ($periodIsPaid) {
+            throw ValidationException::withMessages([
+                'periode' => 'Data honorarium periode ini sudah dibayar dan tidak dapat divalidasi.',
+            ]);
+        }
     }
 }
