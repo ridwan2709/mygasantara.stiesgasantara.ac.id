@@ -22,8 +22,7 @@
         <p><strong>{{ $honorarium->dosen->user->name }}</strong><br>NIDN {{ $honorarium->dosen->nidn }}</p>
         <table>
             <tr><td>Jumlah kehadiran mengajar terverifikasi</td><td class="amount">{{ $honorarium->total_kehadiran }} pertemuan</td></tr>
-            <tr><td>Honor mengajar</td><td class="amount">Rp{{ number_format((float) $honorarium->total_honor_mengajar, 0, ',', '.') }}</td></tr>
-            <tr><td>Insentif manual</td><td class="amount">Rp{{ number_format((float) $honorarium->total_insentif_manual, 0, ',', '.') }}</td></tr>
+            <tr><td>Honor mengajar {{ $honorarium->total_kehadiran }}X</td><td class="amount">Rp{{ number_format((float) $honorarium->total_honor_mengajar, 0, ',', '.') }}</td></tr>
             <tr class="total"><td>Total penerimaan</td><td class="amount">Rp{{ number_format((float) $honorarium->total_penerimaan, 0, ',', '.') }}</td></tr>
             <tr><td>Status pembayaran</td><td class="amount">{{ $honorarium->status_pembayaran === 'paid' ? 'Dibayar' : 'Draft' }}</td></tr>
             @if($honorarium->tanggal_bayar)<tr><td>Tanggal pembayaran</td><td class="amount">{{ $honorarium->tanggal_bayar->format('d/m/Y') }}</td></tr>@endif
