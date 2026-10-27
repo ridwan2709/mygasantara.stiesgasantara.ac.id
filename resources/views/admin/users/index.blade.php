@@ -13,7 +13,7 @@
                 <select name="role" class="input-saas px-4 py-2 text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300">
                     <option value="">Semua Role</option>
                     <option value="superadmin" {{ request('role') == 'superadmin' ? 'selected' : '' }}>Superadmin</option>
-                    <option value="admin_fakultas" {{ request('role') == 'admin_fakultas' ? 'selected' : '' }}>Admin Fakultas</option>
+                    <option value="admin_prodi" {{ request('role') == 'admin_prodi' ? 'selected' : '' }}>Admin Prodi</option>
                     <option value="dosen" {{ request('role') == 'dosen' ? 'selected' : '' }}>Dosen</option>
                     <option value="mahasiswa" {{ request('role') == 'mahasiswa' ? 'selected' : '' }}>Mahasiswa</option>
                 </select>
@@ -40,7 +40,7 @@
                     <th class="text-left py-3 px-5 text-xs font-semibold text-siakad-secondary uppercase">Nama</th>
                     <th class="text-left py-3 px-5 text-xs font-semibold text-siakad-secondary uppercase">Email</th>
                     <th class="text-left py-3 px-5 text-xs font-semibold text-siakad-secondary uppercase">Role</th>
-                    <th class="text-left py-3 px-5 text-xs font-semibold text-siakad-secondary uppercase">Fakultas</th>
+                    <th class="text-left py-3 px-5 text-xs font-semibold text-siakad-secondary uppercase">Prodi</th>
                     <th class="text-right py-3 px-5 text-xs font-semibold text-siakad-secondary uppercase">Aksi</th>
                 </tr>
             </thead>
@@ -55,11 +55,12 @@
                         <td class="py-4 px-5 text-sm text-siakad-secondary">{{ $user->email }}</td>
                         <td class="py-4 px-5">
                             @php
-                                $roleColors = ['superadmin'=>'bg-purple-100 text-purple-800','admin'=>'bg-blue-100 text-blue-800','admin_fakultas'=>'bg-indigo-100 text-indigo-800','dosen'=>'bg-green-100 text-green-800','mahasiswa'=>'bg-yellow-100 text-yellow-800'];
+                                $roleColors = ['superadmin'=>'bg-purple-100 text-purple-800','admin'=>'bg-blue-100 text-blue-800','admin_prodi'=>'bg-indigo-100 text-indigo-800','dosen'=>'bg-green-100 text-green-800','mahasiswa'=>'bg-yellow-100 text-yellow-800'];
+                                $roleLabels = ['admin_prodi' => 'Admin Prodi'];
                             @endphp
-                            <span class="inline-flex px-2.5 py-1 text-xs font-medium rounded-full {{ $roleColors[$user->role] ?? 'bg-gray-100 text-gray-800' }}">{{ ucfirst(str_replace('_', ' ', $user->role)) }}</span>
+                            <span class="inline-flex px-2.5 py-1 text-xs font-medium rounded-full {{ $roleColors[$user->role] ?? 'bg-gray-100 text-gray-800' }}">{{ $roleLabels[$user->role] ?? ucfirst(str_replace('_', ' ', $user->role)) }}</span>
                         </td>
-                        <td class="py-4 px-5 text-sm text-siakad-secondary">{{ $user->fakultas?->nama ?? ($user->mahasiswa?->prodi?->fakultas?->nama ?? ($user->dosen?->prodi?->fakultas?->nama ?? '-')) }}</td>
+                        <td class="py-4 px-5 text-sm text-siakad-secondary">{{ $user->prodi?->nama ?? ($user->mahasiswa?->prodi?->nama ?? ($user->dosen?->prodi?->nama ?? '-')) }}</td>
                         <td class="py-4 px-5 text-right">
                             <div class="flex items-center justify-end gap-1">
                                 <button onclick="openEditModal({{ json_encode($user) }})" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg" title="Edit"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
@@ -91,12 +92,12 @@
                     <div><label class="block text-sm font-medium text-siakad-secondary mb-1">Email</label><input type="email" name="email" required class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
                     <div><label class="block text-sm font-medium text-siakad-secondary mb-1">Password</label><input type="password" name="password" required minlength="8" class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
                     <div><label class="block text-sm font-medium text-siakad-secondary mb-1">Role</label>
-                        <select name="role" id="createRole" required onchange="toggleFakultasField('create')" class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                            <option value="superadmin">Superadmin</option><option value="admin_fakultas">Admin Fakultas</option><option value="dosen">Dosen</option><option value="mahasiswa">Mahasiswa</option>
+                        <select name="role" id="createRole" required onchange="toggleProdiField('create')" class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <option value="superadmin">Superadmin</option><option value="admin_prodi">Admin Prodi</option><option value="dosen">Dosen</option><option value="mahasiswa">Mahasiswa</option>
                         </select>
                     </div>
-                    <div id="createFakultasField" class="hidden"><label class="block text-sm font-medium text-siakad-secondary mb-1">Fakultas</label>
-                        <select name="fakultas_id" class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="">-- Pilih --</option>@foreach($fakultasList as $f)<option value="{{ $f->id }}">{{ $f->nama }}</option>@endforeach</select>
+                    <div id="createProdiField" class="hidden"><label class="block text-sm font-medium text-siakad-secondary mb-1">Prodi</label>
+                        <select name="prodi_id" class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="">-- Pilih --</option>@foreach($prodiList as $prodi)<option value="{{ $prodi->id }}">{{ $prodi->nama }} ({{ $prodi->fakultas->nama }})</option>@endforeach</select>
                     </div>
                     <div class="flex justify-end gap-3"><button type="button" onclick="closeModal('createModal')" class="px-4 py-2 text-sm text-siakad-secondary hover:bg-gray-100 rounded-lg">Batal</button><button type="submit" class="btn-primary-saas px-4 py-2 rounded-lg text-sm">Simpan</button></div>
                 </form>
@@ -115,12 +116,12 @@
                     <div><label class="block text-sm font-medium text-siakad-secondary mb-1">Email</label><input type="email" name="email" id="editEmail" required class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
                     <div><label class="block text-sm font-medium text-siakad-secondary mb-1">Password (kosongkan jika tidak diubah)</label><input type="password" name="password" minlength="8" class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
                     <div><label class="block text-sm font-medium text-siakad-secondary mb-1">Role</label>
-                        <select name="role" id="editRole" required onchange="toggleFakultasField('edit')" class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                            <option value="superadmin">Superadmin</option><option value="admin_fakultas">Admin Fakultas</option><option value="dosen">Dosen</option><option value="mahasiswa">Mahasiswa</option>
+                        <select name="role" id="editRole" required onchange="toggleProdiField('edit')" class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <option value="superadmin">Superadmin</option><option value="admin_prodi">Admin Prodi</option><option value="dosen">Dosen</option><option value="mahasiswa">Mahasiswa</option>
                         </select>
                     </div>
-                    <div id="editFakultasField" class="hidden"><label class="block text-sm font-medium text-siakad-secondary mb-1">Fakultas</label>
-                        <select name="fakultas_id" id="editFakultasId" class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="">-- Pilih --</option>@foreach($fakultasList as $f)<option value="{{ $f->id }}">{{ $f->nama }}</option>@endforeach</select>
+                    <div id="editProdiField" class="hidden"><label class="block text-sm font-medium text-siakad-secondary mb-1">Prodi</label>
+                        <select name="prodi_id" id="editProdiId" class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="">-- Pilih --</option>@foreach($prodiList as $prodi)<option value="{{ $prodi->id }}">{{ $prodi->nama }} ({{ $prodi->fakultas->nama }})</option>@endforeach</select>
                     </div>
                     <div class="flex justify-end gap-3"><button type="button" onclick="closeModal('editModal')" class="px-4 py-2 text-sm text-siakad-secondary hover:bg-gray-100 rounded-lg">Batal</button><button type="submit" class="btn-primary-saas px-4 py-2 rounded-lg text-sm">Simpan</button></div>
                 </form>
@@ -131,17 +132,17 @@
     <script>
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-        function toggleFakultasField(prefix) {
+        function toggleProdiField(prefix) {
             const role = document.getElementById(prefix + 'Role').value;
-            document.getElementById(prefix + 'FakultasField').classList.toggle('hidden', role !== 'admin_fakultas');
+            document.getElementById(prefix + 'ProdiField').classList.toggle('hidden', role !== 'admin_prodi');
         }
         function openEditModal(user) {
             document.getElementById('editForm').action = `/admin/users/${user.id}`;
             document.getElementById('editName').value = user.name;
             document.getElementById('editEmail').value = user.email;
             document.getElementById('editRole').value = user.role;
-            document.getElementById('editFakultasId').value = user.fakultas_id || '';
-            toggleFakultasField('edit');
+            document.getElementById('editProdiId').value = user.prodi_id || '';
+            toggleProdiField('edit');
             openModal('editModal');
         }
     </script>

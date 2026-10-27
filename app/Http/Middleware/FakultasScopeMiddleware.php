@@ -10,15 +10,14 @@ class FakultasScopeMiddleware
 {
     /**
      * Handle an incoming request.
-     * 
-     * This middleware ensures that faculty-level admins can only access
-     * data within their assigned faculty.
+     *
+     * This middleware adds the assigned program and faculty scopes to admin requests.
      */
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return $next($request);
         }
 
@@ -27,12 +26,15 @@ class FakultasScopeMiddleware
             return $next($request);
         }
 
-        // For admin_fakultas, check if they're trying to access resources
-        // outside their faculty
-        if ($user->role === 'admin_fakultas' && $user->fakultas_id) {
-            // Store the fakultas constraint in the request for controllers to use
+        if ($user->role === 'admin_prodi') {
+            $user->loadMissing('prodi');
+
+            abort_unless($user->prodi, 403, 'Akun admin prodi belum memiliki prodi yang ditetapkan.');
+
             $request->merge([
-                'fakultas_scope' => $user->fakultas_id,
+                'prodi_scope' => $user->prodi_id,
+                'prodi_scoped' => true,
+                'fakultas_scope' => $user->prodi->fakultas_id,
                 'fakultas_scoped' => true,
             ]);
         }

@@ -3,22 +3,21 @@
 use Illuminate\Support\Facades\Route;
 
 // Redirect root to login page
-Route::get('/', fn() => redirect()->route('login'));
+Route::get('/', fn () => redirect()->route('login'));
 
 // Redirect generic dashboard to role-specific dashboard
 Route::get('/dashboard', function () {
     $routes = [
-        'superadmin'     => 'admin.dashboard',
-        'admin_fakultas' => 'admin.dashboard',
-        'dosen'          => 'dosen.dashboard',
-        'mahasiswa'      => 'mahasiswa.dashboard',
+        'superadmin' => 'admin.dashboard',
+        'admin_prodi' => 'admin.dashboard',
+        'dosen' => 'dosen.dashboard',
+        'mahasiswa' => 'mahasiswa.dashboard',
     ];
 
     $role = auth()->user()->role;
 
     return redirect()->route($routes[$role] ?? 'login');
 })->middleware(['auth', 'verified'])->name('dashboard');
-
 
 require __DIR__.'/auth.php';
 require __DIR__.'/health.php';

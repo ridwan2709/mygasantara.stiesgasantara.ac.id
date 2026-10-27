@@ -399,7 +399,7 @@
                 <!-- Navigation -->
                 <nav class="p-3 space-y-1 overflow-y-auto" style="max-height: calc(100vh - 180px);">
 
-                    @if(in_array(Auth::user()->role, ['superadmin', 'admin_fakultas']))
+                    @if(in_array(Auth::user()->role, ['superadmin', 'admin_prodi']))
                     <!-- Admin Panel -->
                     <a href="{{ url('admin/dashboard') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('admin/dashboard') ? 'active' : '' }}">
                         <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
@@ -660,7 +660,7 @@
                         @endisset
                     </div>
                     <div class="flex items-center gap-2 md:gap-4">
-                        @if(in_array(auth()->user()->role, ['mahasiswa', 'dosen', 'admin', 'superadmin', 'admin_fakultas']))
+                        @if(in_array(auth()->user()->role, ['mahasiswa', 'dosen', 'admin', 'superadmin', 'admin_prodi']))
                         <!-- Dark Mode Toggle -->
                         <button id="darkModeToggle" onclick="toggleDarkMode()" class="p-2 rounded-lg transition-colors hover:bg-siakad-light/50" style="color: var(--text-secondary);" title="Toggle Dark Mode">
                             <svg id="moonIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>

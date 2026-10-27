@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\KehadiranDosen;
 use App\Models\Dosen;
+use App\Models\KehadiranDosen;
 use App\Models\PengaturanGpsKehadiran;
-use Illuminate\Http\Request;
-use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class KehadiranDosenController extends Controller
 {
@@ -26,21 +25,21 @@ class KehadiranDosenController extends Controller
             $query->where('dosen_id', $dosenId);
         }
 
-        // Faculty scoping for admin_fakultas
-        if ($request->get('fakultas_scoped') && $request->get('fakultas_scope')) {
-            $fakultasId = $request->get('fakultas_scope');
-            $query->whereHas('dosen.prodi', fn($q) => $q->where('fakultas_id', $fakultasId));
+        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
+            $query->whereHas('dosen', fn ($q) => $q->where('prodi_id', $request->get('prodi_scope')));
         }
 
         $kehadiranList = $query->orderBy('tanggal', 'desc')->paginate(50);
 
         // Stats - also scoped
         $statsQuery = KehadiranDosen::whereYear('tanggal', $year)->whereMonth('tanggal', $month);
-        if ($dosenId) $statsQuery->where('dosen_id', $dosenId);
-        if ($request->get('fakultas_scoped') && $request->get('fakultas_scope')) {
-            $statsQuery->whereHas('dosen.prodi', fn($q) => $q->where('fakultas_id', $request->get('fakultas_scope')));
+        if ($dosenId) {
+            $statsQuery->where('dosen_id', $dosenId);
         }
-        
+        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
+            $statsQuery->whereHas('dosen', fn ($q) => $q->where('prodi_id', $request->get('prodi_scope')));
+        }
+
         $stats = $statsQuery->selectRaw('status, COUNT(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status')
@@ -48,16 +47,16 @@ class KehadiranDosenController extends Controller
 
         // Scope dosen list for dropdown
         $dosenQuery = Dosen::with('user');
-        if ($request->get('fakultas_scoped') && $request->get('fakultas_scope')) {
-            $dosenQuery->whereHas('prodi', fn($q) => $q->where('fakultas_id', $request->get('fakultas_scope')));
+        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
+            $dosenQuery->where('prodi_id', $request->get('prodi_scope'));
         }
         $dosenList = $dosenQuery->get();
 
         // Rekap per dosen - also scoped
         $rekapQuery = KehadiranDosen::whereYear('tanggal', $year)
             ->whereMonth('tanggal', $month);
-        if ($request->get('fakultas_scoped') && $request->get('fakultas_scope')) {
-            $rekapQuery->whereHas('dosen.prodi', fn($q) => $q->where('fakultas_id', $request->get('fakultas_scope')));
+        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
+            $rekapQuery->whereHas('dosen', fn ($q) => $q->where('prodi_id', $request->get('prodi_scope')));
         }
         $rekapDosen = $rekapQuery->selectRaw('dosen_id, status, COUNT(*) as count')
             ->groupBy('dosen_id', 'status')
@@ -67,9 +66,13 @@ class KehadiranDosenController extends Controller
         return view('admin.kehadiran-dosen.index', compact('kehadiranList', 'stats', 'dosenList', 'rekapDosen', 'month', 'year', 'dosenId'));
     }
 
-
     public function show(Dosen $dosen, Request $request)
     {
+        abort_unless(
+            auth()->user()->role !== 'admin_prodi'
+                || (int) $dosen->prodi_id === (int) auth()->user()->prodi_id,
+            404
+        );
         $month = $request->get('month', now()->month);
         $year = $request->get('year', now()->year);
 
@@ -87,6 +90,7 @@ class KehadiranDosenController extends Controller
 
     public function updateGpsSettings(Request $request): RedirectResponse
     {
+        abort_unless(auth()->user()->isSuperAdmin(), 403);
         $validated = $request->validate([
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],

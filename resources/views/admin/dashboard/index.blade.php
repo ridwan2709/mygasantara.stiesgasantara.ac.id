@@ -7,7 +7,7 @@
         @endif
     </x-slot>
 
-    <!-- Faculty Info Banner for admin_fakultas -->
+    <!-- Faculty information for the admin's assigned prodi -->
     @if(!$isSuperAdmin && $fakultas)
     <div class="mb-6 p-4 bg-gradient-to-r from-siakad-primary to-siakad-dark rounded-xl">
         <div class="flex items-center gap-3">
