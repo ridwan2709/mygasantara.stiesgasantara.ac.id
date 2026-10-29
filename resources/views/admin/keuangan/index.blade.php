@@ -41,6 +41,7 @@
             @else
                 <p class="mb-4 text-sm text-amber-700 dark:text-amber-300">Belum ada tarif aktif.</p>
             @endif
+           @if(in_array(auth()->user()->role, ['superadmin', 'bendahara'], true))
             <form method="POST" action="{{ route('admin.honorarium.tarif.store') }}" class="space-y-3">
                 @csrf
                 <label class="block text-sm">Basis tarif
@@ -57,6 +58,7 @@
                 </label>
                 <button class="btn-primary-saas rounded-lg px-4 py-2">Simpan tarif</button>
             </form>
+            @endif
         </section>
 
         <section class="card-saas p-5 dark:bg-gray-800">
@@ -207,4 +209,5 @@
             </table>
         </div>
     </section>
+
 </x-app-layout>

@@ -14,7 +14,7 @@ class RoleMiddleware
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next, string $role): Response
+    public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         if (!Auth::check()) {
             if ($request->expectsJson()) {
@@ -24,13 +24,13 @@ class RoleMiddleware
         }
 
         $user = Auth::user();
-        
-        // Check if user has the required role
-        $hasAccess = match($role) {
-            'admin' => in_array($user->role, ['superadmin', 'admin_fakultas']),
-            'superadmin' => $user->role === 'superadmin',
-            default => $user->role === $role,
-        };
+        $allowedRoles = [];
+
+        foreach ($roles as $role) {
+            $allowedRoles = array_merge($allowedRoles, $this->expandRole($role));
+        }
+
+        $hasAccess = in_array($user->role, $allowedRoles, true);
 
         if (!$hasAccess) {
             if ($request->expectsJson()) {
@@ -40,5 +40,13 @@ class RoleMiddleware
         }
 
         return $next($request);
+    }
+
+    private function expandRole(string $role): array
+    {
+        return match ($role) {
+            'admin' => ['superadmin', 'admin_fakultas'],
+            default => [$role],
+        };
     }
 }

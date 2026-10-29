@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Bendahara\DashboardController as BendaharaDashboardController;
+use App\Http\Controllers\Staff\DashboardController as StaffDashboardController;
 
 // Redirect root to login page
 Route::get('/', fn() => redirect()->route('login'));
@@ -12,6 +14,8 @@ Route::get('/dashboard', function () {
         'admin_fakultas' => 'admin.dashboard',
         'dosen'          => 'dosen.dashboard',
         'mahasiswa'      => 'mahasiswa.dashboard',
+        'bendahara'      => 'bendahara.dashboard',
+        'staff'          => 'staff.dashboard',
     ];
 
     $role = auth()->user()->role;
@@ -19,6 +23,13 @@ Route::get('/dashboard', function () {
     return redirect()->route($routes[$role] ?? 'login');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::middleware(['auth', 'role:bendahara'])->prefix('bendahara')->name('bendahara.')->group(function () {
+    Route::get('/dashboard', [BendaharaDashboardController::class, 'index'])->name('dashboard');
+});
+
+Route::middleware(['auth', 'role:staff'])->prefix('staff')->name('staff.')->group(function () {
+    Route::get('/dashboard', [StaffDashboardController::class, 'index'])->name('dashboard');
+});
 
 require __DIR__.'/auth.php';
 require __DIR__.'/health.php';

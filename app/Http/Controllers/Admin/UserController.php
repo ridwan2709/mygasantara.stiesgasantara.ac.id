@@ -8,6 +8,7 @@ use App\Models\Fakultas;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
@@ -56,6 +57,7 @@ class UserController extends Controller
                 $q->where('fakultas_id', $fakultasId)
                     ->orWhereHas('mahasiswa', fn($m) => $m->whereHas('prodi', fn($p) => $p->where('fakultas_id', $fakultasId)))
                     ->orWhereHas('dosen', fn($d) => $d->whereHas('prodi', fn($p) => $p->where('fakultas_id', $fakultasId)));
+                
             });
         }
 
@@ -73,14 +75,23 @@ class UserController extends Controller
             'name'     => 'required|string|max:255',
             'email'    => 'required|string|email|max:255|unique:users',
             'password' => ['required', 'string', Password::min(8)],
-            'role'     => 'required|in:superadmin,admin_fakultas,dosen,mahasiswa',
+            'role'     => 'required|in:superadmin,admin_fakultas,dosen,mahasiswa,bendahara,staff',
             'fakultas_id' => 'nullable|exists:fakultas,id',
+            'boleh_absen' => ['nullable', 'boolean'],
             // Polymorphic validation
             'nim'      => 'required_if:role,mahasiswa|nullable|unique:mahasiswa,nim',
             'nidn'     => 'required_if:role,dosen|nullable|unique:dosen,nidn',
             'prodi_id' => 'required_if:role,mahasiswa,dosen|nullable|exists:prodi,id',
             'angkatan' => 'required_if:role,mahasiswa|nullable|numeric',
         ]);
+
+        $validated['boleh_absen'] = in_array($validated['role'], ['superadmin', 'bendahara', 'staff'], true)
+            ? true
+            : $request->boolean('boleh_absen');
+
+        if (! Schema::hasColumn('users', 'boleh_absen')) {
+            unset($validated['boleh_absen']);
+        }
 
         try {
             $user = $this->userService->createUser($validated);
@@ -106,16 +117,29 @@ class UserController extends Controller
             'name'     => 'required|string|max:255',
             'email'    => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => ['nullable', 'string', Password::min(8)],
-            'role'     => 'required|in:superadmin,admin_fakultas,dosen,mahasiswa',
+            'role'     => 'required|in:superadmin,admin_fakultas,dosen,mahasiswa,bendahara,staff',
             'fakultas_id' => 'nullable|exists:fakultas,id',
+            'boleh_absen' => ['nullable', 'boolean'],
         ]);
 
-        $user->update([
+        $bolehAbsen = auth()->user()->isSuperAdmin()
+            ? (in_array($validated['role'], ['superadmin', 'bendahara', 'staff'], true)
+                ? true
+                : $request->boolean('boleh_absen'))
+            : $user->boleh_absen;
+
+        $userData = [
             'name' => $validated['name'],
             'email' => $validated['email'],
             'role' => $validated['role'],
             'fakultas_id' => $validated['fakultas_id'] ?? null,
-        ]);
+        ];
+
+        if (Schema::hasColumn('users', 'boleh_absen')) {
+            $userData['boleh_absen'] = $bolehAbsen;
+        }
+
+        $user->update($userData);
 
         if (!empty($validated['password'])) {
             $user->update(['password' => Hash::make($validated['password'])]);

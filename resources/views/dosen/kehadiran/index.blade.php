@@ -50,6 +50,52 @@
         </div>
     @endif
 
+    @if($dosen === null && $isStaffLike)
+        <div class="card-saas mb-6 overflow-hidden dark:bg-gray-800">
+            <div class="flex flex-col gap-2 border-b border-siakad-light px-5 py-4 dark:border-gray-700 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold text-siakad-dark dark:text-white">Absensi harian</h3>
+                    <p class="text-sm text-siakad-secondary dark:text-gray-400">Anda masuk dalam alur absensi yang sama dengan dosen, tanpa jadwal mengajar hari ini.</p>
+                </div>
+                <span class="inline-flex w-fit items-center rounded-full bg-siakad-primary/10 px-3 py-1 text-xs font-medium text-siakad-primary dark:bg-siakad-primary/20 dark:text-siakad-light">Tanpa pertemuan</span>
+            </div>
+
+            <div class="p-5">
+                <form action="{{ route('dosen.kehadiran.store') }}" method="POST" class="space-y-4" onsubmit="return captureAttendanceGps(event, this)">
+                    @csrf
+                    <input type="hidden" name="jadwal_kuliah_id" value="">
+                    <input type="hidden" name="latitude">
+                    <input type="hidden" name="longitude">
+                    <p data-gps-status role="status" aria-live="polite" class="text-xs text-siakad-secondary dark:text-gray-400">Lokasi GPS akan diperiksa sebelum presensi disimpan. GPS memerlukan HTTPS dan izin lokasi browser.</p>
+
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold text-siakad-dark dark:text-gray-300">Jam masuk</label>
+                            <input type="time" name="jam_masuk" value="{{ now()->format('H:i') }}" class="input-saas w-full text-sm py-2.5 dark:bg-gray-900 dark:border-gray-700 dark:text-white">
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold text-siakad-dark dark:text-gray-300">Status</label>
+                            <select name="status" class="input-saas w-full text-sm py-2.5 dark:bg-gray-900 dark:border-gray-700 dark:text-white">
+                                @foreach(\App\Models\KehadiranDosen::getStatusList() as $k => $v)
+                                    <option value="{{ $k }}">{{ $v }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-siakad-dark dark:text-gray-300">Keterangan (opsional)</label>
+                        <textarea name="keterangan" rows="2" class="input-saas w-full text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-white" placeholder="Catatan kehadiran..."></textarea>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="submit" class="btn-primary-saas rounded-lg px-5 py-2.5 text-sm font-semibold">Simpan absensi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
     <!-- Two Cards Grid with Equal Height -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
         <!-- Card 1: Kelas Berikutnya -->
