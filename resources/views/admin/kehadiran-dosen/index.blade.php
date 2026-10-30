@@ -127,8 +127,8 @@
                 @forelse($kehadiranList as $k)
                 <tr class="border-b border-siakad-light/50 dark:border-gray-700/50">
                     <td class="py-3 px-5 text-sm text-siakad-dark dark:text-white">{{ $k->tanggal->format('d M Y') }}</td>
-                    <td class="py-3 px-5 text-sm text-siakad-dark dark:text-white">{{ $k->dosen->user->name }}</td>
-                    <td class="py-3 px-5 text-sm text-siakad-secondary dark:text-gray-400">{{ $k->jadwalKuliah?->kelas?->mataKuliah?->nama ?? '-' }}</td>
+                    <td class="py-3 px-5 text-sm text-siakad-dark dark:text-white">{{ $k->dosen?->user->name ?? $k->user?->name ?? '-' }}</td>
+                    <td class="py-3 px-5 text-sm text-siakad-secondary dark:text-gray-400">{{ $k->jadwalKuliah?->kelas?->mataKuliah?->nama_mk ?? '-' }}</td>
                     <td class="py-3 px-5 text-center text-sm text-siakad-secondary dark:text-gray-400">{{ $k->jam_masuk ? substr($k->jam_masuk, 0, 5) : '-' }} - {{ $k->jam_keluar ? substr($k->jam_keluar, 0, 5) : '-' }}</td>
                     <td class="py-3 px-5 text-center"><span class="px-2.5 py-1 text-xs font-medium rounded-full bg-{{ $k->status_color }}-100 text-{{ $k->status_color }}-700 dark:bg-{{ $k->status_color }}-900/50 dark:text-{{ $k->status_color }}-400">{{ $k->status_label }}</span></td>
                 </tr>
@@ -145,20 +145,18 @@
                     <div class="flex items-start justify-between mb-3">
                         <div>
                             <span class="text-xs text-siakad-secondary dark:text-gray-400">{{ $k->tanggal->format('d M Y') }}</span>
-                            <h4 class="font-bold text-siakad-dark dark:text-white text-sm mt-0.5">{{ $k->dosen->user->name }}</h4>
+                            <h4 class="font-bold text-siakad-dark dark:text-white text-sm mt-0.5">{{ $k->dosen?->user->name ?? $k->user?->name ?? '-' }}</h4>
                         </div>
                         <span class="px-2.5 py-1 text-[10px] font-medium rounded-full bg-{{ $k->status_color }}-100 text-{{ $k->status_color }}-700 dark:bg-{{ $k->status_color }}-900/50 dark:text-{{ $k->status_color }}-400">{{ $k->status_label }}</span>
                     </div>
                     
-                    @if($k->jadwalKuliah)
                     <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 text-xs mb-2">
-                        <span class="block font-medium text-siakad-dark dark:text-white mb-1">{{ $k->jadwalKuliah->kelas->mataKuliah->nama ?? '-' }}</span>
+                        <span class="block font-medium text-siakad-dark dark:text-white mb-1">{{ $k->jadwalKuliah?->kelas?->mataKuliah?->nama_mk ?? '-' }}</span>
                         <div class="flex items-center gap-2 text-siakad-secondary dark:text-gray-400">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             <span>{{ $k->jam_masuk ? substr($k->jam_masuk, 0, 5) : '-' }} - {{ $k->jam_keluar ? substr($k->jam_keluar, 0, 5) : '-' }}</span>
                         </div>
                     </div>
-                    @endif
                 </div>
                 @empty
                 <div class="p-8 text-center text-siakad-secondary dark:text-gray-400 text-sm">Belum ada data</div>

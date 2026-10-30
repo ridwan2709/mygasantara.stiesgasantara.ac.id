@@ -635,6 +635,16 @@
                         </svg>
                         <span class="sidebar-text">Honorarium</span>
                     </a>
+                    @if(in_array(Auth::user()->role, ['superadmin', 'bendahara'], true))
+                        <a href="{{ route('admin.honorarium.tarif-pegawai.index') }}"
+                            class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->routeIs('admin.honorarium.tarif-pegawai.*') ? 'active' : '' }}">
+                            <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-10V6m0 8v4m0 0H9m3 0h3"></path>
+                            </svg>
+                            <span class="sidebar-text">Tarif Honor Pegawai</span>
+                        </a>
+                    @endif
                 @endif
 
                 @if(Auth::user()->role === 'mahasiswa')
@@ -792,6 +802,14 @@
                         </svg>
                         <span class="sidebar-text">Honorarium</span>
                     </a>
+                    <a href="{{ route('admin.honorarium.tarif-pegawai.index') }}"
+                        class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->routeIs('admin.honorarium.tarif-pegawai.*') ? 'active' : '' }}">
+                        <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2zm0 0V6m0 8v4m0 0H9m3 0h3"></path>
+                        </svg>
+                        <span class="sidebar-text">Tarif Honor Pegawai</span>
+                    </a>
                 @endif
 
                 @if(Auth::user()->role === 'staff')
@@ -804,30 +822,40 @@
                         </svg>
                         <span class="sidebar-text">Dashboard</span>
                     </a>
+                    <div class="pt-4 pb-1">
+                        <p
+                            class="px-3 text-[10px] font-semibold text-siakad-secondary/60 uppercase tracking-widest sidebar-section-title">
+                            Akademik</p>
+                    </div>
+                    <a href="{{ route('staff.khs.index') }}"
+                        class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->routeIs('staff.khs.*') ? 'active' : '' }}">
+                        <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        <span class="sidebar-text">KHS</span>
+                    </a>
                 @endif
 
-               @php
-    $currentUser = auth()->user();
-    $canAbsenFromSidebar = $currentUser
-        && in_array($currentUser->role, ['superadmin', 'bendahara', 'staff'], true);
-@endphp
+                @php
+                    $currentUser = auth()->user();
+                    $canAbsenFromSidebar = in_array($currentUser?->role, ['superadmin', 'bendahara', 'staff'], true);
+                @endphp
+                <div class="pt-4 pb-1">
+                    <p
+                        class="px-3 text-[10px] font-semibold text-siakad-secondary/60 uppercase tracking-widest sidebar-section-title">
+                        Kehadiran</p>
+                </div>
                 @if($canAbsenFromSidebar)
-                    <a href="{{ route('dosen.kehadiran.index') }}"
-                        class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('dosen/kehadiran*') ? 'active' : '' }}">
+                    <a href="{{ route('pegawai.kehadiran.index') }}"
+                        class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('pegawai/kehadiran*') ? 'active' : '' }}">
                         <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
                             </path>
                         </svg>
                         <span class="sidebar-text">Absen</span>
-                    </a>
-                    <a href="{{ route('dosen.kehadiran.create') }}"
-                        class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('dosen/kehadiran/create') ? 'active' : '' }}">
-                        <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                        </svg>
-                        <span class="sidebar-text">Tambah Absen</span>
                     </a>
                 @endif
 

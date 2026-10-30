@@ -4,9 +4,10 @@ namespace App\Http\Controllers\Dosen;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\ValidatesGpsCoordinates;
+use App\Models\JadwalKuliah;
 use App\Models\KehadiranDosen;
 use App\Models\KehadiranMengajar;
-use App\Models\JadwalKuliah;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -38,7 +39,7 @@ class KehadiranController extends Controller
             $dayMap = ['Minggu' => 0, 'Senin' => 1, 'Selasa' => 2, 'Rabu' => 3, 'Kamis' => 4, 'Jumat' => 5, 'Sabtu' => 6];
             $todayIndex = $dayMap[$dayName] ?? $today->dayOfWeek;
 
-            $jadwalHariIni = JadwalKuliah::whereHas('kelas', fn($q) => $q->where('dosen_id', $dosen->id))
+            $jadwalHariIni = JadwalKuliah::whereHas('kelas', fn ($q) => $q->where('dosen_id', $dosen->id))
                 ->where('hari', $todayIndex)
                 ->with('kelas.mataKuliah')
                 ->get();
@@ -74,7 +75,7 @@ class KehadiranController extends Controller
         $validated = $request->validate([
             'jadwal_kuliah_id' => ['nullable', 'exists:jadwal_kuliah,id'],
             'jam_masuk' => 'nullable|date_format:H:i',
-            'status' => 'required|in:' . implode(',', array_keys(KehadiranDosen::getStatusList())),
+            'status' => 'required|in:'.implode(',', array_keys(KehadiranDosen::getStatusList())),
             'keterangan' => 'nullable|string',
             'latitude' => 'required_if:status,hadir|nullable|numeric|between:-90,90',
             'longitude' => 'required_if:status,hadir|nullable|numeric|between:-180,180',
@@ -95,12 +96,12 @@ class KehadiranController extends Controller
         $coordinates = null;
         if ($validated['status'] === KehadiranDosen::STATUS_HADIR) {
             $coordinates = $this->validatedGpsCoordinates($validated['latitude'], $validated['longitude']);
-            if ($coordinates instanceof \Illuminate\Http\RedirectResponse) {
+            if ($coordinates instanceof RedirectResponse) {
                 return $coordinates;
             }
         }
 
-        DB::transaction(function () use ($dosen, $jadwal, $validated, $coordinates, $user, $isStaffLike): void {
+        DB::transaction(function () use ($dosen, $jadwal, $validated, $coordinates, $isStaffLike): void {
             $kehadiran = KehadiranDosen::updateOrCreate(
                 [
                     'dosen_id' => $isStaffLike ? null : $dosen->id,
@@ -139,24 +140,25 @@ class KehadiranController extends Controller
         return redirect()->route('dashboard')->with('success', 'Kehadiran berhasil dicatat');
     }
 
-public function checkout(Request $request, KehadiranDosen $kehadiran)
-{
-    $dosen = Auth::user()->dosen;
-    if ($kehadiran->dosen_id !== $dosen->id) abort(403);
+    public function checkout(Request $request, KehadiranDosen $kehadiran)
+    {
+        $dosen = Auth::user()->dosen;
+        if (! $dosen || $kehadiran->dosen_id !== $dosen->id) {
+            abort(403);
+        }
 
-    DB::transaction(function () use ($kehadiran): void {
-        $jamKeluar = now()->format('H:i:s');
+        DB::transaction(function () use ($kehadiran): void {
+            $jamKeluar = now()->format('H:i:s');
 
-        $kehadiran->update([
-            'jam_keluar' => $jamKeluar,
-        ]);
+            $kehadiran->update([
+                'jam_keluar' => $jamKeluar,
+            ]);
 
-        $kehadiran->kehadiranMengajar()
-            ->where('status_verifikasi', KehadiranMengajar::STATUS_PENDING)
-            ->update(['jam_selesai' => $jamKeluar]);
-    });
+            $kehadiran->kehadiranMengajar()
+                ->where('status_verifikasi', KehadiranMengajar::STATUS_PENDING)
+                ->update(['jam_selesai' => $jamKeluar]);
+        });
 
-    return redirect()->back()->with('success', 'Checkout berhasil');
-}
-
+        return redirect()->back()->with('success', 'Checkout berhasil');
+    }
 }

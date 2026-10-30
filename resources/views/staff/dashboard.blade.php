@@ -18,7 +18,7 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-siakad-dark dark:text-white">0</p>
+                    <p class="text-2xl font-bold text-siakad-dark dark:text-white">{{ $khsCount }}</p>
                     <p class="text-xs text-siakad-secondary dark:text-gray-400">KHS</p>
                 </div>
             </div>
@@ -70,7 +70,7 @@
     <div class="mb-8">
         <h2 class="mb-4 text-lg font-semibold text-siakad-dark dark:text-white">Aksi Cepat</h2>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            <div class="card-saas flex items-center gap-4 p-5 dark:bg-gray-800" aria-disabled="true">
+            <a href="{{ route('staff.khs.index') }}" class="card-saas flex items-center gap-4 p-5 transition hover:border-siakad-primary/30 hover:bg-siakad-primary/5 dark:bg-gray-800">
                 <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-900/40">
                     <svg class="h-6 w-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -78,11 +78,11 @@
                 </div>
                 <div>
                     <p class="font-semibold text-siakad-dark dark:text-white">KHS</p>
-                    <p class="mt-1 text-sm text-siakad-secondary dark:text-gray-400">Menu KHS akan tersedia pada tahap berikutnya.</p>
+                    <p class="mt-1 text-sm text-siakad-secondary dark:text-gray-400">Cari mahasiswa dan lihat KHS per semester.</p>
                 </div>
-            </div>
+            </a>
 
-            <a href="{{ route('dosen.kehadiran.index') }}" class="card-saas flex items-center gap-4 p-5 transition hover:border-siakad-primary/30 hover:bg-siakad-primary/5 dark:bg-gray-800">
+            <a href="{{ route('pegawai.kehadiran.index') }}" class="card-saas flex items-center gap-4 p-5 transition hover:border-siakad-primary/30 hover:bg-siakad-primary/5 dark:bg-gray-800">
                 <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-900/40">
                     <svg class="h-6 w-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>

@@ -158,6 +158,52 @@
     </section>
 
     <section class="card-saas mt-6 overflow-hidden dark:bg-gray-800">
+        <div class="border-b border-siakad-light p-5 dark:border-gray-700">
+            <h2 class="text-lg font-semibold">Rekap Honor Pegawai {{ \Carbon\Carbon::create($tahun, $bulan)->locale('id')->monthName }} {{ $tahun }}</h2>
+            <p class="text-sm text-siakad-secondary dark:text-gray-400">Hanya absen hadir yang sudah melakukan absen masuk dan keluar. Tarif diambil dari pengaturan tarif pegawai berdasarkan tanggal kehadiran.</p>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="table-saas w-full">
+                <thead><tr class="bg-siakad-light/30 text-left text-xs uppercase dark:bg-gray-900"><th class="px-5 py-3">Pegawai</th><th class="px-5 py-3 text-right">Hari hadir</th><th class="px-5 py-3 text-right">Total honor</th><th class="px-5 py-3">Status</th><th class="px-5 py-3">Aksi</th></tr></thead>
+                <tbody>
+                    @forelse($honorariumPegawaiList as $pegawai)
+                        <tr class="border-t border-siakad-light dark:border-gray-700">
+                            <td class="px-5 py-3">{{ $pegawai['name'] }}</td>
+                            <td class="px-5 py-3 text-right">{{ $pegawai['total_kehadiran'] }}</td>
+                            <td class="px-5 py-3 text-right font-semibold">Rp{{ number_format((float) $pegawai['total_honor'], 2, ',', '.') }}</td>
+                            <td class="px-5 py-3">
+                                @if($pegawai['pembayaran'])
+                                    Dibayar {{ $pegawai['pembayaran']->tanggal_bayar->format('d/m/Y') }}
+                                @elseif($pegawai['tarif_belum_ada'] > 0)
+                                    Belum ada tarif untuk {{ $pegawai['tarif_belum_ada'] }} hari
+                                @else
+                                    Belum dibayar
+                                @endif
+                            </td>
+                            <td class="px-5 py-3">
+                                @if(!$pegawai['pembayaran'] && $pegawai['tarif_belum_ada'] === 0 && in_array(auth()->user()->role, ['superadmin', 'bendahara'], true))
+                                    <form method="POST" action="{{ route('admin.honorarium.pegawai.pay', $pegawai['user_id']) }}" onsubmit="return confirm('Tandai honor pegawai ini sudah dibayar?')">
+                                        @csrf @method('PATCH')
+                                        <input type="hidden" name="bulan" value="{{ $bulan }}">
+                                        <input type="hidden" name="tahun" value="{{ $tahun }}">
+                                        <button class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-medium text-white">Tandai dibayar</button>
+                                    </form>
+                                @elseif(!$pegawai['pembayaran'] && $pegawai['tarif_belum_ada'] > 0)
+                                    <span class="text-xs text-siakad-secondary">Lengkapi tarif terlebih dahulu</span>
+                                @else
+                                    <span class="text-xs text-siakad-secondary">-</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" class="px-5 py-8 text-center text-siakad-secondary">Belum ada absen pegawai yang selesai untuk periode ini.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card-saas mt-6 overflow-hidden dark:bg-gray-800">
         <div class="border-b border-siakad-light p-5 dark:border-gray-700"><h2 class="text-lg font-semibold">Validasi kehadiran mengajar</h2></div>
         <div class="overflow-x-auto">
             <table class="table-saas w-full">

@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\KehadiranDosen;
 use App\Models\Dosen;
+use App\Models\KehadiranDosen;
 use App\Models\PengaturanGpsKehadiran;
-use Illuminate\Http\Request;
-use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class KehadiranDosenController extends Controller
 {
@@ -17,8 +16,20 @@ class KehadiranDosenController extends Controller
         $month = $request->get('month', now()->month);
         $year = $request->get('year', now()->year);
         $dosenId = $request->get('dosen_id');
+        $facultyId = $request->get('fakultas_scoped') && $request->get('fakultas_scope')
+            ? $request->get('fakultas_scope')
+            : null;
 
-        $query = KehadiranDosen::with(['dosen.user', 'dosen.prodi', 'jadwalKuliah.kelas.mataKuliah'])
+        $applyFacultyScope = static function ($query) use ($facultyId): void {
+            if ($facultyId) {
+                $query->where(function ($query) use ($facultyId): void {
+                    $query->whereHas('dosen.prodi', fn ($dosenQuery) => $dosenQuery->where('fakultas_id', $facultyId))
+                        ->orWhereHas('user', fn ($userQuery) => $userQuery->where('fakultas_id', $facultyId));
+                });
+            }
+        };
+
+        $query = KehadiranDosen::with(['dosen.user', 'dosen.prodi', 'user', 'jadwalKuliah.kelas.mataKuliah'])
             ->whereYear('tanggal', $year)
             ->whereMonth('tanggal', $month);
 
@@ -27,20 +38,17 @@ class KehadiranDosenController extends Controller
         }
 
         // Faculty scoping for admin_fakultas
-        if ($request->get('fakultas_scoped') && $request->get('fakultas_scope')) {
-            $fakultasId = $request->get('fakultas_scope');
-            $query->whereHas('dosen.prodi', fn($q) => $q->where('fakultas_id', $fakultasId));
-        }
+        $applyFacultyScope($query);
 
         $kehadiranList = $query->orderBy('tanggal', 'desc')->paginate(50);
 
         // Stats - also scoped
         $statsQuery = KehadiranDosen::whereYear('tanggal', $year)->whereMonth('tanggal', $month);
-        if ($dosenId) $statsQuery->where('dosen_id', $dosenId);
-        if ($request->get('fakultas_scoped') && $request->get('fakultas_scope')) {
-            $statsQuery->whereHas('dosen.prodi', fn($q) => $q->where('fakultas_id', $request->get('fakultas_scope')));
+        if ($dosenId) {
+            $statsQuery->where('dosen_id', $dosenId);
         }
-        
+        $applyFacultyScope($statsQuery);
+
         $stats = $statsQuery->selectRaw('status, COUNT(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status')
@@ -49,16 +57,14 @@ class KehadiranDosenController extends Controller
         // Scope dosen list for dropdown
         $dosenQuery = Dosen::with('user');
         if ($request->get('fakultas_scoped') && $request->get('fakultas_scope')) {
-            $dosenQuery->whereHas('prodi', fn($q) => $q->where('fakultas_id', $request->get('fakultas_scope')));
+            $dosenQuery->whereHas('prodi', fn ($q) => $q->where('fakultas_id', $request->get('fakultas_scope')));
         }
         $dosenList = $dosenQuery->get();
 
         // Rekap per dosen - also scoped
         $rekapQuery = KehadiranDosen::whereYear('tanggal', $year)
             ->whereMonth('tanggal', $month);
-        if ($request->get('fakultas_scoped') && $request->get('fakultas_scope')) {
-            $rekapQuery->whereHas('dosen.prodi', fn($q) => $q->where('fakultas_id', $request->get('fakultas_scope')));
-        }
+        $applyFacultyScope($rekapQuery);
         $rekapDosen = $rekapQuery->selectRaw('dosen_id, status, COUNT(*) as count')
             ->groupBy('dosen_id', 'status')
             ->get()
@@ -66,7 +72,6 @@ class KehadiranDosenController extends Controller
 
         return view('admin.kehadiran-dosen.index', compact('kehadiranList', 'stats', 'dosenList', 'rekapDosen', 'month', 'year', 'dosenId'));
     }
-
 
     public function show(Dosen $dosen, Request $request)
     {

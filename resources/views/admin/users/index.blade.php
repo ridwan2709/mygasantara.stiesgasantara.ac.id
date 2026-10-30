@@ -76,7 +76,7 @@
                             <div class="flex flex-wrap items-center gap-2">
                                 <span
                                     class="inline-flex px-2.5 py-1 text-xs font-medium rounded-full {{ $roleColors[$user->role] ?? 'bg-gray-100 text-gray-800' }}">{{ ucfirst(str_replace('_', ' ', $user->role)) }}</span>
-                                @if($user->boleh_absen)
+                                @if(in_array($user->role, ['superadmin', 'bendahara', 'staff'], true))
                                     <span
                                         class="inline-flex px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide rounded-full bg-emerald-100 text-emerald-700">Absen</span>
                                 @endif
@@ -155,15 +155,6 @@
                             <option value="{{ $f->id }}">{{ $f->nama }}</option>@endforeach
                         </select>
                     </div>
-                    @if(auth()->user()->isSuperAdmin())
-                        <div class="flex items-center justify-between rounded-lg border border-siakad-light dark:border-gray-600 px-3 py-2">
-                            <input type="hidden" name="boleh_absen" value="0">
-                            <label for="createBolehAbsen" class="flex items-center gap-2 text-sm font-medium text-siakad-secondary dark:text-gray-300">
-                                <input id="createBolehAbsen" type="checkbox" name="boleh_absen" value="1" checked class="h-4 w-4 rounded border-gray-300 text-siakad-primary focus:ring-siakad-primary">
-                                Boleh absen
-                            </label>
-                        </div>
-                    @endif
                     <div class="flex justify-end gap-3"><button type="button" onclick="closeModal('createModal')"
                             class="px-4 py-2 text-sm text-siakad-secondary hover:bg-gray-100 rounded-lg">Batal</button><button
                             type="submit" class="btn-primary-saas px-4 py-2 rounded-lg text-sm">Simpan</button></div>
@@ -208,15 +199,6 @@
                             <option value="{{ $f->id }}">{{ $f->nama }}</option>@endforeach
                         </select>
                     </div>
-                    @if(auth()->user()->isSuperAdmin())
-                        <div class="flex items-center justify-between rounded-lg border border-siakad-light dark:border-gray-600 px-3 py-2">
-                            <input type="hidden" name="boleh_absen" value="0">
-                            <label for="editBolehAbsen" class="flex items-center gap-2 text-sm font-medium text-siakad-secondary dark:text-gray-300">
-                                <input id="editBolehAbsen" type="checkbox" name="boleh_absen" value="1" class="h-4 w-4 rounded border-gray-300 text-siakad-primary focus:ring-siakad-primary">
-                                Boleh absen
-                            </label>
-                        </div>
-                    @endif
                     <div class="flex justify-end gap-3"><button type="button" onclick="closeModal('editModal')"
                             class="px-4 py-2 text-sm text-siakad-secondary hover:bg-gray-100 rounded-lg">Batal</button><button
                             type="submit" class="btn-primary-saas px-4 py-2 rounded-lg text-sm">Simpan</button></div>
@@ -238,11 +220,6 @@
             document.getElementById('editEmail').value = user.email;
             document.getElementById('editRole').value = user.role;
             document.getElementById('editFakultasId').value = user.fakultas_id || '';
-            const editBolehAbsen = document.getElementById('editBolehAbsen');
-            if (editBolehAbsen) {
-                editBolehAbsen.checked = Boolean(user.boleh_absen);
-            }
-
             toggleFakultasField('edit');
             openModal('editModal');
         }

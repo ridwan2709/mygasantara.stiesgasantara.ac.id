@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\HonorariumController;
+use App\Http\Controllers\Admin\TarifHonorPegawaiController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:admin,bendahara', 'fakultas.scope'])->prefix('admin')->name('admin.')->group(function () {
@@ -10,10 +11,19 @@ Route::middleware(['auth', 'role:admin,bendahara', 'fakultas.scope'])->prefix('a
     Route::get('/keuangan/honorarium/export/excel', [HonorariumController::class, 'exportExcel'])->name('honorarium.export.excel');
 });
 
-Route::middleware(['auth', 'role:admin', 'fakultas.scope'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:admin,bendahara', 'fakultas.scope'])->prefix('admin')->name('admin.')->group(function () {
     Route::post('/keuangan/honorarium/kehadiran', [HonorariumController::class, 'storeKehadiran'])->name('honorarium.kehadiran.store');
     Route::patch('/keuangan/honorarium/kehadiran/{kehadiranMengajar}/verifikasi', [HonorariumController::class, 'verifyKehadiran'])->name('honorarium.kehadiran.verify');
     Route::post('/keuangan/honorarium/insentif', [HonorariumController::class, 'storeInsentif'])->name('honorarium.insentif.store');
     Route::post('/keuangan/honorarium/tarif', [HonorariumController::class, 'storeTarif'])->name('honorarium.tarif.store');
     Route::post('/keuangan/honorarium/generate', [HonorariumController::class, 'generate'])->name('honorarium.generate');
+});
+
+Route::middleware(['auth', 'role:superadmin,bendahara'])->prefix('admin')->name('admin.')->group(function () {
+    Route::patch('/keuangan/honorarium/pegawai/{user}/bayar', [HonorariumController::class, 'markPegawaiPaid'])->name('honorarium.pegawai.pay');
+});
+
+Route::middleware(['auth', 'role:superadmin,bendahara'])->prefix('admin')->name('admin.honorarium.tarif-pegawai.')->group(function () {
+    Route::get('/keuangan/tarif-honor-pegawai', [TarifHonorPegawaiController::class, 'index'])->name('index');
+    Route::post('/keuangan/tarif-honor-pegawai', [TarifHonorPegawaiController::class, 'store'])->name('store');
 });

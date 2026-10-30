@@ -14,7 +14,7 @@
     </style>
 </head>
 <body>
-    <h1>Rekap Honorarium Dosen</h1>
+    <h1>Rekap Honorarium Dosen dan Pegawai</h1>
     <p>Periode {{ \Carbon\Carbon::create($tahun, $bulan)->locale('id')->monthName }} {{ $tahun }}</p>
     <table>
         <thead><tr><th>NIDN</th><th>Nama Dosen</th><th>Jumlah Hadir</th><th class="number">Honor Mengajar</th><th class="number">Insentif</th><th class="number">Total Penerimaan</th><th>Status</th></tr></thead>
@@ -32,5 +32,28 @@
             @endforeach
         </tbody>
     </table>
+    @if($honorariumPegawaiList->isNotEmpty())
+        <h2>Honorarium Pegawai</h2>
+        <table>
+            <thead><tr><th>Nama Pegawai</th><th>Jumlah Hadir</th><th class="number">Total Honor</th><th>Status</th><th>Tanggal Bayar</th></tr></thead>
+            <tbody>
+                @foreach($honorariumPegawaiList as $pegawai)
+                    <tr>
+                        <td>{{ $pegawai['name'] }}</td>
+                        <td>{{ $pegawai['total_kehadiran'] }}</td>
+                        <td class="number">Rp{{ number_format((float) $pegawai['total_honor'], 2, ',', '.') }}</td>
+                        <td>
+                            @if($pegawai['tarif_belum_ada'] > 0)
+                                Tarif belum lengkap ({{ $pegawai['tarif_belum_ada'] }} hari)
+                            @else
+                                {{ $pegawai['status_pembayaran'] === 'paid' ? 'Dibayar' : 'Draft' }}
+                            @endif
+                        </td>
+                        <td>{{ $pegawai['tanggal_bayar']?->format('d/m/Y') ?? '-' }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
 </body>
 </html>

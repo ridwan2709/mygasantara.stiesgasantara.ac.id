@@ -20,9 +20,8 @@ class EnsureCanAbsen
         }
 
         $user = Auth::user();
-        $isAttendanceRole = in_array($user->role, ['superadmin', 'bendahara', 'staff'], true);
 
-        if (! $user->boleh_absen && ! $isAttendanceRole) {
+        if (! in_array($user->role, ['superadmin', 'bendahara', 'staff'], true)) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Anda tidak diberi akses absen.'], 403);
             }
