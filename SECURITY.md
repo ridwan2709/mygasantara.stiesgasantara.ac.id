@@ -41,8 +41,8 @@ SIAKAD implements several security measures:
 
 1. **Authentication & Authorization**
    - Laravel Breeze for authentication
-   - Role-based access control (superadmin, admin_fakultas, dosen, mahasiswa)
-   - Faculty-scoped admin access
+   - Role-based access control (superadmin, admin_prodi, dosen, mahasiswa)
+   - Program-scoped admin access
 
 2. **Input Validation**
    - Laravel Form Requests for validation

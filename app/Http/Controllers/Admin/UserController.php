@@ -60,9 +60,9 @@ class UserController extends Controller
         }
 
         $users = $query->orderBy('name')->paginate(config('siakad.pagination', 15))->withQueryString();
-        $fakultasList = Fakultas::orderBy('nama')->get();
+        $prodiList = Prodi::with('fakultas')->orderBy('nama')->get();
 
-        return view('admin.users.index', compact('users', 'fakultasList'));
+        return view('admin.users.index', compact('users', 'prodiList'));
     }
 
     public function store(Request $request)

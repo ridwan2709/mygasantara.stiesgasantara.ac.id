@@ -2,19 +2,19 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use App\Models\Fakultas;
-use App\Models\Prodi;
-use App\Models\MataKuliah;
-use App\Models\Kelas;
 use App\Models\Dosen;
-use App\Models\Mahasiswa;
-use App\Models\TahunAkademik;
+use App\Models\Fakultas;
+use App\Models\JadwalKuliah;
+use App\Models\Kelas;
 use App\Models\Krs;
 use App\Models\KrsDetail;
+use App\Models\Mahasiswa;
+use App\Models\MataKuliah;
 use App\Models\Nilai;
-use App\Models\JadwalKuliah;
+use App\Models\Prodi;
 use App\Models\Ruangan;
+use App\Models\TahunAkademik;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -44,7 +44,7 @@ class DatabaseSeeder extends Seeder
             'tanggal_mulai' => '2023-09-01',
             'tanggal_selesai' => '2024-01-31',
         ]);
-        
+
         $taLalu = TahunAkademik::create([
             'tahun' => '2023/2024',
             'semester' => 'Genap',
@@ -52,7 +52,7 @@ class DatabaseSeeder extends Seeder
             'tanggal_mulai' => '2024-02-01',
             'tanggal_selesai' => '2024-06-30',
         ]);
-        
+
         $taAktif = TahunAkademik::create([
             'tahun' => '2024/2025',
             'semester' => 'Ganjil',
@@ -66,21 +66,21 @@ class DatabaseSeeder extends Seeder
         // ==========================================
         $fakultas = Fakultas::create(['nama' => 'Fakultas Teknik dan Ilmu Komputer']);
 
-        // Admin Fakultas
-        $adminFakultas = User::create([
-            'name' => 'Admin FTIK',
-            'email' => 'admin.ftik@siakad.test',
-            'password' => Hash::make('password'),
-            'role' => 'admin_fakultas',
-            'fakultas_id' => $fakultas->id,
-        ]);
-
         // ==========================================
         // 4. PROGRAM STUDI
         // ==========================================
         $prodi = Prodi::create([
             'nama' => 'Teknik Informatika',
             'fakultas_id' => $fakultas->id,
+        ]);
+
+        User::create([
+            'name' => 'Admin Teknik Informatika',
+            'email' => 'admin.ti@siakad.test',
+            'password' => Hash::make('password'),
+            'role' => 'admin_prodi',
+            'fakultas_id' => $fakultas->id,
+            'prodi_id' => $prodi->id,
         ]);
 
         // ==========================================
@@ -98,7 +98,7 @@ class DatabaseSeeder extends Seeder
         // 6. MATA KULIAH - KURIKULUM 8 SEMESTER (144 SKS)
         // ==========================================
         $kurikulum = $this->getKurikulum($prodi->id);
-        
+
         foreach ($kurikulum as $mk) {
             MataKuliah::create($mk);
         }
@@ -124,14 +124,14 @@ class DatabaseSeeder extends Seeder
         // ==========================================
         $mataKuliahSem1 = MataKuliah::where('semester', 1)->get();
         $mataKuliahSem2 = MataKuliah::where('semester', 2)->get();
-        
+
         $kelasList = [];
         $hari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
         $jamMulai = ['08:00', '10:00', '13:00', '15:00'];
-        
+
         $dayIndex = 0;
         $jamIndex = 0;
-        
+
         foreach ($mataKuliahSem1->merge($mataKuliahSem2) as $mk) {
             $kelas = Kelas::create([
                 'mata_kuliah_id' => $mk->id,
@@ -140,7 +140,7 @@ class DatabaseSeeder extends Seeder
                 'kapasitas' => 40,
                 'tahun_akademik_id' => $taAktif->id,
             ]);
-            
+
             // Create jadwal
             JadwalKuliah::create([
                 'kelas_id' => $kelas->id,
@@ -149,7 +149,7 @@ class DatabaseSeeder extends Seeder
                 'jam_selesai' => date('H:i', strtotime($jamMulai[$jamIndex % 4]) + 5400), // +1.5 hours
                 'ruangan' => $ruangan->nama_ruangan,
             ]);
-            
+
             $kelasList[] = $kelas;
             $dayIndex++;
             $jamIndex++;
@@ -177,7 +177,7 @@ class DatabaseSeeder extends Seeder
         // ==========================================
         // 10. RIWAYAT AKADEMIK (4 Semester Selesai)
         // ==========================================
-        
+
         // Buat tahun akademik untuk semester 1-4
         $ta2022Ganjil = TahunAkademik::create([
             'tahun' => '2022/2023', 'semester' => 'Ganjil', 'is_active' => false,
@@ -187,7 +187,7 @@ class DatabaseSeeder extends Seeder
             'tahun' => '2022/2023', 'semester' => 'Genap', 'is_active' => false,
             'tanggal_mulai' => '2023-02-01', 'tanggal_selesai' => '2023-06-30',
         ]);
-        
+
         // Semester 1 (20 SKS - 7 MK)
         $krs1 = Krs::create(['mahasiswa_id' => $mahasiswa->id, 'tahun_akademik_id' => $ta2022Ganjil->id, 'status' => 'approved']);
         foreach (MataKuliah::where('semester', 1)->get() as $mk) {
@@ -216,7 +216,7 @@ class DatabaseSeeder extends Seeder
         foreach (MataKuliah::where('semester', 3)->get() as $mk) {
             // Create kelas for semester 3
             $kelas3 = Kelas::create([
-                'mata_kuliah_id' => $mk->id, 'dosen_id' => $dosen->id, 'nama_kelas' => 'A', 
+                'mata_kuliah_id' => $mk->id, 'dosen_id' => $dosen->id, 'nama_kelas' => 'A',
                 'kapasitas' => 40, 'tahun_akademik_id' => $ta2023Ganjil->id,
             ]);
             KrsDetail::create(['krs_id' => $krs3->id, 'kelas_id' => $kelas3->id]);
@@ -265,14 +265,14 @@ class DatabaseSeeder extends Seeder
             ['Role', 'Email', 'Password'],
             [
                 ['Superadmin', 'superadmin@siakad.test', 'password'],
-                ['Admin Fakultas', 'admin.ftik@siakad.test', 'password'],
+                ['Admin Prodi', 'admin.ti@siakad.test', 'password'],
                 ['Dosen', 'dosen@siakad.test', 'password'],
                 ['Mahasiswa', 'mahasiswa@siakad.test', 'password'],
             ]
         );
         $this->command->newLine();
         $this->command->info("📚 Kurikulum: {$prodi->nama}");
-        $this->command->info("   Total: 144 SKS | 8 Semester | " . MataKuliah::count() . " Mata Kuliah");
+        $this->command->info('   Total: 144 SKS | 8 Semester | '.MataKuliah::count().' Mata Kuliah');
     }
 
     /**

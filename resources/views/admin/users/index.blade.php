@@ -54,7 +54,7 @@
                     <th class="text-left py-3 px-5 text-xs font-semibold text-siakad-secondary uppercase">Nama</th>
                     <th class="text-left py-3 px-5 text-xs font-semibold text-siakad-secondary uppercase">Email</th>
                     <th class="text-left py-3 px-5 text-xs font-semibold text-siakad-secondary uppercase">Role</th>
-                    <th class="text-left py-3 px-5 text-xs font-semibold text-siakad-secondary uppercase">Fakultas</th>
+                    <th class="text-left py-3 px-5 text-xs font-semibold text-siakad-secondary uppercase">Prodi</th>
                     <th class="text-right py-3 px-5 text-xs font-semibold text-siakad-secondary uppercase">Aksi</th>
                 </tr>
             </thead>
@@ -210,17 +210,17 @@
     <script>
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-        function toggleFakultasField(prefix) {
+        function toggleProdiField(prefix) {
             const role = document.getElementById(prefix + 'Role').value;
-            document.getElementById(prefix + 'FakultasField').classList.toggle('hidden', role !== 'admin_fakultas');
+            document.getElementById(prefix + 'ProdiField').classList.toggle('hidden', role !== 'admin_prodi');
         }
         function openEditModal(user) {
             document.getElementById('editForm').action = `/admin/users/${user.id}`;
             document.getElementById('editName').value = user.name;
             document.getElementById('editEmail').value = user.email;
             document.getElementById('editRole').value = user.role;
-            document.getElementById('editFakultasId').value = user.fakultas_id || '';
-            toggleFakultasField('edit');
+            document.getElementById('editProdiId').value = user.prodi_id || '';
+            toggleProdiField('edit');
             openModal('editModal');
         }
     </script>

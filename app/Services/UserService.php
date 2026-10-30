@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use App\Models\Mahasiswa;
 use App\Models\Dosen;
-use Illuminate\Support\Facades\Hash;
+use App\Models\Mahasiswa;
+use App\Models\Prodi;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -30,15 +30,15 @@ class UserService
 
             if ($data['role'] === 'mahasiswa') {
                 Mahasiswa::create([
-                    'user_id'  => $user->id,
-                    'nim'      => $data['nim'],
+                    'user_id' => $user->id,
+                    'nim' => $data['nim'],
                     'prodi_id' => $data['prodi_id'],
                     'angkatan' => $data['angkatan'],
                 ]);
             } elseif ($data['role'] === 'dosen') {
                 Dosen::create([
-                    'user_id'  => $user->id,
-                    'nidn'     => $data['nidn'],
+                    'user_id' => $user->id,
+                    'nidn' => $data['nidn'],
                     'prodi_id' => $data['prodi_id'],
                 ]);
             }

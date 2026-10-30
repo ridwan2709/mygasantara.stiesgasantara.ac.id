@@ -11,14 +11,13 @@ class KrsApprovalController extends Controller
     public function index(Request $request)
     {
         $status = $request->get('status', 'pending');
-        
-        $krsList = Krs::with(['mahasiswa.user', 'mahasiswa.prodi.fakultas', 'tahunAkademik', 'krsDetail.kelas.mataKuliah'])
-            ->when($status !== 'all', fn($q) => $q->where('status', $status));
 
-        // Faculty scoping for admin_fakultas
-        if ($request->get('fakultas_scoped') && $request->get('fakultas_scope')) {
-            $fakultasId = $request->get('fakultas_scope');
-            $krsList->whereHas('mahasiswa.prodi', fn($q) => $q->where('fakultas_id', $fakultasId));
+        $krsList = Krs::with(['mahasiswa.user', 'mahasiswa.prodi.fakultas', 'tahunAkademik', 'krsDetail.kelas.mataKuliah'])
+            ->when($status !== 'all', fn ($q) => $q->where('status', $status));
+
+        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
+            $prodiId = $request->get('prodi_scope');
+            $krsList->whereHas('mahasiswa.prodi', fn ($q) => $q->where('id', $prodiId));
         }
 
         // Sorting
@@ -27,39 +26,38 @@ class KrsApprovalController extends Controller
 
         if ($sortColumn === 'name') {
             $krsList = $krsList->join('mahasiswa', 'krs.mahasiswa_id', '=', 'mahasiswa.id')
-                             ->join('users', 'mahasiswa.user_id', '=', 'users.id')
-                             ->select('krs.*')
-                             ->orderBy('users.name', $sortDirection);
+                ->join('users', 'mahasiswa.user_id', '=', 'users.id')
+                ->select('krs.*')
+                ->orderBy('users.name', $sortDirection);
         } elseif ($sortColumn === 'nim') {
             $krsList = $krsList->join('mahasiswa', 'krs.mahasiswa_id', '=', 'mahasiswa.id')
-                             ->select('krs.*')
-                             ->orderBy('mahasiswa.nim', $sortDirection);
+                ->select('krs.*')
+                ->orderBy('mahasiswa.nim', $sortDirection);
         } elseif ($sortColumn === 'prodi') {
-             $krsList = $krsList->join('mahasiswa', 'krs.mahasiswa_id', '=', 'mahasiswa.id')
-                              ->join('prodi', 'mahasiswa.prodi_id', '=', 'prodi.id')
-                              ->select('krs.*')
-                              ->orderBy('prodi.nama', $sortDirection);
+            $krsList = $krsList->join('mahasiswa', 'krs.mahasiswa_id', '=', 'mahasiswa.id')
+                ->join('prodi', 'mahasiswa.prodi_id', '=', 'prodi.id')
+                ->select('krs.*')
+                ->orderBy('prodi.nama', $sortDirection);
         } elseif ($sortColumn === 'status') {
-             $krsList = $krsList->orderBy('status', $sortDirection);
+            $krsList = $krsList->orderBy('status', $sortDirection);
         } else {
-             $krsList = $krsList->orderBy('updated_at', 'desc');
+            $krsList = $krsList->orderBy('updated_at', 'desc');
         }
 
         $krsList = $krsList->paginate(config('siakad.pagination', 15))->withQueryString();
 
-        // Status counts - also scoped for admin_fakultas
         $statusCountsQuery = Krs::query();
-        if ($request->get('fakultas_scoped') && $request->get('fakultas_scope')) {
-            $fakultasId = $request->get('fakultas_scope');
-            $statusCountsQuery->whereHas('mahasiswa.prodi', fn($q) => $q->where('fakultas_id', $fakultasId));
+        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
+            $prodiId = $request->get('prodi_scope');
+            $statusCountsQuery->whereHas('mahasiswa.prodi', fn ($q) => $q->where('id', $prodiId));
         }
-        
+
         // Optimized: Single query for status counts using groupBy
         $statusCountsRaw = (clone $statusCountsQuery)
             ->selectRaw('status, COUNT(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status');
-        
+
         $statusCounts = [
             'pending' => $statusCountsRaw->get('pending', 0),
             'approved' => $statusCountsRaw->get('approved', 0),
@@ -70,18 +68,19 @@ class KrsApprovalController extends Controller
         return view('admin.krs-approval.index', compact('krsList', 'status', 'statusCounts'));
     }
 
-
     public function show(Krs $krs)
     {
+        $this->ensureProdiScope($krs);
         $krs->load(['mahasiswa.user', 'mahasiswa.prodi', 'tahunAkademik', 'krsDetail.kelas.mataKuliah', 'krsDetail.kelas.dosen.user']);
-        
-        $totalSks = $krs->krsDetail->sum(fn($d) => $d->kelas->mataKuliah->sks);
+
+        $totalSks = $krs->krsDetail->sum(fn ($d) => $d->kelas->mataKuliah->sks);
 
         return view('admin.krs-approval.show', compact('krs', 'totalSks'));
     }
 
     public function approve(Request $request, Krs $krs)
     {
+        $this->ensureProdiScope($krs);
         if ($krs->status !== 'pending') {
             return redirect()->back()->with('error', 'KRS tidak dalam status pending');
         }
@@ -89,11 +88,12 @@ class KrsApprovalController extends Controller
         $krs->update(['status' => 'approved']);
 
         return redirect()->route('admin.krs-approval.index')
-            ->with('success', 'KRS mahasiswa ' . $krs->mahasiswa->user->name . ' berhasil disetujui');
+            ->with('success', 'KRS mahasiswa '.$krs->mahasiswa->user->name.' berhasil disetujui');
     }
 
     public function reject(Request $request, Krs $krs)
     {
+        $this->ensureProdiScope($krs);
         if ($krs->status !== 'pending') {
             return redirect()->back()->with('error', 'KRS tidak dalam status pending');
         }
@@ -101,7 +101,7 @@ class KrsApprovalController extends Controller
         $krs->update(['status' => 'rejected']);
 
         return redirect()->route('admin.krs-approval.index')
-            ->with('success', 'KRS mahasiswa ' . $krs->mahasiswa->user->name . ' ditolak');
+            ->with('success', 'KRS mahasiswa '.$krs->mahasiswa->user->name.' ditolak');
     }
 
     public function bulkApprove(Request $request)
@@ -120,12 +120,11 @@ class KrsApprovalController extends Controller
 
         $ids = $validated['krs_ids'];
 
-        // Build query with fakultas scope for admin_fakultas
         $query = Krs::whereIn('id', $ids)->where('status', 'pending');
-        
-        if ($request->get('fakultas_scoped') && $request->get('fakultas_scope')) {
-            $fakultasId = $request->get('fakultas_scope');
-            $query->whereHas('mahasiswa.prodi', fn($q) => $q->where('fakultas_id', $fakultasId));
+
+        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
+            $prodiId = $request->get('prodi_scope');
+            $query->whereHas('mahasiswa.prodi', fn ($q) => $q->where('id', $prodiId));
         }
 
         $updatedCount = $query->update(['status' => 'approved']);
@@ -134,6 +133,16 @@ class KrsApprovalController extends Controller
             return redirect()->back()->with('warning', 'Tidak ada KRS yang dapat disetujui (mungkin sudah diproses atau di luar wewenang Anda)');
         }
 
-        return redirect()->back()->with('success', $updatedCount . ' KRS berhasil disetujui');
+        return redirect()->back()->with('success', $updatedCount.' KRS berhasil disetujui');
+    }
+
+    private function ensureProdiScope(Krs $krs): void
+    {
+        if (auth()->user()->role === 'admin_prodi') {
+            abort_unless(
+                $krs->mahasiswa()->where('prodi_id', auth()->user()->prodi_id)->exists(),
+                404
+            );
+        }
     }
 }

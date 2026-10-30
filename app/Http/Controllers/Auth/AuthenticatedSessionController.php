@@ -29,7 +29,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $user = Auth::user();
-        
+
         // Redirect berdasarkan role
         $redirectRoute = match ($user->role) {
             'mahasiswa' => 'mahasiswa.dashboard',

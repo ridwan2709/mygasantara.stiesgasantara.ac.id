@@ -42,8 +42,9 @@ class HonorariumController extends Controller
         $tahun = (int) ($validated['tahun'] ?? now()->year);
         $dosenList = $this->scopedDosenQuery()->with('user')->orderBy('nidn')->get();
         $kelasQuery = Kelas::with(['dosen.user', 'mataKuliah']);
-        if ($request->user()->role === 'admin_fakultas') {
-            $kelasQuery->whereHas('dosen.prodi', fn (Builder $query) => $query->where('fakultas_id', $request->user()->fakultas_id));
+        if ($request->user()->role === 'admin_prodi') {
+            $kelasQuery->whereHas('dosen', fn (Builder $query) => $query->where('prodi_id', $request->user()->prodi_id))
+                ->whereHas('mataKuliah', fn (Builder $query) => $query->where('prodi_id', $request->user()->prodi_id));
         }
         $kelasList = $kelasQuery->orderBy('nama_kelas')->get();
         $mataKuliahList = MataKuliah::query()
@@ -339,6 +340,7 @@ class HonorariumController extends Controller
 
     public function storeTarif(Request $request): RedirectResponse
     {
+        abort_unless($request->user()->isSuperAdmin(), 403);
         $validated = $request->validate([
             'basis_tarif' => ['required', 'in:per_sks,per_kehadiran'],
             'nominal' => ['required', 'numeric', 'gt:0', 'max:999999999999.99'],
@@ -498,8 +500,8 @@ class HonorariumController extends Controller
     {
         $query = Dosen::query();
 
-        if (request()->user()->role === 'admin_fakultas') {
-            $query->whereHas('prodi', fn (Builder $prodiQuery) => $prodiQuery->where('fakultas_id', request()->user()->fakultas_id));
+        if (request()->user()->role === 'admin_prodi') {
+            $query->where('prodi_id', request()->user()->prodi_id);
         }
 
         return $query;
@@ -507,8 +509,8 @@ class HonorariumController extends Controller
 
     private function authorizeDosenScope(Dosen $dosen): void
     {
-        if (request()->user()->role === 'admin_fakultas'
-            && (int) $dosen->prodi?->fakultas_id !== (int) request()->user()->fakultas_id) {
+        if (request()->user()->role === 'admin_prodi'
+            && (int) $dosen->prodi_id !== (int) request()->user()->prodi_id) {
             abort(403);
         }
     }
@@ -523,6 +525,10 @@ class HonorariumController extends Controller
             ->where('status_pembayaran', Honorarium::STATUS_PAID)
             ->exists();
 
-        abort_if($periodIsPaid, 409, 'Data honorarium periode ini sudah dibayar dan tidak dapat diubah.');
+        if ($periodIsPaid) {
+            throw ValidationException::withMessages([
+                'periode' => 'Data honorarium periode ini sudah dibayar dan tidak dapat divalidasi.',
+            ]);
+        }
     }
 }

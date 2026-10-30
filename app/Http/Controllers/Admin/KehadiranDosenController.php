@@ -75,6 +75,11 @@ class KehadiranDosenController extends Controller
 
     public function show(Dosen $dosen, Request $request)
     {
+        abort_unless(
+            auth()->user()->role !== 'admin_prodi'
+                || (int) $dosen->prodi_id === (int) auth()->user()->prodi_id,
+            404
+        );
         $month = $request->get('month', now()->month);
         $year = $request->get('year', now()->year);
 
@@ -92,6 +97,7 @@ class KehadiranDosenController extends Controller
 
     public function updateGpsSettings(Request $request): RedirectResponse
     {
+        abort_unless(auth()->user()->isSuperAdmin(), 403);
         $validated = $request->validate([
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
