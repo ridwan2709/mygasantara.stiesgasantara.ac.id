@@ -40,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'log.requests' => \App\Http\Middleware\RequestLoggingMiddleware::class,
             'fakultas.scope' => \App\Http\Middleware\FakultasScopeMiddleware::class,
+            'can.absen' => \App\Http\Middleware\EnsureCanAbsen::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

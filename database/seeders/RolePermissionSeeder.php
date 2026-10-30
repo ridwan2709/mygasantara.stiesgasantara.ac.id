@@ -121,6 +121,9 @@ class RolePermissionSeeder extends Seeder
         // Mahasiswa typically don't need explicit permissions
         // Their access is controlled by role middleware
 
+        Role::firstOrCreate(['name' => 'bendahara']);
+        Role::firstOrCreate(['name' => 'staff']);
+
         $this->command->info('Roles and permissions created successfully!');
     }
 }

@@ -126,6 +126,17 @@ it('renders the lecturer attendance page with attendance data', function () {
         ->assertSee('Kehadiran Mengajar');
 });
 
+it('allows staff to open the add attendance route', function () {
+    $this->withoutVite();
+    $staff = User::factory()->create(['role' => 'staff']);
+
+    $this->actingAs($staff)
+        ->get(route('dosen.kehadiran.create'))
+        ->assertOk()
+        ->assertSee('Absensi harian')
+        ->assertSee(route('dosen.kehadiran.store'));
+});
+
 it('records lecturer check-in and checkout coordinates within the configured radius', function () {
     $this->withoutVite();
     $dosen = Dosen::factory()->create();

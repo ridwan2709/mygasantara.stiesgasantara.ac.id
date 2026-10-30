@@ -16,8 +16,20 @@ class KehadiranDosenController extends Controller
         $month = $request->get('month', now()->month);
         $year = $request->get('year', now()->year);
         $dosenId = $request->get('dosen_id');
+        $facultyId = $request->get('fakultas_scoped') && $request->get('fakultas_scope')
+            ? $request->get('fakultas_scope')
+            : null;
 
-        $query = KehadiranDosen::with(['dosen.user', 'dosen.prodi', 'jadwalKuliah.kelas.mataKuliah'])
+        $applyFacultyScope = static function ($query) use ($facultyId): void {
+            if ($facultyId) {
+                $query->where(function ($query) use ($facultyId): void {
+                    $query->whereHas('dosen.prodi', fn ($dosenQuery) => $dosenQuery->where('fakultas_id', $facultyId))
+                        ->orWhereHas('user', fn ($userQuery) => $userQuery->where('fakultas_id', $facultyId));
+                });
+            }
+        };
+
+        $query = KehadiranDosen::with(['dosen.user', 'dosen.prodi', 'user', 'jadwalKuliah.kelas.mataKuliah'])
             ->whereYear('tanggal', $year)
             ->whereMonth('tanggal', $month);
 
@@ -25,9 +37,8 @@ class KehadiranDosenController extends Controller
             $query->where('dosen_id', $dosenId);
         }
 
-        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
-            $query->whereHas('dosen', fn ($q) => $q->where('prodi_id', $request->get('prodi_scope')));
-        }
+        // Faculty scoping for admin_fakultas
+        $applyFacultyScope($query);
 
         $kehadiranList = $query->orderBy('tanggal', 'desc')->paginate(50);
 
@@ -36,9 +47,7 @@ class KehadiranDosenController extends Controller
         if ($dosenId) {
             $statsQuery->where('dosen_id', $dosenId);
         }
-        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
-            $statsQuery->whereHas('dosen', fn ($q) => $q->where('prodi_id', $request->get('prodi_scope')));
-        }
+        $applyFacultyScope($statsQuery);
 
         $stats = $statsQuery->selectRaw('status, COUNT(*) as count')
             ->groupBy('status')
@@ -47,17 +56,15 @@ class KehadiranDosenController extends Controller
 
         // Scope dosen list for dropdown
         $dosenQuery = Dosen::with('user');
-        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
-            $dosenQuery->where('prodi_id', $request->get('prodi_scope'));
+        if ($request->get('fakultas_scoped') && $request->get('fakultas_scope')) {
+            $dosenQuery->whereHas('prodi', fn ($q) => $q->where('fakultas_id', $request->get('fakultas_scope')));
         }
         $dosenList = $dosenQuery->get();
 
         // Rekap per dosen - also scoped
         $rekapQuery = KehadiranDosen::whereYear('tanggal', $year)
             ->whereMonth('tanggal', $month);
-        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
-            $rekapQuery->whereHas('dosen', fn ($q) => $q->where('prodi_id', $request->get('prodi_scope')));
-        }
+        $applyFacultyScope($rekapQuery);
         $rekapDosen = $rekapQuery->selectRaw('dosen_id, status, COUNT(*) as count')
             ->groupBy('dosen_id', 'status')
             ->get()

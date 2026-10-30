@@ -7,22 +7,26 @@ use App\Models\Mahasiswa;
 use App\Models\Prodi;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 class UserService
 {
     public function createUser(array $data)
     {
         return DB::transaction(function () use ($data) {
-            $prodi = ! empty($data['prodi_id']) ? Prodi::findOrFail($data['prodi_id']) : null;
-            $user = User::create([
+            $userData = [
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
                 'role' => $data['role'],
-                'fakultas_id' => $data['role'] === 'admin_prodi' ? $prodi?->fakultas_id : null,
-                'prodi_id' => $data['role'] === 'admin_prodi' ? $prodi?->id : null,
-            ]);
+                'fakultas_id' => $data['fakultas_id'] ?? null,
+            ];
+
+            if (Schema::hasColumn('users', 'boleh_absen')) {
+                $userData['boleh_absen'] = $data['boleh_absen'] ?? false;
+            }
+
+            $user = User::create($userData);
 
             if ($data['role'] === 'mahasiswa') {
                 Mahasiswa::create([
