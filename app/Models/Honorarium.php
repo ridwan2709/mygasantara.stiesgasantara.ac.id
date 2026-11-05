@@ -15,6 +15,9 @@ class Honorarium extends Model
 
     protected $fillable = [
         'dosen_id',
+        'user_id',
+        'nama_pegawai',
+        'dibayar_oleh',
         'bulan',
         'tahun',
         'total_kehadiran',
@@ -40,5 +43,15 @@ class Honorarium extends Model
     public function dosen(): BelongsTo
     {
         return $this->belongsTo(Dosen::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function dibayarOleh(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'dibayar_oleh');
     }
 }

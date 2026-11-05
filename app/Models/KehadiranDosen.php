@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class KehadiranDosen extends Model
@@ -13,6 +14,7 @@ class KehadiranDosen extends Model
     protected $table = 'kehadiran_dosen';
 
     protected $fillable = [
+        'user_id',
         'dosen_id',
         'jadwal_kuliah_id',
         'pertemuan_id',
@@ -33,9 +35,13 @@ class KehadiranDosen extends Model
     ];
 
     const STATUS_HADIR = 'hadir';
+
     const STATUS_IZIN = 'izin';
+
     const STATUS_SAKIT = 'sakit';
+
     const STATUS_TUGAS = 'tugas';
+
     const STATUS_ALPA = 'alpa';
 
     public static function getStatusList(): array
@@ -51,7 +57,7 @@ class KehadiranDosen extends Model
 
     public function getStatusColorAttribute(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_HADIR => 'emerald',
             self::STATUS_IZIN => 'blue',
             self::STATUS_SAKIT => 'amber',
@@ -69,6 +75,16 @@ class KehadiranDosen extends Model
     public function dosen()
     {
         return $this->belongsTo(Dosen::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function isPegawai(): bool
+    {
+        return $this->dosen_id === null;
     }
 
     public function jadwalKuliah()

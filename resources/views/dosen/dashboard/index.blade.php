@@ -183,19 +183,13 @@
                             </span>
                         @elseif($kehadiranUtama)
                             <form action="{{ route('dosen.kehadiran.checkout', $kehadiranUtama) }}" method="POST"
-                                class="flex flex-col items-end gap-2" onsubmit="return captureAttendanceGps(event, this)">
-                                @csrf
-                                <input type="hidden" name="latitude">
-                                <input type="hidden" name="longitude">
-                                <p data-gps-status role="status" aria-live="polite"
-                                    class="text-xs text-siakad-secondary dark:text-gray-400">
-                                    Lokasi GPS akan diperiksa sebelum checkout.
-                                </p>
-                                <button type="submit"
-                                    class="px-6 py-2.5 bg-siakad-primary text-white rounded-lg text-sm font-semibold hover:bg-siakad-primary/90 transition min-h-[44px] shadow-sm">
-                                    Absen Keluar
-                                </button>
-                            </form>
+    class="flex flex-col items-end gap-2">
+    @csrf
+    <button type="submit"
+        class="px-6 py-2.5 bg-siakad-primary text-white rounded-lg text-sm font-semibold hover:bg-siakad-primary/90 transition min-h-[44px] shadow-sm">
+        Absen Keluar
+    </button>
+</form>
                         @elseif($canAbsen)
                             <button type="button"
                                 onclick="showModal({{ $jadwalUtamaHariIni->id }}, @js($kelasUtamaHariIni->mataKuliah->nama_mk ?? 'Mata Kuliah'))"
