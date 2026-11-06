@@ -151,8 +151,10 @@
                             class="block text-sm font-medium text-siakad-secondary mb-1">Fakultas</label>
                         <select name="fakultas_id"
                             class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                            <option value="">-- Pilih --</option>@foreach($fakultasList as $f)
-                            <option value="{{ $f->id }}">{{ $f->nama }}</option>@endforeach
+                            <option value="">-- Pilih --</option>
+                            @foreach($prodiList as $f)
+                            <option value="{{ $f->id }}">{{ $f->nama }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="flex justify-end gap-3"><button type="button" onclick="closeModal('createModal')"
@@ -195,8 +197,10 @@
                             class="block text-sm font-medium text-siakad-secondary mb-1">Fakultas</label>
                         <select name="fakultas_id" id="editFakultasId"
                             class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                            <option value="">-- Pilih --</option>@foreach($fakultasList as $f)
-                            <option value="{{ $f->id }}">{{ $f->nama }}</option>@endforeach
+                            <option value="">-- Pilih --</option>
+                            @foreach($prodiList as $f)
+                            <option value="{{ $f->id }}">{{ $f->nama }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="flex justify-end gap-3"><button type="button" onclick="closeModal('editModal')"

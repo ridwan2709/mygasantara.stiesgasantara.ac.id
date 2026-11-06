@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Fakultas;
+use App\Models\Prodi;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\Request;
