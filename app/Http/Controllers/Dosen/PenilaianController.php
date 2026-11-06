@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Dosen;
 
 use App\Http\Controllers\Controller;
+use App\Models\Kelas;
 use App\Services\PenilaianService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,12 +20,11 @@ class PenilaianController extends Controller
 
     public function index(Request $request)
     {
-        $dosen = Auth::user()->dosen;
-        $query = $dosen->kelas()->with(['mataKuliah', 'krsDetail']);
+        $query = $this->accessibleKelasQuery()->with(['mataKuliah', 'krsDetail']);
 
         // Filter by semester
         if ($request->filled('semester')) {
-            $query->whereHas('mataKuliah', fn($q) => $q->where('semester', $request->semester));
+            $query->whereHas('mataKuliah', fn ($q) => $q->where('semester', $request->semester));
         }
 
         // Search by nama mk or kode mk
@@ -31,17 +32,17 @@ class PenilaianController extends Controller
             $search = $request->search;
             $query->whereHas('mataKuliah', function ($q) use ($search) {
                 $q->where('nama_mk', 'like', "%{$search}%")
-                  ->orWhere('kode_mk', 'like', "%{$search}%");
+                    ->orWhere('kode_mk', 'like', "%{$search}%");
             });
         }
 
         $kelasAjar = $query->get();
 
         // Group by semester
-        $kelasGrouped = $kelasAjar->groupBy(fn($k) => $k->mataKuliah->semester);
+        $kelasGrouped = $kelasAjar->groupBy(fn ($k) => $k->mataKuliah->semester);
 
         // Get available semesters from already loaded data (avoid N+1)
-        $semesterList = $dosen->kelas()
+        $semesterList = $this->accessibleKelasQuery()
             ->with('mataKuliah')
             ->get()
             ->pluck('mataKuliah.semester')
@@ -58,24 +59,76 @@ class PenilaianController extends Controller
 
     public function show($kelasId)
     {
-        $dosen = Auth::user()->dosen;
-        $kelas = $dosen->kelas()->with(['mataKuliah', 'krsDetail.krs.mahasiswa.user', 'nilai'])->findOrFail($kelasId);
-        
+        $kelas = $this->findAccessibleKelas($kelasId, [
+            'mataKuliah',
+            'krsDetail.krs.mahasiswa.user',
+            'nilai',
+        ]);
+
         return view('dosen.penilaian.show', compact('kelas'));
     }
 
     public function store(Request $request, $kelasId)
     {
+        $kelas = $this->findAccessibleKelas($kelasId, ['krsDetail.krs']);
+
         $request->validate([
             'nilai' => 'required|array',
             'nilai.*' => 'nullable|numeric|min:0|max:100',
         ]);
 
+        $mahasiswaTerdaftar = $kelas->krsDetail
+            ->pluck('krs.mahasiswa_id')
+            ->filter()
+            ->map(fn ($mahasiswaId) => (string) $mahasiswaId)
+            ->all();
+        $mahasiswaYangDikirim = array_map('strval', array_keys($request->input('nilai')));
+
+        abort_if(
+            array_diff($mahasiswaYangDikirim, $mahasiswaTerdaftar) !== [],
+            403,
+            'Mahasiswa tidak terdaftar di kelas ini'
+        );
+
         try {
-            $this->penilaianService->bulkInputNilai($kelasId, $request->nilai);
+            $this->penilaianService->bulkInputNilai($kelas->id, $request->nilai);
+
             return redirect()->back()->with('success', 'Nilai berhasil disimpan');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
+    }
+
+    private function findAccessibleKelas(int|string $kelasId, array $relations = []): Kelas
+    {
+        $kelas = $this->accessibleKelasQuery()
+            ->with($relations)
+            ->find($kelasId);
+
+        abort_unless($kelas, 403, 'Anda tidak berhak mengakses kelas ini');
+
+        return $kelas;
+    }
+
+    private function accessibleKelasQuery(): Builder
+    {
+        $user = Auth::user();
+
+        if ($user->role === 'admin_fakultas') {
+            abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');
+
+            return Kelas::query()->whereHas(
+                'dosen.prodi',
+                fn ($query) => $query->where('fakultas_id', $user->fakultas_id)
+            );
+        }
+
+        $dosen = $user->dosen;
+
+        if (! $dosen) {
+            abort(403, 'Unauthorized');
+        }
+
+        return Kelas::query()->where('dosen_id', $dosen->id);
     }
 }

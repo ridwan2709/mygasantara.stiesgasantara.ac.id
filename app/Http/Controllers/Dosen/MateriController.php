@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Kelas;
 use App\Models\Materi;
 use App\Models\Pertemuan;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -17,12 +18,7 @@ class MateriController extends Controller
      */
     public function index($kelasId)
     {
-        $dosen = Auth::user()->dosen;
-        if (!$dosen) {
-            abort(403, 'Anda tidak memiliki akses sebagai dosen.');
-        }
-        
-        $kelas = $dosen->kelas()
+        $kelas = $this->accessibleKelasQuery()
             ->with(['mataKuliah', 'jadwal.pertemuan.materiList'])
             ->findOrFail($kelasId);
 
@@ -40,8 +36,7 @@ class MateriController extends Controller
      */
     public function store(Request $request, $kelasId)
     {
-        $dosen = Auth::user()->dosen;
-        $kelas = $dosen->kelas()->findOrFail($kelasId);
+        $kelas = $this->accessibleKelasQuery()->findOrFail($kelasId);
 
         $validated = $request->validate([
             'pertemuan_id' => 'required|exists:pertemuan,id',
@@ -53,7 +48,7 @@ class MateriController extends Controller
 
         // Verify pertemuan belongs to this kelas
         $pertemuan = Pertemuan::where('id', $validated['pertemuan_id'])
-            ->whereHas('jadwalKuliah', fn($q) => $q->where('kelas_id', $kelasId))
+            ->whereHas('jadwalKuliah', fn ($query) => $query->where('kelas_id', $kelas->id))
             ->firstOrFail();
 
         $materi = new Materi([
@@ -86,14 +81,11 @@ class MateriController extends Controller
      */
     public function update(Request $request, $kelasId, Materi $materi)
     {
-        $dosen = Auth::user()->dosen;
-        $kelas = $dosen->kelas()->findOrFail($kelasId);
+        $kelas = $this->accessibleKelasQuery()->findOrFail($kelasId);
 
-        // Verify materi belongs to this kelas
-        $pertemuan = $materi->pertemuan;
-        if ($pertemuan->jadwalKuliah->kelas_id != $kelasId) {
-            abort(403);
-        }
+        $materi = Materi::query()->whereKey($materi->id)
+            ->whereHas('pertemuan.jadwalKuliah', fn ($query) => $query->where('kelas_id', $kelas->id))
+            ->firstOrFail();
 
         $validated = $request->validate([
             'judul' => 'required|string|max:255',
@@ -133,14 +125,11 @@ class MateriController extends Controller
      */
     public function destroy($kelasId, Materi $materi)
     {
-        $dosen = Auth::user()->dosen;
-        $kelas = $dosen->kelas()->findOrFail($kelasId);
+        $kelas = $this->accessibleKelasQuery()->findOrFail($kelasId);
 
-        // Verify materi belongs to this kelas
-        $pertemuan = $materi->pertemuan;
-        if ($pertemuan->jadwalKuliah->kelas_id != $kelasId) {
-            abort(403);
-        }
+        $materi = Materi::query()->whereKey($materi->id)
+            ->whereHas('pertemuan.jadwalKuliah', fn ($query) => $query->where('kelas_id', $kelas->id))
+            ->firstOrFail();
 
         // Delete file if exists
         if ($materi->file_path) {
@@ -157,19 +146,35 @@ class MateriController extends Controller
      */
     public function download($kelasId, Materi $materi)
     {
-        $dosen = Auth::user()->dosen;
-        $kelas = $dosen->kelas()->findOrFail($kelasId);
+        $kelas = $this->accessibleKelasQuery()->findOrFail($kelasId);
 
-        // Verify materi belongs to this kelas
-        $pertemuan = $materi->pertemuan;
-        if ($pertemuan->jadwalKuliah->kelas_id != $kelasId) {
-            abort(403);
-        }
+        $materi = Materi::query()->whereKey($materi->id)
+            ->whereHas('pertemuan.jadwalKuliah', fn ($query) => $query->where('kelas_id', $kelas->id))
+            ->firstOrFail();
 
         if (!$materi->file_path || !Storage::exists($materi->file_path)) {
             abort(404, 'File tidak ditemukan');
         }
 
         return Storage::download($materi->file_path, $materi->file_name);
+    }
+
+    private function accessibleKelasQuery(): Builder
+    {
+        $user = Auth::user();
+
+        if ($user->role === 'admin_fakultas') {
+            abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');
+
+            return Kelas::query()->whereHas(
+                'dosen.prodi',
+                fn ($query) => $query->where('fakultas_id', $user->fakultas_id)
+            );
+        }
+
+        $dosen = $user->dosen;
+        abort_unless($dosen, 403, 'Anda tidak memiliki akses sebagai dosen.');
+
+        return Kelas::query()->where('dosen_id', $dosen->id);
     }
 }

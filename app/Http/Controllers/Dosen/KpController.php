@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dosen;
 use App\Http\Controllers\Controller;
 use App\Models\KerjaPraktek;
 use App\Models\LogbookKp;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,12 +14,23 @@ class KpController extends Controller
     public function index()
     {
         $dosen = Auth::user()->dosen;
-        $kpList = KerjaPraktek::where('pembimbing_id', $dosen->id)
+        $kpList = $this->accessibleKpQuery()
             ->with(['mahasiswa.user'])
-            ->orderByRaw("FIELD(status, 'berlangsung', 'pengajuan', 'disetujui', 'selesai_kp', 'penyusunan_laporan', 'seminar', 'revisi', 'selesai', 'ditolak')")
+            ->orderByRaw("CASE status
+                WHEN 'berlangsung' THEN 1
+                WHEN 'pengajuan' THEN 2
+                WHEN 'disetujui' THEN 3
+                WHEN 'selesai_kp' THEN 4
+                WHEN 'penyusunan_laporan' THEN 5
+                WHEN 'seminar' THEN 6
+                WHEN 'revisi' THEN 7
+                WHEN 'selesai' THEN 8
+                WHEN 'ditolak' THEN 9
+                ELSE 10
+            END")
             ->get();
 
-        $pendingLogbook = LogbookKp::whereHas('kerjaPraktek', fn($q) => $q->where('pembimbing_id', $dosen->id))
+        $pendingLogbook = $this->accessibleLogbookQuery()
             ->where('status', LogbookKp::STATUS_PENDING)
             ->count();
 
@@ -28,7 +40,7 @@ class KpController extends Controller
     public function show(KerjaPraktek $kp)
     {
         $dosen = Auth::user()->dosen;
-        if ($kp->pembimbing_id !== $dosen->id) abort(403);
+        $this->authorizeKp($kp);
 
         $kp->load(['mahasiswa.user', 'pembimbing.user', 'logbook']);
 
@@ -37,8 +49,11 @@ class KpController extends Controller
 
     public function reviewLogbook(Request $request, LogbookKp $logbook)
     {
-        $dosen = Auth::user()->dosen;
-        if ($logbook->kerjaPraktek->pembimbing_id !== $dosen->id) abort(403);
+        abort_unless(
+            $this->accessibleLogbookQuery()->whereKey($logbook->id)->exists(),
+            403,
+            'Anda tidak berhak mengakses logbook ini'
+        );
 
         $validated = $request->validate([
             'catatan_pembimbing' => 'nullable|string',
@@ -52,15 +67,70 @@ class KpController extends Controller
 
     public function updateStatus(Request $request, KerjaPraktek $kp)
     {
-        $dosen = Auth::user()->dosen;
-        if ($kp->pembimbing_id !== $dosen->id) abort(403);
+        $this->authorizeKp($kp);
 
         $validated = $request->validate([
-            'status' => 'required|in:' . implode(',', array_keys(KerjaPraktek::getStatusList())),
+            'status' => 'required|in:'.implode(',', array_keys(KerjaPraktek::getStatusList())),
         ]);
 
         $kp->update(['status' => $validated['status']]);
 
         return redirect()->back()->with('success', 'Status berhasil diupdate');
+    }
+
+    private function accessibleKpQuery(): Builder
+    {
+        $user = Auth::user();
+
+        if ($user->role === 'admin_fakultas') {
+            abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');
+
+            return KerjaPraktek::query()->whereHas(
+                'mahasiswa.prodi',
+                fn ($query) => $query->where('fakultas_id', $user->fakultas_id)
+            );
+        }
+
+        $dosen = $user->dosen;
+
+        if (! $dosen) {
+            abort(403, 'Unauthorized');
+        }
+
+        return KerjaPraktek::query()->where('pembimbing_id', $dosen->id);
+    }
+
+    private function accessibleLogbookQuery(): Builder
+    {
+        $user = Auth::user();
+
+        if ($user->role === 'admin_fakultas') {
+            abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');
+
+            return LogbookKp::query()->whereHas(
+                'kerjaPraktek.mahasiswa.prodi',
+                fn ($query) => $query->where('fakultas_id', $user->fakultas_id)
+            );
+        }
+
+        $dosen = $user->dosen;
+
+        if (! $dosen) {
+            abort(403, 'Unauthorized');
+        }
+
+        return LogbookKp::query()->whereHas(
+            'kerjaPraktek',
+            fn ($query) => $query->where('pembimbing_id', $dosen->id)
+        );
+    }
+
+    private function authorizeKp(KerjaPraktek $kp): void
+    {
+        abort_unless(
+            $this->accessibleKpQuery()->whereKey($kp->id)->exists(),
+            403,
+            'Anda tidak berhak mengakses kerja praktek ini'
+        );
     }
 }

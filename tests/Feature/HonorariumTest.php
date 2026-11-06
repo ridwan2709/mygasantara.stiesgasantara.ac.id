@@ -1,10 +1,12 @@
 <?php
 
 use App\Models\Dosen;
+use App\Models\Fakultas;
 use App\Models\Honorarium;
 use App\Models\KehadiranMengajar;
 use App\Models\Kelas;
 use App\Models\MataKuliah;
+use App\Models\Prodi;
 use App\Models\TarifHonorarium;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -191,5 +193,48 @@ it('limits lecturer honorarium history and slips to the authenticated lecturer',
 
     expect(fn () => $this->actingAs($dosen->user)
         ->get(route('dosen.honorarium.slip', $milikLain)))
+        ->toThrow(NotFoundHttpException::class);
+});
+
+it('allows faculty admins to view honorarium and slips only for lecturers in their faculty', function () {
+    $this->withoutVite();
+
+    $fakultas = Fakultas::factory()->create();
+    $admin = User::factory()->create([
+        'role' => 'admin_fakultas',
+        'fakultas_id' => $fakultas->id,
+    ]);
+    $dosenFakultas = Dosen::factory()->create([
+        'prodi_id' => Prodi::factory()->create(['fakultas_id' => $fakultas->id])->id,
+    ]);
+    $dosenLuar = Dosen::factory()->create();
+    $honorariumFakultas = Honorarium::create([
+        'dosen_id' => $dosenFakultas->id,
+        'bulan' => 8,
+        'tahun' => 2026,
+        'status_pembayaran' => Honorarium::STATUS_DRAFT,
+    ]);
+    $honorariumLuar = Honorarium::create([
+        'dosen_id' => $dosenLuar->id,
+        'bulan' => 8,
+        'tahun' => 2026,
+        'status_pembayaran' => Honorarium::STATUS_DRAFT,
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('dosen.honorarium.index'))
+        ->assertOk()
+        ->assertSee($dosenFakultas->user->name)
+        ->assertDontSee($dosenLuar->user->name);
+
+    $this->actingAs($admin)
+        ->get(route('dosen.honorarium.slip', $honorariumFakultas))
+        ->assertOk()
+        ->assertHeader('content-type', 'application/pdf');
+
+    $this->withoutExceptionHandling();
+
+    expect(fn () => $this->actingAs($admin)
+        ->get(route('dosen.honorarium.slip', $honorariumLuar)))
         ->toThrow(NotFoundHttpException::class);
 });

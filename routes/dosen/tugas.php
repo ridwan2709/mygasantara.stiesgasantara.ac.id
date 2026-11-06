@@ -4,7 +4,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Dosen\TugasController;
 
-Route::middleware(['auth', 'role:dosen'])->prefix('dosen')->name('dosen.')->group(function () {
+Route::middleware(['auth', 'role:dosen | admin_fakultas'])->prefix('dosen')->name('dosen.')->group(function () {
     Route::get('/tugas/{kelas}', [TugasController::class, 'index'])->name('tugas.index');
     Route::post('/tugas/{kelas}', [TugasController::class, 'store'])->name('tugas.store');
     Route::get('/tugas/{kelas}/{tugas}', [TugasController::class, 'show'])->name('tugas.show');

@@ -16,6 +16,7 @@ class KehadiranMengajar extends Model
     protected $table = 'kehadiran_mengajar';
 
     protected $fillable = [
+        'kehadiran_dosen_id',
         'dosen_id',
         'mata_kuliah_id',
         'kelas_id',

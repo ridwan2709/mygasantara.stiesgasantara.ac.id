@@ -9,14 +9,16 @@
             <svg class="w-10 h-10 text-siakad-secondary dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
         </div>
         <h3 class="text-xl font-bold text-siakad-dark dark:text-white mb-2">Belum Ada Kelas</h3>
-        <p class="text-siakad-secondary dark:text-gray-400">Anda belum memiliki kelas yang diampu untuk semester ini.</p>
+        <p class="text-siakad-secondary dark:text-gray-400">
+            {{ auth()->user()->role === 'admin_fakultas' ? 'Belum ada kelas yang diampu dosen di fakultas Anda untuk semester ini.' : 'Anda belum memiliki kelas yang diampu untuk semester ini.' }}
+        </p>
     </div>
     @else
     
     <!-- Search Bar -->
     <!-- Search Bar -->
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <p class="text-sm text-siakad-secondary">Total <span class="font-semibold text-[#234C6A]">{{ $kelasList->count() }}</span> kelas yang diampu</p>
+        <p class="text-sm text-siakad-secondary">Total <span class="font-semibold text-[#234C6A]">{{ $kelasList->count() }}</span> kelas {{ auth()->user()->role === 'admin_fakultas' ? 'di fakultas Anda' : 'yang diampu' }}</p>
         <div class="relative w-full sm:w-auto">
             <input type="text" id="searchInput" placeholder="Cari mata kuliah..." class="input-saas pl-9 pr-4 py-2 text-sm w-full sm:w-56">
             <svg class="w-4 h-4 text-siakad-secondary absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>

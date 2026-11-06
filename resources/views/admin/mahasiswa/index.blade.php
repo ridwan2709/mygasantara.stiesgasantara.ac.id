@@ -10,7 +10,9 @@
 
     <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-            <p class="text-sm text-siakad-secondary dark:text-gray-400">Kelola data mahasiswa dalam sistem</p>
+            <p class="text-sm text-siakad-secondary dark:text-gray-400">
+                {{ $isFacultyAdmin ? 'Kelola data mahasiswa di fakultas Anda' : 'Kelola data mahasiswa dalam sistem' }}
+            </p>
         </div>
         <div class="flex items-center gap-3 flex-wrap">
             <button onclick="openModal('createModal')" class="btn-primary-saas px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center gap-2">
@@ -23,12 +25,14 @@
         <form method="GET" class="flex flex-col sm:flex-row items-center gap-3 w-full">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama atau NIM..." class="input-saas px-4 py-2 text-sm w-full sm:w-64 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300">
             
-            <select name="fakultas_id" id="filterFakultas" class="input-saas px-4 py-2 text-sm w-full sm:w-48 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300">
-                <option value="">Fakultas</option>
-                @foreach($fakultasList as $f)
-                <option value="{{ $f->id }}" {{ request('fakultas_id') == $f->id ? 'selected' : '' }}>{{ $f->nama }}</option>
-                @endforeach
-            </select>
+            @unless($isFacultyAdmin)
+                <select name="fakultas_id" id="filterFakultas" class="input-saas px-4 py-2 text-sm w-full sm:w-48 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300">
+                    <option value="">Fakultas</option>
+                    @foreach($fakultasList as $f)
+                    <option value="{{ $f->id }}" {{ request('fakultas_id') == $f->id ? 'selected' : '' }}>{{ $f->nama }}</option>
+                    @endforeach
+                </select>
+            @endunless
 
             <select name="prodi_id" id="filterProdi" class="input-saas px-4 py-2 text-sm w-full sm:w-48 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300">
                 <option value="">Prodi</option>
@@ -58,12 +62,12 @@
     <!-- Script for Dynamic Dropdown -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const fakultasSelect = document.getElementById('filterFakultas');
             const prodiSelect = document.getElementById('filterProdi');
             const prodiOptions = Array.from(prodiSelect.options);
+            const fakultasSelect = document.getElementById('filterFakultas');
 
             function updateProdiOptions() {
-                const selectedFakultasId = fakultasSelect.value;
+                const selectedFakultasId = fakultasSelect?.value ?? '';
                 const currentProdiValue = prodiSelect.value;
                 let isCurrentProdiValid = false;
 
@@ -88,7 +92,7 @@
                 }
             }
 
-            fakultasSelect.addEventListener('change', updateProdiOptions);
+            fakultasSelect?.addEventListener('change', updateProdiOptions);
             
             // Initial run to set correct state on page load (if filtering is active)
             updateProdiOptions();

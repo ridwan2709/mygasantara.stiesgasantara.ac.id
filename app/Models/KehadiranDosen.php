@@ -14,6 +14,7 @@ class KehadiranDosen extends Model
 
     protected $fillable = [
         'dosen_id',
+        'dicatat_oleh',
         'jadwal_kuliah_id',
         'pertemuan_id',
         'tanggal',
@@ -33,9 +34,13 @@ class KehadiranDosen extends Model
     ];
 
     const STATUS_HADIR = 'hadir';
+
     const STATUS_IZIN = 'izin';
+
     const STATUS_SAKIT = 'sakit';
+
     const STATUS_TUGAS = 'tugas';
+
     const STATUS_ALPA = 'alpa';
 
     public static function getStatusList(): array
@@ -51,7 +56,7 @@ class KehadiranDosen extends Model
 
     public function getStatusColorAttribute(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_HADIR => 'emerald',
             self::STATUS_IZIN => 'blue',
             self::STATUS_SAKIT => 'amber',
@@ -69,6 +74,11 @@ class KehadiranDosen extends Model
     public function dosen()
     {
         return $this->belongsTo(Dosen::class);
+    }
+
+    public function dicatatOleh()
+    {
+        return $this->belongsTo(User::class, 'dicatat_oleh');
     }
 
     public function jadwalKuliah()
