@@ -36,7 +36,7 @@ class AuthenticatedSessionController extends Controller
             'dosen' => 'dosen.dashboard',
             'bendahara' => 'bendahara.dashboard',
             'staff' => 'staff.dashboard',
-            'superadmin', 'admin_fakultas' => 'admin.dashboard',
+            'superadmin', 'admin_fakultas', 'admin_prodi' => 'admin.dashboard',
             default => 'dashboard',
         };
 

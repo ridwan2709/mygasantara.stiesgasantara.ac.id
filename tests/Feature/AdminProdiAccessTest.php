@@ -9,6 +9,21 @@ use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
+it('logs admin prodi accounts into the admin dashboard', function () {
+    $prodi = Prodi::factory()->create();
+    $admin = User::factory()->create([
+        'role' => 'admin_prodi',
+        'prodi_id' => $prodi->id,
+    ]);
+
+    $this->post(route('login'), [
+        'email' => $admin->email,
+        'password' => 'password',
+    ])->assertRedirect(route('admin.dashboard', absolute: false));
+
+    $this->get(route('admin.dashboard'))->assertOk();
+});
+
 it('blocks admin prodi accounts without an assigned program', function () {
     $admin = User::factory()->create(['role' => 'admin_prodi']);
 

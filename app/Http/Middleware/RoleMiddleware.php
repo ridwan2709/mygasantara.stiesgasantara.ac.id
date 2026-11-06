@@ -46,7 +46,7 @@ class RoleMiddleware
     private function expandRole(string $role): array
     {
         return match ($role) {
-            'admin' => ['superadmin', 'admin_fakultas'],
+            'admin' => ['superadmin', 'admin_fakultas', 'admin_prodi'],
             default => [$role],
         };
     }
