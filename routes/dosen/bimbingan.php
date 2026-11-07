@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Dosen\BimbinganController;
 
-Route::middleware(['auth', 'role:dosen'])->prefix('dosen')->name('dosen.')->group(function () {
+Route::middleware(['auth', 'role:dosen | admin_fakultas'])->prefix('dosen')->name('dosen.')->group(function () {
     Route::get('/bimbingan', [BimbinganController::class, 'index'])->name('bimbingan.index');
     Route::get('/bimbingan/krs-approval', [BimbinganController::class, 'krsApproval'])->name('bimbingan.krs-approval');
     Route::get('/bimbingan/krs/{krs}', [BimbinganController::class, 'showKrs'])->name('bimbingan.krs-show');

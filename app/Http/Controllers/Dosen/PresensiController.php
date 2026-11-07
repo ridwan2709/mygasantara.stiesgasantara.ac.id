@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Dosen;
 
 use App\Http\Controllers\Controller;
-use App\Models\Kelas;
 use App\Models\JadwalKuliah;
+use App\Models\Kelas;
 use App\Models\Pertemuan;
-use App\Models\Presensi;
 use App\Services\PresensiService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -25,17 +25,16 @@ class PresensiController extends Controller
      */
     public function index()
     {
-        $dosen = Auth::user()->dosen;
-        
-        if (!$dosen) {
-            abort(403, 'Unauthorized');
-        }
+        $kelasList = $this->accessibleKelasQuery()
+            ->with(['mataKuliah', 'jadwal'])
+            ->withCount(['krsDetail as jumlah_mahasiswa' => function ($query) {
+                $query->whereHas('krs', fn ($krsQuery) => $krsQuery->where('status', 'approved'));
+            }])
+            ->get();
 
-        $kelasList = $this->presensiService->getKelasByDosen($dosen->id);
-        
         // Group by semester
-        $kelasGrouped = $kelasList->groupBy(fn($k) => $k->mataKuliah->semester ?? 0);
-        
+        $kelasGrouped = $kelasList->groupBy(fn ($k) => $k->mataKuliah->semester ?? 0);
+
         // Get semester list for filter
         $semesterList = $kelasList->pluck('mataKuliah.semester')->unique()->sort()->values();
 
@@ -47,11 +46,7 @@ class PresensiController extends Controller
      */
     public function showKelas(Kelas $kelas)
     {
-        $dosen = Auth::user()->dosen;
-        
-        if ($kelas->dosen_id !== $dosen->id) {
-            abort(403, 'Anda tidak memiliki akses ke kelas ini');
-        }
+        $this->authorizeKelas($kelas);
 
         $kelas->load(['mataKuliah', 'jadwal']);
         $pertemuanList = $this->presensiService->getPertemuanByKelas($kelas->id);
@@ -65,16 +60,12 @@ class PresensiController extends Controller
      */
     public function createPertemuan(Kelas $kelas)
     {
-        $dosen = Auth::user()->dosen;
-        
-        if ($kelas->dosen_id !== $dosen->id) {
-            abort(403, 'Anda tidak memiliki akses ke kelas ini');
-        }
+        $this->authorizeKelas($kelas);
 
         $kelas->load(['mataKuliah', 'jadwal']);
         $jadwalList = $kelas->jadwal;
         $nextPertemuanKe = [];
-        
+
         foreach ($jadwalList as $jadwal) {
             $nextPertemuanKe[$jadwal->id] = $this->presensiService->getNextPertemuanKe($jadwal->id);
         }
@@ -87,11 +78,7 @@ class PresensiController extends Controller
      */
     public function storePertemuan(Request $request, Kelas $kelas)
     {
-        $dosen = Auth::user()->dosen;
-        
-        if ($kelas->dosen_id !== $dosen->id) {
-            abort(403, 'Anda tidak memiliki akses ke kelas ini');
-        }
+        $this->authorizeKelas($kelas);
 
         $validated = $request->validate([
             'jadwal_kuliah_id' => 'required|exists:jadwal_kuliah,id',
@@ -112,7 +99,7 @@ class PresensiController extends Controller
             ->exists();
 
         if ($exists) {
-            return back()->withErrors(['pertemuan_ke' => 'Pertemuan ke-' . $validated['pertemuan_ke'] . ' sudah ada'])
+            return back()->withErrors(['pertemuan_ke' => 'Pertemuan ke-'.$validated['pertemuan_ke'].' sudah ada'])
                 ->withInput();
         }
 
@@ -132,16 +119,12 @@ class PresensiController extends Controller
      */
     public function inputPresensi(Pertemuan $pertemuan)
     {
-        $dosen = Auth::user()->dosen;
         $kelas = $pertemuan->jadwalKuliah->kelas;
-        
-        if ($kelas->dosen_id !== $dosen->id) {
-            abort(403, 'Anda tidak memiliki akses ke pertemuan ini');
-        }
+        $this->authorizeKelas($kelas);
 
         $pertemuan->load(['jadwalKuliah.kelas.mataKuliah', 'presensi']);
         $mahasiswaList = $this->presensiService->getMahasiswaByKelas($kelas->id);
-        
+
         // Get existing presensi data
         $existingPresensi = $pertemuan->presensi->keyBy('mahasiswa_id');
 
@@ -153,21 +136,60 @@ class PresensiController extends Controller
      */
     public function storePresensi(Request $request, Pertemuan $pertemuan)
     {
-        $dosen = Auth::user()->dosen;
         $kelas = $pertemuan->jadwalKuliah->kelas;
-        
-        if ($kelas->dosen_id !== $dosen->id) {
-            abort(403, 'Anda tidak memiliki akses ke pertemuan ini');
-        }
+        $this->authorizeKelas($kelas);
 
         $validated = $request->validate([
             'presensi' => 'required|array',
             'presensi.*' => 'required|in:hadir,sakit,izin,alpa',
         ]);
 
+        $mahasiswaTerdaftar = $this->presensiService->getMahasiswaByKelas($kelas->id)
+            ->pluck('id')
+            ->map(fn ($mahasiswaId) => (string) $mahasiswaId)
+            ->all();
+        $mahasiswaYangDikirim = array_map('strval', array_keys($validated['presensi']));
+
+        abort_if(
+            array_diff($mahasiswaYangDikirim, $mahasiswaTerdaftar) !== [],
+            403,
+            'Mahasiswa tidak terdaftar di kelas ini'
+        );
+
         $this->presensiService->recordPresensi($pertemuan->id, $validated['presensi']);
 
         return redirect()->route('dosen.presensi.kelas', $kelas)
             ->with('success', 'Presensi berhasil disimpan');
+    }
+
+    private function authorizeKelas(Kelas $kelas): void
+    {
+        abort_unless(
+            $this->accessibleKelasQuery()->whereKey($kelas->id)->exists(),
+            403,
+            'Anda tidak memiliki akses ke kelas ini'
+        );
+    }
+
+    private function accessibleKelasQuery(): Builder
+    {
+        $user = Auth::user();
+
+        if ($user->role === 'admin_fakultas') {
+            abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');
+
+            return Kelas::query()->whereHas(
+                'dosen.prodi',
+                fn ($query) => $query->where('fakultas_id', $user->fakultas_id)
+            );
+        }
+
+        $dosen = $user->dosen;
+
+        if (! $dosen) {
+            abort(403, 'Unauthorized');
+        }
+
+        return Kelas::query()->where('dosen_id', $dosen->id);
     }
 }

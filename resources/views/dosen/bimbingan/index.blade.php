@@ -4,7 +4,9 @@
     </x-slot>
 
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <p class="text-sm text-siakad-secondary">Daftar mahasiswa di bawah bimbingan akademik Anda</p>
+        <p class="text-sm text-siakad-secondary">
+            {{ auth()->user()->role === 'admin_fakultas' ? 'Daftar mahasiswa bimbingan akademik di fakultas Anda' : 'Daftar mahasiswa di bawah bimbingan akademik Anda' }}
+        </p>
         <div class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
             <!-- Search -->
             <div class="relative w-full md:w-auto">

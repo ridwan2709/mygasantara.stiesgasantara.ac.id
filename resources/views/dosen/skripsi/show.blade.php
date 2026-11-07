@@ -83,7 +83,7 @@
 
                             @if($bimbingan->catatan_dosen)
                             <div class="mt-3 p-3 rounded-lg bg-emerald-50 border border-emerald-100">
-                                <p class="text-xs text-emerald-600 mb-1">Feedback Anda:</p>
+                                <p class="text-xs text-emerald-600 mb-1">Feedback:</p>
                                 <p class="text-sm text-emerald-800">{{ $bimbingan->catatan_dosen }}</p>
                             </div>
                             @elseif($bimbingan->status === 'menunggu')

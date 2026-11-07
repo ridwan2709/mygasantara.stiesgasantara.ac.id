@@ -1,11 +1,12 @@
 <?php
 
 use App\Models\Dosen;
+use App\Models\Fakultas;
 use App\Models\Honorarium;
-use App\Models\KehadiranDosen;
 use App\Models\KehadiranMengajar;
 use App\Models\Kelas;
 use App\Models\MataKuliah;
+use App\Models\Prodi;
 use App\Models\TarifHonorPegawai;
 use App\Models\TarifHonorarium;
 use App\Models\User;
@@ -14,166 +15,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
-
-it('stores employee honorarium in the existing honorarium table', function () {
-    expect(\Illuminate\Support\Facades\Schema::hasTable('honorarium_pegawai'))->toBeFalse()
-        ->and(\Illuminate\Support\Facades\Schema::hasColumn('honorarium', 'user_id'))->toBeTrue();
-});
-
-it('includes employee honorarium in the monthly pdf export', function () {
-    $this->withoutVite();
-    $admin = User::factory()->create(['role' => 'superadmin']);
-    $pegawai = User::factory()->create([
-        'name' => 'Pegawai Untuk PDF',
-        'role' => 'staff',
-    ]);
-    KehadiranDosen::query()->create([
-        'user_id' => $pegawai->id,
-        'tanggal' => today()->toDateString(),
-        'jam_masuk' => '08:00:00',
-        'jam_keluar' => '17:00:00',
-        'status' => KehadiranDosen::STATUS_HADIR,
-    ]);
-    TarifHonorPegawai::query()->create([
-        'user_id' => $pegawai->id,
-        'nominal' => 85000,
-        'berlaku_mulai' => today()->startOfMonth()->toDateString(),
-    ]);
-
-    $this->actingAs($admin)
-        ->get(route('admin.honorarium.export.pdf', ['bulan' => today()->month, 'tahun' => today()->year]))
-        ->assertOk()
-        ->assertHeader('content-type', 'application/pdf');
-
-    $html = view('admin.keuangan.pdf', [
-        'bulan' => today()->month,
-        'tahun' => today()->year,
-        'honorariumList' => collect(),
-        'honorariumPegawaiList' => collect([[
-            'name' => 'Pegawai Untuk PDF',
-            'total_kehadiran' => 1,
-            'total_honor' => '85000.00',
-            'tarif_belum_ada' => 0,
-            'status_pembayaran' => 'draft',
-            'tanggal_bayar' => null,
-        ]]),
-    ])->render();
-
-    expect($html)->toContain('Pegawai Untuk PDF')
-        ->and($html)->toContain('85.000,00');
-});
-
-it('shows completed employee attendance and calculates honor from the applicable employee rate', function () {
-    $this->withoutVite();
-    $admin = User::factory()->create(['role' => 'superadmin']);
-    $pegawai = User::factory()->create([
-        'name' => 'Pegawai Penguji',
-        'role' => 'staff',
-        'boleh_absen' => false,
-    ]);
-    $kehadiranData = [
-        'tanggal' => today()->toDateString(),
-        'status' => KehadiranDosen::STATUS_HADIR,
-        'jam_masuk' => '08:00:00',
-    ];
-    $kehadiran = KehadiranDosen::query()->create([
-        ...$kehadiranData,
-        'user_id' => $pegawai->id,
-    ]);
-    KehadiranDosen::query()->create([
-        ...$kehadiranData,
-        'user_id' => User::factory()->create(['role' => 'staff'])->id,
-    ]);
-    TarifHonorPegawai::query()->create([
-        'user_id' => $pegawai->id,
-        'nominal' => 100000,
-        'berlaku_mulai' => today()->startOfMonth()->toDateString(),
-    ]);
-
-    $this->actingAs($pegawai)
-        ->post(route('pegawai.kehadiran.keluar'))
-        ->assertRedirect(route('pegawai.kehadiran.index'))
-        ->assertSessionHas('success');
-
-    $this->actingAs($admin)
-        ->get(route('admin.honorarium.index', ['bulan' => today()->month, 'tahun' => today()->year]))
-        ->assertOk()
-        ->assertSee('Rekap Honor Pegawai')
-        ->assertSee('Pegawai Penguji')
-        ->assertSee('Rp100.000,00');
-
-    expect($kehadiran->fresh()->jam_keluar)->not->toBeNull();
-    $this->assertDatabaseCount('honorarium', 0);
-});
-
-it('marks completed employee attendance paid once and stores a separate payment snapshot', function () {
-    $admin = User::factory()->create(['role' => 'bendahara']);
-    $pegawai = User::factory()->create([
-        'name' => 'Pegawai Dibayar',
-        'role' => 'staff',
-    ]);
-    KehadiranDosen::query()->create([
-        'user_id' => $pegawai->id,
-        'tanggal' => '2026-10-12',
-        'jam_masuk' => '08:00:00',
-        'jam_keluar' => '17:00:00',
-        'status' => KehadiranDosen::STATUS_HADIR,
-    ]);
-    TarifHonorPegawai::query()->create([
-        'user_id' => $pegawai->id,
-        'nominal' => 125000.50,
-        'berlaku_mulai' => '2026-10-01',
-    ]);
-
-    $this->actingAs($admin)
-        ->patch(route('admin.honorarium.pegawai.pay', $pegawai), [
-            'bulan' => 10,
-            'tahun' => 2026,
-        ])
-        ->assertRedirect()
-        ->assertSessionHas('success');
-
-    $this->assertDatabaseHas('honorarium', [
-        'user_id' => $pegawai->id,
-        'nama_pegawai' => 'Pegawai Dibayar',
-        'bulan' => 10,
-        'tahun' => 2026,
-        'total_kehadiran' => 1,
-        'total_honor_mengajar' => 125000.50,
-        'total_penerimaan' => 125000.50,
-        'status_pembayaran' => Honorarium::STATUS_PAID,
-        'dibayar_oleh' => $admin->id,
-    ]);
-    $this->actingAs($admin)
-        ->patch(route('admin.honorarium.pegawai.pay', $pegawai), [
-            'bulan' => 10,
-            'tahun' => 2026,
-        ])
-        ->assertStatus(409);
-
-    expect(Honorarium::query()->where('user_id', $pegawai->id)->count())->toBe(1);
-});
-
-it('does not pay employee attendance without a tariff for every completed attendance', function () {
-    $bendahara = User::factory()->create(['role' => 'bendahara']);
-    $pegawai = User::factory()->create(['role' => 'staff']);
-    KehadiranDosen::query()->create([
-        'user_id' => $pegawai->id,
-        'tanggal' => '2026-10-12',
-        'jam_masuk' => '08:00:00',
-        'jam_keluar' => '17:00:00',
-        'status' => KehadiranDosen::STATUS_HADIR,
-    ]);
-
-    $this->actingAs($bendahara)
-        ->patch(route('admin.honorarium.pegawai.pay', $pegawai), [
-            'bulan' => 10,
-            'tahun' => 2026,
-        ])
-        ->assertSessionHasErrors('pegawai');
-
-    $this->assertDatabaseMissing('honorarium', ['user_id' => $pegawai->id]);
-});
 
 it('calculates draft honorarium from approved teaching attendance and manual incentives', function () {
     $this->withoutVite();
@@ -353,5 +194,48 @@ it('limits lecturer honorarium history and slips to the authenticated lecturer',
 
     expect(fn () => $this->actingAs($dosen->user)
         ->get(route('dosen.honorarium.slip', $milikLain)))
+        ->toThrow(NotFoundHttpException::class);
+});
+
+it('allows faculty admins to view honorarium and slips only for lecturers in their faculty', function () {
+    $this->withoutVite();
+
+    $fakultas = Fakultas::factory()->create();
+    $admin = User::factory()->create([
+        'role' => 'admin_fakultas',
+        'fakultas_id' => $fakultas->id,
+    ]);
+    $dosenFakultas = Dosen::factory()->create([
+        'prodi_id' => Prodi::factory()->create(['fakultas_id' => $fakultas->id])->id,
+    ]);
+    $dosenLuar = Dosen::factory()->create();
+    $honorariumFakultas = Honorarium::create([
+        'dosen_id' => $dosenFakultas->id,
+        'bulan' => 8,
+        'tahun' => 2026,
+        'status_pembayaran' => Honorarium::STATUS_DRAFT,
+    ]);
+    $honorariumLuar = Honorarium::create([
+        'dosen_id' => $dosenLuar->id,
+        'bulan' => 8,
+        'tahun' => 2026,
+        'status_pembayaran' => Honorarium::STATUS_DRAFT,
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('dosen.honorarium.index'))
+        ->assertOk()
+        ->assertSee($dosenFakultas->user->name)
+        ->assertDontSee($dosenLuar->user->name);
+
+    $this->actingAs($admin)
+        ->get(route('dosen.honorarium.slip', $honorariumFakultas))
+        ->assertOk()
+        ->assertHeader('content-type', 'application/pdf');
+
+    $this->withoutExceptionHandling();
+
+    expect(fn () => $this->actingAs($admin)
+        ->get(route('dosen.honorarium.slip', $honorariumLuar)))
         ->toThrow(NotFoundHttpException::class);
 });

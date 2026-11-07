@@ -9,9 +9,12 @@ use App\Models\Mahasiswa;
 use App\Models\Prodi;
 use App\Models\User;
 use App\Services\AkademikCalculationService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Exists;
 
 class MahasiswaController extends Controller
 {
@@ -24,7 +27,10 @@ class MahasiswaController extends Controller
 
     public function index(Request $request)
     {
-        $query = Mahasiswa::with(['user', 'prodi.fakultas', 'dosenPa.user']);
+        $query = $this->accessibleMahasiswaQuery($request)
+            ->with(['user', 'prodi.fakultas', 'dosenPa.user']);
+        $isFacultyAdmin = $request->user()->role === 'admin_fakultas';
+        $isProgramAdmin = $request->user()->role === 'admin_prodi';
 
         // Search
         if ($search = $request->get('search')) {
@@ -39,10 +45,6 @@ class MahasiswaController extends Controller
             $query->whereHas('prodi', function ($q) use ($fakultasId) {
                 $q->where('fakultas_id', $fakultasId);
             });
-        }
-
-        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
-            $query->where('prodi_id', $request->get('prodi_scope'));
         }
 
         // Filter by prodi
@@ -73,38 +75,39 @@ class MahasiswaController extends Controller
 
         $mahasiswa = $query->paginate(config('siakad.pagination', 15))->withQueryString();
 
-        $fakultasList = auth()->user()->isSuperAdmin() ? Fakultas::orderBy('nama')->get() : collect();
-        $prodiQuery = Prodi::with('fakultas')->orderBy('nama');
-        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
-            $prodiQuery->whereKey($request->get('prodi_scope'));
-        }
-        $prodiList = $prodiQuery->get();
-        $angkatanQuery = Mahasiswa::query();
-        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
-            $angkatanQuery->where('prodi_id', $request->get('prodi_scope'));
-        }
-        $angkatanList = $angkatanQuery->distinct()->pluck('angkatan')->sort()->reverse();
-        $dosenQuery = Dosen::with('user');
-        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
-            $dosenQuery->where('prodi_id', $request->get('prodi_scope'));
-        }
-        $dosenList = $dosenQuery->get();
+        $fakultasList = match ($request->user()->role) {
+            'admin_fakultas' => Fakultas::whereKey($request->user()->fakultas_id)->get(),
+            'admin_prodi' => Fakultas::whereHas(
+                'prodi',
+                fn ($query) => $query->whereKey($request->user()->prodi_id)
+            )->get(),
+            default => Fakultas::orderBy('nama')->get(),
+        };
+        $prodiList = $this->accessibleProdiQuery($request)->with('fakultas')->orderBy('nama')->get();
+        $angkatanQuery = $this->accessibleMahasiswaQuery($request);
+        $angkatanList = $angkatanQuery
+            ->distinct()
+            ->pluck('angkatan')
+            ->sort()
+            ->reverse();
+        $dosenList = $this->accessibleDosenQuery($request)->with('user')->get();
 
-        return view('admin.mahasiswa.index', compact('mahasiswa', 'fakultasList', 'prodiList', 'angkatanList', 'dosenList'));
+        return view('admin.mahasiswa.index', compact('mahasiswa', 'fakultasList', 'prodiList', 'angkatanList', 'dosenList', 'isFacultyAdmin', 'isProgramAdmin'));
     }
 
     public function store(Request $request)
     {
+        $this->authorizeFacultyAssignment($request, $request->input('prodi_id'), $request->input('dosen_pa_id'));
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
             'nim' => 'required|string|unique:mahasiswa,nim',
-            'prodi_id' => 'required|exists:prodi,id',
+            'prodi_id' => ['required', $this->prodiScopeRule($request)],
             'angkatan' => 'required|numeric|min:2000|max:'.(date('Y') + 1),
             'dosen_pa_id' => 'nullable|exists:dosen,id',
         ]);
-
         $this->applyProdiScope($request, $validated);
 
         DB::transaction(function () use ($validated) {
@@ -130,12 +133,14 @@ class MahasiswaController extends Controller
 
     public function update(Request $request, Mahasiswa $mahasiswa)
     {
-        $this->ensureMahasiswaScope($mahasiswa);
+        $mahasiswa = $this->accessibleMahasiswaQuery($request)->findOrFail($mahasiswa->id);
+        $this->authorizeFacultyAssignment($request, $request->input('prodi_id'), $request->input('dosen_pa_id'));
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,'.$mahasiswa->user_id,
             'nim' => 'required|string|unique:mahasiswa,nim,'.$mahasiswa->id,
-            'prodi_id' => 'required|exists:prodi,id',
+            'prodi_id' => ['required', $this->prodiScopeRule($request)],
             'angkatan' => 'required|numeric',
             'dosen_pa_id' => 'nullable|exists:dosen,id',
             'status' => 'required|in:aktif,cuti,lulus,do',
@@ -165,9 +170,11 @@ class MahasiswaController extends Controller
         return back()->with('success', 'Mahasiswa berhasil diupdate.');
     }
 
-    public function destroy(Mahasiswa $mahasiswa)
+    public function destroy(Request $request, Mahasiswa $mahasiswa)
     {
         $this->ensureMahasiswaScope($mahasiswa);
+        $mahasiswa = $this->accessibleMahasiswaQuery($request)->findOrFail($mahasiswa->id);
+
         // Check if mahasiswa has KRS
         if ($mahasiswa->krs()->exists()) {
             return back()->withErrors(['error' => 'Tidak dapat menghapus mahasiswa yang memiliki data KRS.']);
@@ -184,7 +191,7 @@ class MahasiswaController extends Controller
 
     public function export(Request $request)
     {
-        $query = Mahasiswa::with(['user', 'prodi']);
+        $query = $this->accessibleMahasiswaQuery($request)->with(['user', 'prodi']);
 
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {
@@ -192,7 +199,7 @@ class MahasiswaController extends Controller
                     ->orWhereHas('user', fn ($q2) => $q2->where('name', 'like', "%{$search}%"));
             });
         }
-        if ($fakultasId = $request->get('fakultas_id')) {
+        if ($request->user()->role !== 'admin_fakultas' && ($fakultasId = $request->get('fakultas_id'))) {
             $query->whereHas('prodi', function ($q) use ($fakultasId) {
                 $q->where('fakultas_id', $fakultasId);
             });
@@ -203,10 +210,6 @@ class MahasiswaController extends Controller
         if ($angkatan = $request->get('angkatan')) {
             $query->where('angkatan', $angkatan);
         }
-        if ($request->user()->role === 'admin_prodi') {
-            $query->where('prodi_id', $request->user()->prodi_id);
-        }
-
         $query->orderBy('nim');
 
         return response()->streamDownload(function () use ($query) {
@@ -233,6 +236,7 @@ class MahasiswaController extends Controller
     public function show(Mahasiswa $mahasiswa)
     {
         $this->ensureMahasiswaScope($mahasiswa);
+        $mahasiswa = $this->accessibleMahasiswaQuery(request())->findOrFail($mahasiswa->id);
         $mahasiswa->load(['user', 'prodi.fakultas', 'krs.tahunAkademik', 'krs.krsDetail.kelas.mataKuliah']);
 
         $ipkData = $this->calculationService->calculateIPK($mahasiswa);
@@ -242,12 +246,100 @@ class MahasiswaController extends Controller
         return view('admin.mahasiswa.show', compact('mahasiswa', 'ipkData', 'ipsHistory', 'gradeDistribution'));
     }
 
+    private function accessibleMahasiswaQuery(Request $request): Builder
+    {
+        $query = Mahasiswa::query();
+        $user = $request->user();
+
+        if ($user->role === 'admin_fakultas') {
+            abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');
+
+            $query->whereHas(
+                'prodi',
+                fn ($prodiQuery) => $prodiQuery->where('fakultas_id', $user->fakultas_id)
+            );
+        } elseif ($user->role === 'admin_prodi') {
+            abort_unless($user->prodi_id, 403, 'Admin prodi belum memiliki program studi');
+            $query->where('prodi_id', $user->prodi_id);
+        }
+
+        return $query;
+    }
+
+    private function accessibleProdiQuery(Request $request): Builder
+    {
+        $query = Prodi::query();
+        $user = $request->user();
+
+        if ($user->role === 'admin_fakultas') {
+            abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');
+            $query->where('fakultas_id', $user->fakultas_id);
+        } elseif ($user->role === 'admin_prodi') {
+            abort_unless($user->prodi_id, 403, 'Admin prodi belum memiliki program studi');
+            $query->whereKey($user->prodi_id);
+        }
+
+        return $query;
+    }
+
+    private function accessibleDosenQuery(Request $request): Builder
+    {
+        $query = Dosen::query();
+        $user = $request->user();
+
+        if ($user->role === 'admin_fakultas') {
+            abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');
+            $query->whereHas('prodi', fn ($prodiQuery) => $prodiQuery->where('fakultas_id', $user->fakultas_id));
+        } elseif ($user->role === 'admin_prodi') {
+            abort_unless($user->prodi_id, 403, 'Admin prodi belum memiliki program studi');
+            $query->where('prodi_id', $user->prodi_id);
+        }
+
+        return $query;
+    }
+
+    private function prodiScopeRule(Request $request): Exists
+    {
+        $rule = Rule::exists('prodi', 'id');
+        $user = $request->user();
+
+        if ($user->role === 'admin_fakultas') {
+            abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');
+
+            return $rule->where('fakultas_id', $user->fakultas_id);
+        }
+
+        if ($user->role === 'admin_prodi') {
+            abort_unless($user->prodi_id, 403, 'Admin prodi belum memiliki program studi');
+
+            return $rule->where('id', $user->prodi_id);
+        }
+
+        return $rule;
+    }
+
+    private function authorizeFacultyAssignment(Request $request, mixed $prodiId, mixed $dosenId): void
+    {
+        if (! in_array($request->user()->role, ['admin_fakultas', 'admin_prodi'], true)) {
+            return;
+        }
+
+        if ($prodiId) {
+            abort_unless($this->accessibleProdiQuery($request)->whereKey($prodiId)->exists(), 403, 'Prodi tidak termasuk cakupan akun Anda.');
+        }
+
+        if ($dosenId) {
+            abort_unless($this->accessibleDosenQuery($request)->whereKey($dosenId)->exists(), 403, 'Dosen PA tidak termasuk cakupan akun Anda.');
+        }
+    }
+
     private function applyProdiScope(Request $request, array &$validated): void
     {
         if ($request->user()->role !== 'admin_prodi') {
             return;
         }
 
+        abort_unless($request->user()->prodi_id, 403, 'Admin prodi belum memiliki program studi');
         $prodiId = (int) $request->user()->prodi_id;
         $validated['prodi_id'] = $prodiId;
 
@@ -261,8 +353,10 @@ class MahasiswaController extends Controller
 
     private function ensureMahasiswaScope(Mahasiswa $mahasiswa): void
     {
-        if (auth()->user()->role === 'admin_prodi') {
-            abort_unless((int) $mahasiswa->prodi_id === (int) auth()->user()->prodi_id, 404);
+        $user = request()->user();
+
+        if ($user->role === 'admin_prodi') {
+            abort_unless($user->prodi_id && (int) $mahasiswa->prodi_id === (int) $user->prodi_id, 404);
         }
     }
 }

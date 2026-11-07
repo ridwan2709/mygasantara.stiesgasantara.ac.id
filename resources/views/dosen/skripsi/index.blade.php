@@ -4,7 +4,9 @@
     </x-slot>
 
     <div class="mb-6 flex items-center justify-between">
-        <p class="text-sm text-siakad-secondary">Daftar mahasiswa bimbingan skripsi Anda</p>
+        <p class="text-sm text-siakad-secondary">
+            {{ auth()->user()->role === 'admin_fakultas' ? 'Daftar bimbingan skripsi mahasiswa di fakultas Anda' : 'Daftar mahasiswa bimbingan skripsi Anda' }}
+        </p>
         @if($pendingBimbingan > 0)
         <span class="px-3 py-1 text-sm font-medium bg-siakad-primary/10 text-siakad-primary rounded-full">{{ $pendingBimbingan }} menunggu review</span>
         @endif

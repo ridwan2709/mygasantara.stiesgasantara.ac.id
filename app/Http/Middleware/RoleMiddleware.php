@@ -28,7 +28,9 @@ class RoleMiddleware
         $allowedRoles = [];
 
         foreach ($roles as $role) {
-            $allowedRoles = array_merge($allowedRoles, $this->expandRole($role));
+            foreach (explode('|', $role) as $single) {
+                $allowedRoles = array_merge($allowedRoles, $this->expandRole(trim($single)));
+            }
         }
 
         $hasAccess = in_array($user->role, $allowedRoles, true);

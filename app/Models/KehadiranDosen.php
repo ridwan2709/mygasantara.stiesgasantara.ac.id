@@ -16,6 +16,7 @@ class KehadiranDosen extends Model
     protected $fillable = [
         'user_id',
         'dosen_id',
+        'dicatat_oleh',
         'jadwal_kuliah_id',
         'pertemuan_id',
         'tanggal',
@@ -75,6 +76,11 @@ class KehadiranDosen extends Model
     public function dosen()
     {
         return $this->belongsTo(Dosen::class);
+    }
+
+    public function dicatatOleh()
+    {
+        return $this->belongsTo(User::class, 'dicatat_oleh');
     }
 
     public function user(): BelongsTo

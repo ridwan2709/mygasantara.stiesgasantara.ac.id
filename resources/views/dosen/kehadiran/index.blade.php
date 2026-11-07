@@ -49,7 +49,29 @@
             <ul class="list-inside list-disc">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
         </div>
     @endif
+    
+  {{-- Fitur dari branch adminprodi --}}
+    @if($isAdminFakultas)
+    <form method="GET" class="card-saas mb-6 flex flex-col gap-3 p-4 sm:flex-row sm:items-end">
+        <div class="flex-1">
+            <label for="dosen_id" class="mb-1 block text-sm font-medium text-siakad-dark dark:text-gray-200">Pilih dosen fakultas</label>
+            <select id="dosen_id" name="dosen_id" class="input-saas w-full text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-white" required>
+                <option value="">Pilih dosen</option>
+                @foreach($dosenList as $dosenOption)
+                <option value="{{ $dosenOption->id }}" {{ (string) $selectedDosenId === (string) $dosenOption->id ? 'selected' : '' }}>
+                    {{ $dosenOption->user->name }}
+                </option>
+                @endforeach
+            </select>
+        </div>
+        <button type="submit" class="btn-primary-saas min-h-[44px] px-5 py-2 text-sm font-medium">Tampilkan Kehadiran</button>
+    </form>
+    @if($dosen)
+    <p class="mb-4 text-sm text-siakad-secondary">Anda sedang mengelola kehadiran atas nama <span class="font-semibold text-siakad-dark">{{ $dosen->user->name }}</span>.</p>
+    @endif
+    @endif
 
+    {{-- Fitur dari branch main --}}
     @if($dosen === null && $isStaffLike)
         <div class="card-saas mb-6 overflow-hidden dark:bg-gray-800">
             <div class="flex flex-col gap-2 border-b border-siakad-light px-5 py-4 dark:border-gray-700 md:flex-row md:items-center md:justify-between">
@@ -357,6 +379,9 @@
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
                 <h3 class="font-semibold text-siakad-dark dark:text-white">Riwayat Kehadiran</h3>
                 <form method="GET" class="flex flex-col md:flex-row md:items-center gap-3 w-full lg:w-auto">
+                    @if($isAdminFakultas && $dosen)
+                    <input type="hidden" name="dosen_id" value="{{ $dosen->id }}">
+                    @endif
                     <div class="relative w-full lg:w-48">
                         <input type="text" name="search" placeholder="Cari mata kuliah..." class="input-saas w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-gray-900 border-siakad-light dark:border-gray-700 text-siakad-dark dark:text-white" value="{{ request('search') }}">
                         <svg class="w-4 h-4 text-siakad-secondary dark:text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -387,6 +412,9 @@
                     <th class="text-center py-3 px-5 text-xs font-semibold text-siakad-secondary uppercase">Jam Masuk</th>
                     <th class="text-center py-3 px-5 text-xs font-semibold text-siakad-secondary uppercase">Jam Keluar</th>
                     <th class="text-center py-3 px-5 text-xs font-semibold text-siakad-secondary uppercase">Status</th>
+                    @if($isAdminFakultas)
+                    <th class="text-left py-3 px-5 text-xs font-semibold text-siakad-secondary uppercase">Dicatat oleh</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -397,9 +425,12 @@
                     <td class="py-4 px-5 text-center text-sm text-siakad-secondary dark:text-gray-400">{{ $r->jam_masuk ? substr($r->jam_masuk, 0, 5) : '-' }}</td>
                     <td class="py-4 px-5 text-center text-sm text-siakad-secondary dark:text-gray-400">{{ $r->jam_keluar ? substr($r->jam_keluar, 0, 5) : '-' }}</td>
                     <td class="py-4 px-5 text-center"><span class="px-2.5 py-1 text-xs font-medium rounded-full bg-{{ $r->status_color }}-100 text-{{ $r->status_color }}-700 dark:bg-gray-800 dark:text-{{ $r->status_color }}-400 border dark:border-{{ $r->status_color }}-400/20">{{ $r->status_label }}</span></td>
+                    @if($isAdminFakultas)
+                    <td class="py-4 px-5 text-sm text-siakad-secondary">{{ $r->dicatatOleh?->name ?? '-' }}</td>
+                    @endif
                 </tr>
                 @empty
-                <tr><td colspan="5" class="py-10 text-center text-siakad-secondary">Belum ada data kehadiran</td></tr>
+                <tr><td colspan="{{ $isAdminFakultas ? 6 : 5 }}" class="py-10 text-center text-siakad-secondary">Belum ada data kehadiran</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -425,6 +456,9 @@
                         <svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
                         <span>Keluar: <span class="font-semibold text-siakad-dark dark:text-gray-200">{{ $r->jam_keluar ? substr($r->jam_keluar, 0, 5) : '-' }}</span></span>
                     </div>
+                    @if($isAdminFakultas)
+                    <p class="mt-2 text-xs text-siakad-secondary dark:text-gray-400">Dicatat oleh: {{ $r->dicatatOleh?->name ?? '-' }}</p>
+                    @endif
                 </div>
             </div>
             @empty
@@ -441,6 +475,9 @@
             <form action="{{ route('dosen.kehadiran.store') }}" method="POST" class="space-y-4" onsubmit="return captureAttendanceGps(event, this)">
                 @csrf
                 <input type="hidden" name="jadwal_kuliah_id" id="modalJadwalId">
+                @if($isAdminFakultas && $dosen)
+                <input type="hidden" name="dosen_id" value="{{ $dosen->id }}">
+                @endif
                 <input type="hidden" name="latitude">
                 <input type="hidden" name="longitude">
                 <p data-gps-status role="status" aria-live="polite" class="text-xs text-siakad-secondary dark:text-gray-400">Lokasi GPS akan diperiksa sebelum presensi disimpan. GPS memerlukan HTTPS dan izin lokasi browser.</p>

@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Dosen\PresensiController;
 
-Route::middleware(['auth', 'role:dosen'])->prefix('dosen')->name('dosen.')->group(function () {
+Route::middleware(['auth', 'role:dosen | admin_fakultas'])->prefix('dosen')->name('dosen.')->group(function () {
      Route::get('/presensi', [PresensiController::class, 'index'])->name('presensi.index');
     Route::get('/presensi/kelas/{kelas}', [PresensiController::class, 'showKelas'])->name('presensi.kelas');
     Route::get('/presensi/kelas/{kelas}/pertemuan/create', [PresensiController::class, 'createPertemuan'])->name('presensi.pertemuan.create');

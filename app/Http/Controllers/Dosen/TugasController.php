@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Kelas;
 use App\Models\Tugas;
 use App\Models\TugasSubmission;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -17,8 +18,7 @@ class TugasController extends Controller
      */
     public function index($kelasId)
     {
-        $dosen = Auth::user()->dosen;
-        $kelas = $dosen->kelas()
+        $kelas = $this->accessibleKelasQuery()
             ->with(['mataKuliah', 'tugas' => fn($q) => $q->latest()])
             ->findOrFail($kelasId);
 
@@ -30,8 +30,7 @@ class TugasController extends Controller
      */
     public function store(Request $request, $kelasId)
     {
-        $dosen = Auth::user()->dosen;
-        $kelas = $dosen->kelas()->findOrFail($kelasId);
+        $kelas = $this->accessibleKelasQuery()->findOrFail($kelasId);
 
         $validated = $request->validate([
             'judul' => 'required|string|max:255',
@@ -65,12 +64,9 @@ class TugasController extends Controller
      */
     public function show($kelasId, Tugas $tugas)
     {
-        $dosen = Auth::user()->dosen;
-        $kelas = $dosen->kelas()->findOrFail($kelasId);
+        $kelas = $this->accessibleKelasQuery()->findOrFail($kelasId);
 
-        if ($tugas->kelas_id != $kelasId) {
-            abort(403);
-        }
+        $tugas = Tugas::query()->whereKey($tugas->id)->where('kelas_id', $kelas->id)->firstOrFail();
 
         $tugas->load(['submissions.mahasiswa.user']);
 
@@ -88,12 +84,12 @@ class TugasController extends Controller
      */
     public function grade(Request $request, $kelasId, TugasSubmission $submission)
     {
-        $dosen = Auth::user()->dosen;
-        $kelas = $dosen->kelas()->findOrFail($kelasId);
+        $kelas = $this->accessibleKelasQuery()->findOrFail($kelasId);
 
-        if ($submission->tugas->kelas_id != $kelasId) {
-            abort(403);
-        }
+        $submission = TugasSubmission::query()
+            ->whereKey($submission->id)
+            ->whereHas('tugas', fn ($query) => $query->where('kelas_id', $kelas->id))
+            ->firstOrFail();
 
         $validated = $request->validate([
             'nilai' => 'required|numeric|min:0|max:100',
@@ -115,12 +111,12 @@ class TugasController extends Controller
      */
     public function downloadSubmission($kelasId, TugasSubmission $submission)
     {
-        $dosen = Auth::user()->dosen;
-        $kelas = $dosen->kelas()->findOrFail($kelasId);
+        $kelas = $this->accessibleKelasQuery()->findOrFail($kelasId);
 
-        if ($submission->tugas->kelas_id != $kelasId) {
-            abort(403);
-        }
+        $submission = TugasSubmission::query()
+            ->whereKey($submission->id)
+            ->whereHas('tugas', fn ($query) => $query->where('kelas_id', $kelas->id))
+            ->firstOrFail();
 
         if (!Storage::exists($submission->file_path)) {
             abort(404, 'File tidak ditemukan');
@@ -134,12 +130,9 @@ class TugasController extends Controller
      */
     public function toggle($kelasId, Tugas $tugas)
     {
-        $dosen = Auth::user()->dosen;
-        $kelas = $dosen->kelas()->findOrFail($kelasId);
+        $kelas = $this->accessibleKelasQuery()->findOrFail($kelasId);
 
-        if ($tugas->kelas_id != $kelasId) {
-            abort(403);
-        }
+        $tugas = Tugas::query()->whereKey($tugas->id)->where('kelas_id', $kelas->id)->firstOrFail();
 
         $tugas->update(['is_active' => !$tugas->is_active]);
 
@@ -151,12 +144,9 @@ class TugasController extends Controller
      */
     public function destroy($kelasId, Tugas $tugas)
     {
-        $dosen = Auth::user()->dosen;
-        $kelas = $dosen->kelas()->findOrFail($kelasId);
+        $kelas = $this->accessibleKelasQuery()->findOrFail($kelasId);
 
-        if ($tugas->kelas_id != $kelasId) {
-            abort(403);
-        }
+        $tugas = Tugas::query()->whereKey($tugas->id)->where('kelas_id', $kelas->id)->firstOrFail();
 
         // Delete related files
         if ($tugas->file_tugas) {
@@ -170,5 +160,24 @@ class TugasController extends Controller
         $tugas->delete();
 
         return back()->with('success', 'Tugas berhasil dihapus.');
+    }
+
+    private function accessibleKelasQuery(): Builder
+    {
+        $user = Auth::user();
+
+        if ($user->role === 'admin_fakultas') {
+            abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');
+
+            return Kelas::query()->whereHas(
+                'dosen.prodi',
+                fn ($query) => $query->where('fakultas_id', $user->fakultas_id)
+            );
+        }
+
+        $dosen = $user->dosen;
+        abort_unless($dosen, 403, 'Anda tidak memiliki akses sebagai dosen.');
+
+        return Kelas::query()->where('dosen_id', $dosen->id);
     }
 }
