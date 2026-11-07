@@ -16,6 +16,8 @@ return [
         'admin',
         'dosen',
         'mahasiswa',
+        'bendahara',
+        'staff',
     ],
 
 

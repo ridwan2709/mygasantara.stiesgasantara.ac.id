@@ -7,6 +7,7 @@ use App\Models\KehadiranMengajar;
 use App\Models\Kelas;
 use App\Models\MataKuliah;
 use App\Models\Prodi;
+use App\Models\TarifHonorPegawai;
 use App\Models\TarifHonorarium;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;

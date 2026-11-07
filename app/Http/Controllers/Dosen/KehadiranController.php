@@ -20,17 +20,20 @@ class KehadiranController extends Controller
     {
         $user = Auth::user();
         $isAdminFakultas = $user->role === 'admin_fakultas';
-        $dosenList = $isAdminFakultas
+        $canManageAttendance = $this->canManageAttendance($user->role);
+        $isStaffLike = in_array($user->role, ['superadmin', 'bendahara', 'staff'], true);
+
+        $dosenList = $canManageAttendance
             ? $this->accessibleDosenQuery()->with('user')->orderBy('id')->get()
             : collect();
 
-        if ($isAdminFakultas) {
+        if ($canManageAttendance) {
             $selectedDosenId = $request->input('dosen_id', $dosenList->first()?->id);
             $dosen = $selectedDosenId
                 ? $this->accessibleDosenQuery()->with('user')->find($selectedDosenId)
                 : null;
 
-            abort_if($selectedDosenId && ! $dosen, 403, 'Dosen tidak termasuk fakultas Anda.');
+            abort_if($selectedDosenId && ! $dosen, 403, 'Dosen tidak termasuk cakupan akses Anda.');
         } else {
             $dosen = $user->dosen;
             abort_unless($dosen, 403, 'Unauthorized');
@@ -40,24 +43,23 @@ class KehadiranController extends Controller
         $month = $request->get('month', now()->month);
         $year = $request->get('year', now()->year);
 
-        // Get jadwal for today
         $today = now();
         $dayName = $today->locale('id')->dayName;
+        $dayMap = ['Minggu' => 0, 'Senin' => 1, 'Selasa' => 2, 'Rabu' => 3, 'Kamis' => 4, 'Jumat' => 5, 'Sabtu' => 6];
+        $todayIndex = $dayMap[$dayName] ?? $today->dayOfWeek;
 
         $jadwalHariIni = $dosen
             ? JadwalKuliah::whereHas('kelas', fn ($query) => $query->where('dosen_id', $dosen->id))
-                ->where('hari', $dayName)
+                ->where('hari', $todayIndex)
                 ->with('kelas.mataKuliah')
                 ->get()
             : collect();
 
-        // Kehadiran hari ini
         $kehadiranHariIni = KehadiranDosen::where('dosen_id', $dosen?->id)
             ->whereDate('tanggal', $today)
             ->pluck('jadwal_kuliah_id')
             ->toArray();
 
-        // Stats bulan ini
         $stats = KehadiranDosen::where('dosen_id', $dosen?->id)
             ->byMonth($year, $month)
             ->selectRaw('status, COUNT(*) as count')
@@ -65,7 +67,6 @@ class KehadiranController extends Controller
             ->pluck('count', 'status')
             ->toArray();
 
-        // Riwayat
         $riwayat = KehadiranDosen::where('dosen_id', $dosen?->id)
             ->byMonth($year, $month)
             ->with(['jadwalKuliah.kelas.mataKuliah', 'dicatatOleh'])
@@ -77,6 +78,8 @@ class KehadiranController extends Controller
             'dosenList',
             'selectedDosenId',
             'isAdminFakultas',
+            'isStaffLike',
+            'canManageAttendance',
             'jadwalHariIni',
             'kehadiranHariIni',
             'stats',
@@ -89,10 +92,11 @@ class KehadiranController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-        $isAdminFakultas = $user->role === 'admin_fakultas';
+        $canManageAttendance = $this->canManageAttendance($user->role);
+
         $validated = $request->validate([
             'jadwal_kuliah_id' => 'required|exists:jadwal_kuliah,id',
-            'dosen_id' => $isAdminFakultas ? 'required|integer|exists:dosen,id' : 'prohibited',
+            'dosen_id' => $canManageAttendance ? 'required|integer|exists:dosen,id' : 'prohibited',
             'jam_masuk' => 'nullable|date_format:H:i',
             'status' => 'required|in:'.implode(',', array_keys(KehadiranDosen::getStatusList())),
             'keterangan' => 'nullable|string',
@@ -100,9 +104,9 @@ class KehadiranController extends Controller
             'longitude' => 'required_if:status,hadir|nullable|numeric|between:-180,180',
         ]);
 
-        if ($isAdminFakultas) {
+        if ($canManageAttendance) {
             $dosen = $this->accessibleDosenQuery()->find($validated['dosen_id']);
-            abort_unless($dosen, 403, 'Dosen tidak termasuk fakultas Anda.');
+            abort_unless($dosen, 403, 'Dosen tidak termasuk cakupan akses Anda.');
         } else {
             $dosen = $user->dosen;
             abort_unless($dosen, 403, 'Unauthorized');
@@ -114,7 +118,7 @@ class KehadiranController extends Controller
             ->first();
 
         if (! $jadwal) {
-            abort(403, 'Jadwal ini bukan milik Anda.');
+            abort(403, 'Jadwal ini bukan milik dosen yang bersangkutan.');
         }
 
         $coordinates = null;
@@ -144,9 +148,7 @@ class KehadiranController extends Controller
 
             if ($validated['status'] === KehadiranDosen::STATUS_HADIR) {
                 KehadiranMengajar::query()->updateOrCreate(
-                    [
-                        'kehadiran_dosen_id' => $kehadiran->id,
-                    ],
+                    ['kehadiran_dosen_id' => $kehadiran->id],
                     [
                         'dosen_id' => $dosen->id,
                         'mata_kuliah_id' => $jadwal->kelas->mata_kuliah_id,
@@ -166,6 +168,11 @@ class KehadiranController extends Controller
             }
         });
 
+        if (! $canManageAttendance) {
+            return redirect()->route('dosen.presensi.kelas', $jadwal->kelas_id)
+                ->with('success', 'Kehadiran berhasil dicatat');
+        }
+
         return redirect()->back()->with('success', 'Kehadiran berhasil dicatat');
     }
 
@@ -178,6 +185,7 @@ class KehadiranController extends Controller
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
         ]);
+
         $coordinates = $this->validatedGpsCoordinates($validated['latitude'], $validated['longitude']);
         if ($coordinates instanceof RedirectResponse) {
             return $coordinates;
@@ -185,6 +193,7 @@ class KehadiranController extends Controller
 
         DB::transaction(function () use ($kehadiran, $coordinates, $user): void {
             $jamKeluar = now()->format('H:i:s');
+
             $kehadiran->update([
                 'jam_keluar' => $jamKeluar,
                 'latitude_keluar' => $coordinates['latitude'],
@@ -204,19 +213,25 @@ class KehadiranController extends Controller
     {
         $user = Auth::user();
 
-        abort_unless($user->role === 'admin_fakultas' && $user->fakultas_id, 403);
+        if ($user->role === 'admin_fakultas') {
+            abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');
 
-        return Dosen::query()->whereHas(
-            'prodi',
-            fn ($query) => $query->where('fakultas_id', $user->fakultas_id)
-        );
+            return Dosen::query()->whereHas(
+                'prodi',
+                fn ($query) => $query->where('fakultas_id', $user->fakultas_id)
+            );
+        }
+
+        abort_unless(in_array($user->role, ['superadmin', 'bendahara', 'staff'], true), 403);
+
+        return Dosen::query();
     }
 
     private function authorizeKehadiran(KehadiranDosen $kehadiran): void
     {
         $user = Auth::user();
 
-        if ($user->role === 'admin_fakultas') {
+        if ($this->canManageAttendance($user->role)) {
             abort_unless(
                 $this->accessibleDosenQuery()->whereKey($kehadiran->dosen_id)->exists(),
                 403,
@@ -226,11 +241,18 @@ class KehadiranController extends Controller
             return;
         }
 
+        $dosenId = $user->dosen?->id;
+
         abort_unless(
-            $kehadiran->dosen_id === $user->dosen?->id,
+            $dosenId && $kehadiran->dosen_id === $dosenId,
             403,
             'Anda tidak memiliki akses ke kehadiran ini.'
         );
+    }
+
+    private function canManageAttendance(string $role): bool
+    {
+        return in_array($role, ['admin_fakultas', 'superadmin', 'bendahara', 'staff'], true);
     }
 
     /**

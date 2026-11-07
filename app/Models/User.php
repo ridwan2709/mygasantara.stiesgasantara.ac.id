@@ -9,7 +9,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, HasRoles, Notifiable;
 
     protected $fillable = [
         'name',
@@ -17,6 +17,8 @@ class User extends Authenticatable
         'password',
         'role',
         'fakultas_id',
+        'boleh_absen',
+        'prodi_id',
     ];
 
     protected $hidden = [
@@ -29,6 +31,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'boleh_absen' => 'boolean',
         ];
     }
 
@@ -47,6 +50,11 @@ class User extends Authenticatable
         return $this->belongsTo(Fakultas::class);
     }
 
+    public function prodi()
+    {
+        return $this->belongsTo(Prodi::class);
+    }
+
     /**
      * Check if user is superadmin (can access all data)
      */
@@ -56,11 +64,11 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user is admin (faculty-level or superadmin)
+     * Check if user is admin or superadmin
      */
     public function isAdmin(): bool
     {
-        return in_array($this->role, ['superadmin', 'admin_fakultas']);
+        return in_array($this->role, ['superadmin', 'admin_prodi']);
     }
 
     /**

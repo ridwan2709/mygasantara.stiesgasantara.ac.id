@@ -59,9 +59,9 @@ class DosenDokumenController extends Controller
 
     private function ensureDosenIsInScope(Request $request, Dosen $dosen): void
     {
-        if ($request->boolean('fakultas_scoped') && $request->filled('fakultas_scope')) {
+        if ($request->boolean('prodi_scoped') && $request->filled('prodi_scope')) {
             abort_unless(
-                $dosen->prodi()->where('fakultas_id', $request->integer('fakultas_scope'))->exists(),
+                $dosen->prodi()->whereKey($request->integer('prodi_scope'))->exists(),
                 404
             );
         }

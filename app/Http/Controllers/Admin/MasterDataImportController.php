@@ -66,7 +66,7 @@ class MasterDataImportController extends Controller
 
         return response()->streamDownload(function () use ($headers, $rows): void {
             $handle = fopen('php://output', 'w');
-            fputs($handle, "\xEF\xBB\xBF");
+            fwrite($handle, "\xEF\xBB\xBF");
             fputcsv($handle, $headers);
             foreach ($rows as $row) {
                 fputcsv($handle, array_values($row));
@@ -81,7 +81,7 @@ class MasterDataImportController extends Controller
             abort(404);
         }
 
-        if (in_array($type, ['fakultas', 'tahun-akademik'], true) && ! $user->isSuperAdmin()) {
+        if (in_array($type, ['fakultas', 'prodi', 'tahun-akademik'], true) && ! $user->isSuperAdmin()) {
             abort(403, 'Hanya superadmin yang dapat mengimpor data ini.');
         }
     }

@@ -64,20 +64,22 @@ it('shows a clear message when the uploaded file is not csv', function () {
         ->assertSessionHasErrorsIn('masterDataImport', 'file');
 });
 
-it('keeps faculty administrators from importing prodi into another faculty', function () {
+it('prevents program administrators from importing prodi definitions', function () {
     $fakultas = Fakultas::create(['nama' => 'Fakultas Teknik']);
     Fakultas::create(['nama' => 'Fakultas Ekonomi']);
+    $prodi = Prodi::create(['nama' => 'Teknik Informatika', 'fakultas_id' => $fakultas->id]);
     $admin = User::factory()->create([
-        'role' => 'admin_fakultas',
+        'role' => 'admin_prodi',
         'fakultas_id' => $fakultas->id,
+        'prodi_id' => $prodi->id,
     ]);
-    $file = UploadedFile::fake()->createWithContent('prodi.csv', "fakultas,nama\nFakultas Ekonomi,Akuntansi\n");
+    $file = UploadedFile::fake()->createWithContent('prodi.csv', "fakultas,nama\nFakultas Teknik,Sistem Informasi\n");
 
     $this->actingAs($admin)
         ->post(route('admin.master-data.import', 'prodi'), ['file' => $file])
-        ->assertRedirect(route('admin.prodi.index'));
+        ->assertForbidden();
 
-    $this->assertDatabaseMissing('prodi', ['nama' => 'Akuntansi']);
+    $this->assertDatabaseMissing('prodi', ['nama' => 'Sistem Informasi']);
 });
 
 it('creates student login accounts with hashed imported passwords', function () {

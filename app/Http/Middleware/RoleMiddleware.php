@@ -14,7 +14,7 @@ class RoleMiddleware
      *
      * @param  Closure(Request): (Response)  $next
      */
-    public function handle(Request $request, Closure $next, string $role): Response
+    public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         if (! Auth::check()) {
             if ($request->expectsJson()) {
@@ -25,14 +25,15 @@ class RoleMiddleware
         }
 
         $user = Auth::user();
+        $allowedRoles = [];
 
-        $hasAccess = collect(explode('|', $role))
-            ->map(fn ($requiredRole) => trim($requiredRole))
-            ->contains(fn ($requiredRole) => match ($requiredRole) {
-                'admin' => in_array($user->role, ['superadmin', 'admin_fakultas']),
-                'superadmin' => $user->role === 'superadmin',
-                default => $user->role === $requiredRole,
-            });
+        foreach ($roles as $role) {
+            foreach (explode('|', $role) as $single) {
+                $allowedRoles = array_merge($allowedRoles, $this->expandRole(trim($single)));
+            }
+        }
+
+        $hasAccess = in_array($user->role, $allowedRoles, true);
 
         if (! $hasAccess) {
             if ($request->expectsJson()) {
@@ -42,5 +43,13 @@ class RoleMiddleware
         }
 
         return $next($request);
+    }
+
+    private function expandRole(string $role): array
+    {
+        return match ($role) {
+            'admin' => ['superadmin', 'admin_fakultas', 'admin_prodi'],
+            default => [$role],
+        };
     }
 }

@@ -18,18 +18,14 @@ class RuanganController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('nama_ruangan', 'like', "%{$search}%")
-                  ->orWhere('kode_ruangan', 'like', "%{$search}%")
-                  ->orWhere('gedung', 'like', "%{$search}%");
+                    ->orWhere('kode_ruangan', 'like', "%{$search}%")
+                    ->orWhere('gedung', 'like', "%{$search}%");
             });
         }
 
-        // Faculty scoping for admin_fakultas
         if ($request->get('fakultas_scoped') && $request->get('fakultas_scope')) {
             $fakultasId = $request->get('fakultas_scope');
-            $query->where(function($q) use ($fakultasId) {
-                $q->where('fakultas_id', $fakultasId)
-                  ->orWhereNull('fakultas_id'); // Also show unassigned ones
-            });
+            $query->where('fakultas_id', $fakultasId);
         }
 
         // Sorting
@@ -42,17 +38,14 @@ class RuanganController extends Controller
         } else {
             $query->orderBy('kode_ruangan', 'asc');
         }
-        
+
         $ruanganList = $query->paginate(config('siakad.pagination', 15))->withQueryString();
-        
+
         // Stats - also scoped
         $statsQuery = Ruangan::query();
         if ($request->get('fakultas_scoped') && $request->get('fakultas_scope')) {
             $fakultasId = $request->get('fakultas_scope');
-            $statsQuery->where(function($q) use ($fakultasId) {
-                $q->where('fakultas_id', $fakultasId)
-                  ->orWhereNull('fakultas_id');
-            });
+            $statsQuery->where('fakultas_id', $fakultasId);
         }
         $stats = [
             'total' => (clone $statsQuery)->count(),
@@ -60,10 +53,10 @@ class RuanganController extends Controller
             'capacity' => (clone $statsQuery)->sum('kapasitas'),
             'gedung_count' => (clone $statsQuery)->distinct('gedung')->count('gedung'),
         ];
-        
+
         // Fakultas list for dropdown (only for superadmin)
         $fakultasList = auth()->user()->isSuperAdmin() ? Fakultas::all() : collect();
-        
+
         return view('admin.ruangan.index', compact('ruanganList', 'stats', 'fakultasList'));
     }
 
@@ -81,9 +74,8 @@ class RuanganController extends Controller
         ]);
 
         $validated['is_active'] = $request->has('is_active');
-        
-        // Auto-assign fakultas for admin_fakultas
-        if (empty($validated['fakultas_id']) && $request->get('fakultas_scoped')) {
+
+        if ($request->user()->role === 'admin_prodi') {
             $validated['fakultas_id'] = $request->get('fakultas_scope');
         }
 
@@ -94,8 +86,9 @@ class RuanganController extends Controller
 
     public function update(Request $request, Ruangan $ruangan)
     {
+        $this->ensureFakultasScope($ruangan);
         $validated = $request->validate([
-            'kode_ruangan' => 'required|string|max:20|unique:ruangan,kode_ruangan,' . $ruangan->id,
+            'kode_ruangan' => 'required|string|max:20|unique:ruangan,kode_ruangan,'.$ruangan->id,
             'nama_ruangan' => 'required|string|max:100',
             'kapasitas' => 'required|integer|min:1',
             'gedung' => 'nullable|string|max:50',
@@ -106,6 +99,9 @@ class RuanganController extends Controller
         ]);
 
         $validated['is_active'] = $request->has('is_active');
+        if ($request->user()->role === 'admin_prodi') {
+            $validated['fakultas_id'] = $request->get('fakultas_scope');
+        }
 
         $ruangan->update($validated);
 
@@ -114,13 +110,21 @@ class RuanganController extends Controller
 
     public function destroy(Ruangan $ruangan)
     {
+        $this->ensureFakultasScope($ruangan);
         // Check if ruangan is used in jadwal
         if ($ruangan->jadwalKuliah()->exists()) {
             return redirect()->back()->withErrors(['error' => 'Tidak dapat menghapus ruangan yang digunakan dalam jadwal.']);
         }
-        
+
         $ruangan->delete();
+
         return redirect()->back()->with('success', 'Ruangan berhasil dihapus');
     }
-}
 
+    private function ensureFakultasScope(Ruangan $ruangan): void
+    {
+        if (auth()->user()->role === 'admin_prodi') {
+            abort_unless((int) $ruangan->fakultas_id === (int) auth()->user()->prodi?->fakultas_id, 404);
+        }
+    }
+}

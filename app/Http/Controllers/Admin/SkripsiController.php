@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Skripsi;
 use App\Models\Dosen;
+use App\Models\Skripsi;
 use Illuminate\Http\Request;
 
 class SkripsiController extends Controller
@@ -23,15 +23,14 @@ class SkripsiController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('judul', 'like', "%{$search}%")
-                    ->orWhereHas('mahasiswa.user', fn($q) => $q->where('name', 'like', "%{$search}%"))
-                    ->orWhereHas('mahasiswa', fn($q) => $q->where('nim', 'like', "%{$search}%"));
+                    ->orWhereHas('mahasiswa.user', fn ($q) => $q->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('mahasiswa', fn ($q) => $q->where('nim', 'like', "%{$search}%"));
             });
         }
 
-        // Faculty scoping for admin_fakultas
-        if ($request->get('fakultas_scoped') && $request->get('fakultas_scope')) {
-            $fakultasId = $request->get('fakultas_scope');
-            $query->whereHas('mahasiswa.prodi', fn($q) => $q->where('fakultas_id', $fakultasId));
+        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
+            $prodiId = $request->get('prodi_scope');
+            $query->whereHas('mahasiswa.prodi', fn ($q) => $q->where('id', $prodiId));
         }
 
         // Sorting
@@ -40,18 +39,18 @@ class SkripsiController extends Controller
 
         if ($sortColumn === 'mahasiswa_name') {
             $query->join('mahasiswa', 'skripsi.mahasiswa_id', '=', 'mahasiswa.id')
-                  ->join('users', 'mahasiswa.user_id', '=', 'users.id')
-                  ->select('skripsi.*')
-                  ->orderBy('users.name', $sortDirection);
+                ->join('users', 'mahasiswa.user_id', '=', 'users.id')
+                ->select('skripsi.*')
+                ->orderBy('users.name', $sortDirection);
         } elseif ($sortColumn === 'mahasiswa_nim') {
             $query->join('mahasiswa', 'skripsi.mahasiswa_id', '=', 'mahasiswa.id')
-                  ->select('skripsi.*')
-                  ->orderBy('mahasiswa.nim', $sortDirection);
+                ->select('skripsi.*')
+                ->orderBy('mahasiswa.nim', $sortDirection);
         } elseif ($sortColumn === 'pembimbing_name') {
             $query->leftJoin('dosen', 'skripsi.pembimbing1_id', '=', 'dosen.id')
-                  ->leftJoin('users', 'dosen.user_id', '=', 'users.id')
-                  ->select('skripsi.*')
-                  ->orderBy('users.name', $sortDirection);
+                ->leftJoin('users', 'dosen.user_id', '=', 'users.id')
+                ->select('skripsi.*')
+                ->orderBy('users.name', $sortDirection);
         } elseif (in_array($sortColumn, ['judul', 'status', 'created_at'])) {
             $query->orderBy($sortColumn, $sortDirection);
         } else {
@@ -59,19 +58,19 @@ class SkripsiController extends Controller
         }
 
         $skripsiList = $query->paginate(20)->withQueryString();
-        
+
         // Scope dosen list for dropdown
         $dosenQuery = Dosen::with('user');
-        if ($request->get('fakultas_scoped') && $request->get('fakultas_scope')) {
-            $dosenQuery->whereHas('prodi', fn($q) => $q->where('fakultas_id', $request->get('fakultas_scope')));
+        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
+            $dosenQuery->where('prodi_id', $request->get('prodi_scope'));
         }
         $dosenList = $dosenQuery->get();
         $statusList = Skripsi::getStatusList();
 
         // Stats - also scoped
         $statsQuery = Skripsi::query();
-        if ($request->get('fakultas_scoped') && $request->get('fakultas_scope')) {
-            $statsQuery->whereHas('mahasiswa.prodi', fn($q) => $q->where('fakultas_id', $request->get('fakultas_scope')));
+        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
+            $statsQuery->whereHas('mahasiswa.prodi', fn ($q) => $q->where('id', $request->get('prodi_scope')));
         }
         $stats = [
             'total' => (clone $statsQuery)->count(),
@@ -83,21 +82,30 @@ class SkripsiController extends Controller
         return view('admin.skripsi.index', compact('skripsiList', 'dosenList', 'statusList', 'stats'));
     }
 
-
     public function show(Skripsi $skripsi)
     {
+        $this->ensureProdiScope($skripsi);
         $skripsi->load(['mahasiswa.user', 'pembimbing1.user', 'pembimbing2.user', 'bimbingan.dosen.user']);
-        $dosenList = Dosen::with('user')->get();
+        $dosenList = Dosen::with('user')
+            ->when(auth()->user()->role === 'admin_prodi', fn ($query) => $query->where('prodi_id', auth()->user()->prodi_id))
+            ->get();
 
         return view('admin.skripsi.show', compact('skripsi', 'dosenList'));
     }
 
     public function assignPembimbing(Request $request, Skripsi $skripsi)
     {
+        $this->ensureProdiScope($skripsi);
         $validated = $request->validate([
             'pembimbing1_id' => 'required|exists:dosen,id',
             'pembimbing2_id' => 'nullable|exists:dosen,id|different:pembimbing1_id',
         ]);
+        abort_unless(
+            auth()->user()->role !== 'admin_prodi'
+                || Dosen::whereKey($validated['pembimbing1_id'])->where('prodi_id', auth()->user()->prodi_id)->exists()
+                    && (empty($validated['pembimbing2_id']) || Dosen::whereKey($validated['pembimbing2_id'])->where('prodi_id', auth()->user()->prodi_id)->exists()),
+            404
+        );
 
         $skripsi->update([
             'pembimbing1_id' => $validated['pembimbing1_id'],
@@ -111,14 +119,15 @@ class SkripsiController extends Controller
 
     public function updateStatus(Request $request, Skripsi $skripsi)
     {
+        $this->ensureProdiScope($skripsi);
         $validated = $request->validate([
-            'status' => 'required|in:' . implode(',', array_keys(Skripsi::getStatusList())),
+            'status' => 'required|in:'.implode(',', array_keys(Skripsi::getStatusList())),
             'catatan_admin' => 'nullable|string',
         ]);
 
         $updateData = ['status' => $validated['status']];
 
-        if (!empty($validated['catatan_admin'])) {
+        if (! empty($validated['catatan_admin'])) {
             $updateData['catatan_admin'] = $validated['catatan_admin'];
         }
 
@@ -142,6 +151,7 @@ class SkripsiController extends Controller
 
     public function updateNilai(Request $request, Skripsi $skripsi)
     {
+        $this->ensureProdiScope($skripsi);
         $validated = $request->validate([
             'nilai_akhir' => 'required|numeric|min:0|max:100',
             'nilai_huruf' => 'required|in:A,B+,B,C+,C,D,E',
@@ -155,5 +165,15 @@ class SkripsiController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Nilai skripsi berhasil disimpan');
+    }
+
+    private function ensureProdiScope(Skripsi $skripsi): void
+    {
+        if (auth()->user()->role === 'admin_prodi') {
+            abort_unless(
+                $skripsi->mahasiswa()->where('prodi_id', auth()->user()->prodi_id)->exists(),
+                404
+            );
+        }
     }
 }

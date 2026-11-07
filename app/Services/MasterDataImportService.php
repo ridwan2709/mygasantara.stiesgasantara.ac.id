@@ -430,7 +430,11 @@ class MasterDataImportService
                 'ruangan' => ['nullable', 'string', 'max:50'],
             ]);
             $mataKuliah = MataKuliah::where('kode_mk', $data['kode_mk'])->first();
-            if (! $mataKuliah || (! $user->isSuperAdmin() && $mataKuliah->prodi && ! $user->canAccessFakultas((int) $mataKuliah->prodi->fakultas_id))) {
+            $mataKuliahIsOutsideScope = $user->role === 'admin_prodi'
+                ? $mataKuliah?->prodi_id !== $user->prodi_id
+                : $mataKuliah?->prodi && ! $user->canAccessFakultas((int) $mataKuliah->prodi->fakultas_id);
+
+            if (! $mataKuliah || (! $user->isSuperAdmin() && $mataKuliahIsOutsideScope)) {
                 $errors[] = 'Kode mata kuliah tidak ditemukan atau di luar fakultas Anda.';
             }
 
@@ -727,7 +731,9 @@ class MasterDataImportService
         }
 
         $query = Prodi::whereRaw('LOWER(nama) = ?', [strtolower($name)]);
-        if (! $user->isSuperAdmin()) {
+        if ($user->role === 'admin_prodi') {
+            $query->whereKey($user->prodi_id);
+        } elseif (! $user->isSuperAdmin()) {
             $query->where('fakultas_id', $user->fakultas_id);
         }
         $matches = $query->get();
@@ -743,7 +749,9 @@ class MasterDataImportService
 
     private function scopeDosen(Builder $query, User $user): void
     {
-        if (! $user->isSuperAdmin()) {
+        if ($user->role === 'admin_prodi') {
+            $query->where('prodi_id', $user->prodi_id);
+        } elseif (! $user->isSuperAdmin()) {
             $query->whereHas('prodi', fn ($prodiQuery) => $prodiQuery->where('fakultas_id', $user->fakultas_id));
         }
     }

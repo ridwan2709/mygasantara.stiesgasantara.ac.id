@@ -34,7 +34,7 @@ class HonorariumController extends Controller
         );
 
         return Pdf::loadView('dosen.honorarium.slip', compact('honorarium'))
-            ->download("slip-honor-{$honorarium->tahun}-".str_pad((string) $honorarium->bulan, 2, '0', STR_PAD_LEFT).'.pdf');
+            ->stream("slip-honor-{$honorarium->tahun}-".str_pad((string) $honorarium->bulan, 2, '0', STR_PAD_LEFT).'.pdf');
     }
 
     private function accessibleHonorariumQuery(Request $request): Builder

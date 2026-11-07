@@ -38,12 +38,6 @@ class CurrentAcademicDemoSeeder extends Seeder
             $fakultas = Fakultas::firstOrCreate([
                 'nama' => 'Fakultas Demo SIAKAD',
             ]);
-            $admin = $this->demoUser(
-                'demo.admin@siakad.test',
-                'Admin Demo Fakultas',
-                'admin_fakultas',
-                $fakultas->id,
-            );
             $superadmin = $this->demoUser(
                 'demo.superadmin@siakad.test',
                 'Superadmin Demo',
@@ -53,6 +47,13 @@ class CurrentAcademicDemoSeeder extends Seeder
                 'fakultas_id' => $fakultas->id,
                 'nama' => 'Teknik Informatika Demo',
             ]);
+            $admin = $this->demoUser(
+                'demo.admin@siakad.test',
+                'Admin Demo Prodi',
+                'admin_prodi',
+                $fakultas->id,
+                $prodi->id,
+            );
 
             [$term, $termStart, $termEnd] = $this->activeTerm();
             $rooms = $this->seedRooms($fakultas->id);
@@ -89,7 +90,7 @@ class CurrentAcademicDemoSeeder extends Seeder
                 ['Peran', 'Email'],
                 [
                     ['Superadmin', $superadmin->email],
-                    ['Admin fakultas', $admin->email],
+                    ['Admin prodi', $admin->email],
                     ...array_map(fn (Dosen $dosen): array => ['Dosen', $dosen->user->email], $lecturers),
                     ...array_map(fn (Mahasiswa $mahasiswa): array => ['Mahasiswa', $mahasiswa->user->email], $students),
                 ],
@@ -98,7 +99,7 @@ class CurrentAcademicDemoSeeder extends Seeder
         });
     }
 
-    private function demoUser(string $email, string $name, string $role, ?int $fakultasId = null): User
+    private function demoUser(string $email, string $name, string $role, ?int $fakultasId = null, ?int $prodiId = null): User
     {
         return User::updateOrCreate(
             ['email' => $email],
@@ -108,6 +109,7 @@ class CurrentAcademicDemoSeeder extends Seeder
                 'email_verified_at' => now(),
                 'role' => $role,
                 'fakultas_id' => $fakultasId,
+                'prodi_id' => $prodiId,
             ],
         );
     }

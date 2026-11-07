@@ -3,7 +3,9 @@
         Data Program Studi
     </x-slot>
 
-@include('admin.partials.master-data-import', ['importType' => 'prodi', 'importLabel' => 'Program Studi'])
+@if($isSuperAdmin)
+    @include('admin.partials.master-data-import', ['importType' => 'prodi', 'importLabel' => 'Program Studi'])
+@endif
 
 <div class="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
     <div>
@@ -12,6 +14,7 @@
         </p>
     </div>
 
+    @if($isSuperAdmin)
     <button
         onclick="document.getElementById('createModal').classList.remove('hidden')"
         class="btn-primary-saas w-full md:w-auto px-4 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
@@ -22,6 +25,7 @@
         </svg>
         Tambah Prodi
     </button>
+    @endif
 </div>
 
 
@@ -64,7 +68,9 @@
                         <th class="text-left py-3 px-5 text-xs font-semibold text-siakad-secondary dark:text-gray-400 uppercase tracking-wider">Nama Program Studi</th>
                         <th class="text-left py-3 px-5 text-xs font-semibold text-siakad-secondary dark:text-gray-400 uppercase tracking-wider w-32">Mahasiswa</th>
                         <th class="text-left py-3 px-5 text-xs font-semibold text-siakad-secondary dark:text-gray-400 uppercase tracking-wider w-24">Dosen</th>
-                        <th class="text-right py-3 px-5 text-xs font-semibold text-siakad-secondary dark:text-gray-400 uppercase tracking-wider w-32">Aksi</th>
+                        @if($isSuperAdmin)
+                            <th class="text-right py-3 px-5 text-xs font-semibold text-siakad-secondary dark:text-gray-400 uppercase tracking-wider w-32">Aksi</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -82,6 +88,7 @@
                         <td class="py-4 px-5">
                             <span class="inline-flex px-2.5 py-1 text-xs font-medium bg-siakad-secondary/10 text-siakad-secondary dark:bg-gray-700 dark:text-gray-300 rounded-full">{{ $p->dosen_count ?? 0 }}</span>
                         </td>
+                        @if($isSuperAdmin)
                         <td class="py-4 px-5 text-right">
                             <div class="flex items-center justify-end gap-2">
                                 <button onclick="editProdi({{ $p->id }}, '{{ $p->nama }}', {{ $f->id }})" class="p-2 text-siakad-secondary dark:text-gray-400 hover:text-siakad-primary dark:hover:text-blue-400 hover:bg-siakad-primary/10 dark:hover:bg-gray-700 rounded-lg transition">
@@ -95,10 +102,11 @@
                                 </form>
                             </div>
                         </td>
+                        @endif
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="py-8 text-center text-siakad-secondary dark:text-gray-400 text-sm">
+                        <td colspan="{{ $isSuperAdmin ? 5 : 4 }}" class="py-8 text-center text-siakad-secondary dark:text-gray-400 text-sm">
                             Belum ada program studi di fakultas ini
                         </td>
                     </tr>
@@ -125,6 +133,7 @@
                         </div>
                     </div>
 
+                    @if($isSuperAdmin)
                     <div class="flex items-center gap-2 pt-3 border-t border-siakad-light dark:border-gray-700">
                         <button onclick="editProdi({{ $p->id }}, '{{ $p->nama }}', {{ $f->id }})" class="flex-1 py-2 text-sm font-medium text-siakad-secondary bg-siakad-light/50 dark:bg-gray-700 dark:text-gray-300 rounded-lg hover:bg-siakad-light hover:text-siakad-primary dark:hover:bg-gray-600 transition text-center">
                             Edit
@@ -136,6 +145,7 @@
                             </button>
                         </form>
                     </div>
+                    @endif
                 </div>
                 @empty
                 <div class="text-center py-4 text-siakad-secondary dark:text-gray-400 text-sm">
@@ -157,6 +167,7 @@
     </div>
     @endif
 
+    @if($isSuperAdmin)
     <!-- Create Modal -->
     <div id="createModal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-800 rounded-xl w-full max-w-md animate-fade-in">
@@ -217,13 +228,16 @@
             </form>
         </div>
     </div>
+    @endif
 
     <script>
+        @if($isSuperAdmin)
         function editProdi(id, nama, fakultasId) {
             document.getElementById('editForm').action = `/admin/prodi/${id}`;
             document.getElementById('editNama').value = nama;
             document.getElementById('editFakultas').value = fakultasId;
             document.getElementById('editModal').classList.remove('hidden');
         }
+        @endif
     </script>
 </x-app-layout>

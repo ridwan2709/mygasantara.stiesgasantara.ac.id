@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\Fakultas;
+use App\Models\Prodi;
+use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -24,16 +25,15 @@ class UserController extends Controller
      */
     private function authorizeSuperAdmin(): void
     {
-        if (!auth()->user()->isSuperAdmin()) {
+        if (! auth()->user()->isSuperAdmin()) {
             abort(response()->view('errors.403', ['message' => 'Hanya superadmin yang dapat mengelola user.'], 403));
         }
     }
 
-
     public function index(Request $request)
     {
         $this->authorizeSuperAdmin();
-        
+
         $query = User::with(['fakultas', 'mahasiswa.prodi', 'dosen.prodi']);
 
         // Search
@@ -54,46 +54,48 @@ class UserController extends Controller
             $fakultasId = $request->get('fakultas_scope');
             $query->where(function ($q) use ($fakultasId) {
                 $q->where('fakultas_id', $fakultasId)
-                    ->orWhereHas('mahasiswa', fn($m) => $m->whereHas('prodi', fn($p) => $p->where('fakultas_id', $fakultasId)))
-                    ->orWhereHas('dosen', fn($d) => $d->whereHas('prodi', fn($p) => $p->where('fakultas_id', $fakultasId)));
+                    ->orWhereHas('mahasiswa', fn ($m) => $m->whereHas('prodi', fn ($p) => $p->where('fakultas_id', $fakultasId)))
+                    ->orWhereHas('dosen', fn ($d) => $d->whereHas('prodi', fn ($p) => $p->where('fakultas_id', $fakultasId)));
+
             });
         }
 
         $users = $query->orderBy('name')->paginate(config('siakad.pagination', 15))->withQueryString();
-        $fakultasList = Fakultas::orderBy('nama')->get();
+        $prodiList = Prodi::with('fakultas')->orderBy('nama')->get();
 
-        return view('admin.users.index', compact('users', 'fakultasList'));
+        return view('admin.users.index', compact('users', 'prodiList'));
     }
 
     public function store(Request $request)
     {
         $this->authorizeSuperAdmin();
-        
+
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|string|email|max:255|unique:users',
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
             'password' => ['required', 'string', Password::min(8)],
-            'role'     => 'required|in:superadmin,admin_fakultas,dosen,mahasiswa',
+            'role' => 'required|in:superadmin,admin_fakultas,dosen,mahasiswa,bendahara,staff',
             'fakultas_id' => 'nullable|exists:fakultas,id',
             // Polymorphic validation
-            'nim'      => 'required_if:role,mahasiswa|nullable|unique:mahasiswa,nim',
-            'nidn'     => 'required_if:role,dosen|nullable|unique:dosen,nidn',
+            'nim' => 'required_if:role,mahasiswa|nullable|unique:mahasiswa,nim',
+            'nidn' => 'required_if:role,dosen|nullable|unique:dosen,nidn',
             'prodi_id' => 'required_if:role,mahasiswa,dosen|nullable|exists:prodi,id',
             'angkatan' => 'required_if:role,mahasiswa|nullable|numeric',
         ]);
 
         try {
             $user = $this->userService->createUser($validated);
-            
+
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'User created', 'data' => $user], 201);
             }
-            
+
             return back()->with('success', 'User berhasil ditambahkan.');
         } catch (\Exception $e) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => $e->getMessage()], 400);
             }
+
             return back()->withErrors(['error' => $e->getMessage()]);
         }
     }
@@ -101,23 +103,25 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $this->authorizeSuperAdmin();
-        
+
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
             'password' => ['nullable', 'string', Password::min(8)],
-            'role'     => 'required|in:superadmin,admin_fakultas,dosen,mahasiswa',
+            'role' => 'required|in:superadmin,admin_fakultas,dosen,mahasiswa,bendahara,staff',
             'fakultas_id' => 'nullable|exists:fakultas,id',
         ]);
 
-        $user->update([
+        $userData = [
             'name' => $validated['name'],
             'email' => $validated['email'],
             'role' => $validated['role'],
             'fakultas_id' => $validated['fakultas_id'] ?? null,
-        ]);
+        ];
 
-        if (!empty($validated['password'])) {
+        $user->update($userData);
+
+        if (! empty($validated['password'])) {
             $user->update(['password' => Hash::make($validated['password'])]);
         }
 
@@ -127,7 +131,7 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $this->authorizeSuperAdmin();
-        
+
         // Prevent self-deletion
         if ($user->id === auth()->id()) {
             return back()->withErrors(['error' => 'Tidak dapat menghapus akun sendiri.']);

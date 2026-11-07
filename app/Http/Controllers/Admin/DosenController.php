@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Dosen;
-use App\Models\User;
-use App\Models\Prodi;
 use App\Models\Kelas;
-use App\Models\Nilai;
+use App\Models\KrsDetail;
+use App\Models\Prodi;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class DosenController extends Controller
@@ -24,7 +24,7 @@ class DosenController extends Controller
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('nidn', 'like', "%{$search}%")
-                    ->orWhereHas('user', fn($q2) => $q2->where('name', 'like', "%{$search}%"));
+                    ->orWhereHas('user', fn ($q2) => $q2->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -33,9 +33,8 @@ class DosenController extends Controller
             $query->where('prodi_id', $prodiId);
         }
 
-        // Faculty scoping
-        if ($request->get('fakultas_scoped') && $request->get('fakultas_scope')) {
-            $query->whereHas('prodi', fn($q) => $q->where('fakultas_id', $request->get('fakultas_scope')));
+        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
+            $query->where('prodi_id', $request->get('prodi_scope'));
         }
 
         // Sorting
@@ -44,22 +43,21 @@ class DosenController extends Controller
 
         if ($sortColumn === 'name') {
             $query->join('users', 'dosen.user_id', '=', 'users.id')
-                  ->select('dosen.*')
-                  ->orderBy('users.name', $sortDirection);
+                ->select('dosen.*')
+                ->orderBy('users.name', $sortDirection);
         } elseif ($sortColumn === 'prodi') {
-             $query->join('prodi', 'dosen.prodi_id', '=', 'prodi.id')
-                   ->select('dosen.*')
-                   ->orderBy('prodi.nama', $sortDirection);
+            $query->join('prodi', 'dosen.prodi_id', '=', 'prodi.id')
+                ->select('dosen.*')
+                ->orderBy('prodi.nama', $sortDirection);
         } else {
-             $query->orderBy('nidn', $sortDirection);
+            $query->orderBy('nidn', $sortDirection);
         }
 
         $dosen = $query->paginate(config('siakad.pagination', 15))->withQueryString();
-        
-        // Prodi list scoped by faculty
+
         $prodiQuery = Prodi::with('fakultas');
-        if ($request->get('fakultas_scoped') && $request->get('fakultas_scope')) {
-            $prodiQuery->where('fakultas_id', $request->get('fakultas_scope'));
+        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
+            $prodiQuery->whereKey($request->get('prodi_scope'));
         }
         $prodiList = $prodiQuery->get();
 
@@ -75,6 +73,10 @@ class DosenController extends Controller
             'nidn' => 'required|string|unique:dosen,nidn',
             'prodi_id' => 'required|exists:prodi,id',
         ]);
+
+        if ($request->user()->role === 'admin_prodi') {
+            $validated['prodi_id'] = $request->user()->prodi_id;
+        }
 
         DB::transaction(function () use ($validated) {
             $user = User::create([
@@ -96,13 +98,18 @@ class DosenController extends Controller
 
     public function update(Request $request, Dosen $dosen)
     {
+        $this->ensureProdiScope($dosen);
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $dosen->user_id,
-            'nidn' => 'required|string|unique:dosen,nidn,' . $dosen->id,
+            'email' => 'required|email|unique:users,email,'.$dosen->user_id,
+            'nidn' => 'required|string|unique:dosen,nidn,'.$dosen->id,
             'prodi_id' => 'required|exists:prodi,id',
             'password' => 'nullable|string|min:8',
         ]);
+
+        if ($request->user()->role === 'admin_prodi') {
+            $validated['prodi_id'] = $request->user()->prodi_id;
+        }
 
         DB::transaction(function () use ($validated, $dosen) {
             $dosen->user->update([
@@ -110,7 +117,7 @@ class DosenController extends Controller
                 'email' => $validated['email'],
             ]);
 
-            if (!empty($validated['password'])) {
+            if (! empty($validated['password'])) {
                 $dosen->user->update(['password' => Hash::make($validated['password'])]);
             }
 
@@ -125,6 +132,7 @@ class DosenController extends Controller
 
     public function destroy(Dosen $dosen)
     {
+        $this->ensureProdiScope($dosen);
         // Check if dosen has kelas
         if ($dosen->kelas()->exists()) {
             return back()->withErrors(['error' => 'Tidak dapat menghapus dosen yang memiliki kelas.']);
@@ -150,15 +158,16 @@ class DosenController extends Controller
 
     public function show(Dosen $dosen)
     {
+        $this->ensureProdiScope($dosen);
         $dosen->load(['user', 'prodi.fakultas', 'kelas.mataKuliah', 'kelas.krsDetail']);
-        
+
         // Paginate kelas (4 per page)
         $kelasIds = $dosen->kelas()->pluck('id');
         $teachingLoad = $dosen->kelas()->with(['mataKuliah', 'krsDetail'])->paginate(4);
 
         // Calculate totals for stats (based on all classes, not just paginated ones)
-        $totalSks = $dosen->kelas->sum(fn($k) => $k->mataKuliah->sks);
-        $totalStudents = \App\Models\KrsDetail::whereIn('kelas_id', $kelasIds)->count();
+        $totalSks = $dosen->kelas->sum(fn ($k) => $k->mataKuliah->sks);
+        $totalStudents = KrsDetail::whereIn('kelas_id', $kelasIds)->count();
 
         return view('admin.dosen.show', compact('dosen', 'teachingLoad', 'totalSks', 'totalStudents'));
     }
@@ -167,16 +176,15 @@ class DosenController extends Controller
     {
         $query = Dosen::with(['user', 'prodi.fakultas'])->withCount('kelas');
 
-        // Faculty scoping
-        if ($request->get('fakultas_scoped') && $request->get('fakultas_scope')) {
-            $query->whereHas('prodi', fn($q) => $q->where('fakultas_id', $request->get('fakultas_scope')));
+        if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
+            $query->where('prodi_id', $request->get('prodi_scope'));
         }
 
         // Search
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('nidn', 'like', "%{$search}%")
-                    ->orWhereHas('user', fn($q2) => $q2->where('name', 'like', "%{$search}%"));
+                    ->orWhereHas('user', fn ($q2) => $q2->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -191,23 +199,30 @@ class DosenController extends Controller
         $html = '<table border="1" cellpadding="5" cellspacing="0">';
         $html .= '<thead><tr><th>No</th><th>NIDN</th><th>Nama</th><th>Email</th><th>Prodi</th><th>Fakultas</th><th>Jumlah Kelas</th></tr></thead>';
         $html .= '<tbody>';
-        
+
         foreach ($dosenList as $idx => $dosen) {
             $html .= '<tr>';
-            $html .= '<td>' . ($idx + 1) . '</td>';
-            $html .= '<td>' . $dosen->nidn . '</td>';
-            $html .= '<td>' . $dosen->user->name . '</td>';
-            $html .= '<td>' . $dosen->user->email . '</td>';
-            $html .= '<td>' . ($dosen->prodi->nama ?? '-') . '</td>';
-            $html .= '<td>' . ($dosen->prodi->fakultas->nama ?? '-') . '</td>';
-            $html .= '<td>' . $dosen->kelas_count . '</td>';
+            $html .= '<td>'.($idx + 1).'</td>';
+            $html .= '<td>'.$dosen->nidn.'</td>';
+            $html .= '<td>'.$dosen->user->name.'</td>';
+            $html .= '<td>'.$dosen->user->email.'</td>';
+            $html .= '<td>'.($dosen->prodi->nama ?? '-').'</td>';
+            $html .= '<td>'.($dosen->prodi->fakultas->nama ?? '-').'</td>';
+            $html .= '<td>'.$dosen->kelas_count.'</td>';
             $html .= '</tr>';
         }
-        
+
         $html .= '</tbody></table>';
 
         return response($html)
             ->header('Content-Type', 'application/vnd.ms-excel')
-            ->header('Content-Disposition', 'attachment; filename="dosen_export_' . date('Y-m-d') . '.xls"');
+            ->header('Content-Disposition', 'attachment; filename="dosen_export_'.date('Y-m-d').'.xls"');
+    }
+
+    private function ensureProdiScope(Dosen $dosen): void
+    {
+        if (auth()->user()->role === 'admin_prodi') {
+            abort_unless((int) $dosen->prodi_id === (int) auth()->user()->prodi_id, 404);
+        }
     }
 }
