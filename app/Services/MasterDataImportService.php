@@ -430,7 +430,7 @@ class MasterDataImportService
                 'ruangan' => ['nullable', 'string', 'max:50'],
             ]);
             $mataKuliah = MataKuliah::where('kode_mk', $data['kode_mk'])->first();
-            $mataKuliahIsOutsideScope = $user->role === 'admin_prodi'
+            $mataKuliahIsOutsideScope = $user->isAdminProdi()
                 ? $mataKuliah?->prodi_id !== $user->prodi_id
                 : $mataKuliah?->prodi && ! $user->canAccessFakultas((int) $mataKuliah->prodi->fakultas_id);
 
@@ -731,7 +731,7 @@ class MasterDataImportService
         }
 
         $query = Prodi::whereRaw('LOWER(nama) = ?', [strtolower($name)]);
-        if ($user->role === 'admin_prodi') {
+        if ($user->isAdminProdi()) {
             $query->whereKey($user->prodi_id);
         } elseif (! $user->isSuperAdmin()) {
             $query->where('fakultas_id', $user->fakultas_id);
@@ -749,7 +749,7 @@ class MasterDataImportService
 
     private function scopeDosen(Builder $query, User $user): void
     {
-        if ($user->role === 'admin_prodi') {
+        if ($user->isAdminProdi()) {
             $query->where('prodi_id', $user->prodi_id);
         } elseif (! $user->isSuperAdmin()) {
             $query->whereHas('prodi', fn ($prodiQuery) => $prodiQuery->where('fakultas_id', $user->fakultas_id));

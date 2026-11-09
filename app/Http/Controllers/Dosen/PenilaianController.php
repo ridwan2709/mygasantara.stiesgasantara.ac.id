@@ -114,6 +114,15 @@ class PenilaianController extends Controller
     {
         $user = Auth::user();
 
+        if ($user->isAdminProdi()) {
+            abort_unless($user->prodi_id, 403, 'Admin prodi belum memiliki program studi');
+
+            return Kelas::query()->whereHas(
+                'dosen.prodi',
+                fn ($query) => $query->whereKey($user->prodi_id)
+            );
+        }
+
         if ($user->role === 'admin_fakultas') {
             abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');
 

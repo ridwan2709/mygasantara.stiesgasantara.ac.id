@@ -30,7 +30,7 @@ class MahasiswaController extends Controller
         $query = $this->accessibleMahasiswaQuery($request)
             ->with(['user', 'prodi.fakultas', 'dosenPa.user']);
         $isFacultyAdmin = $request->user()->role === 'admin_fakultas';
-        $isProgramAdmin = $request->user()->role === 'admin_prodi';
+        $isProgramAdmin = $request->user()->isAdminProdi();
 
         // Search
         if ($search = $request->get('search')) {
@@ -258,7 +258,7 @@ class MahasiswaController extends Controller
                 'prodi',
                 fn ($prodiQuery) => $prodiQuery->where('fakultas_id', $user->fakultas_id)
             );
-        } elseif ($user->role === 'admin_prodi') {
+        } elseif ($user->isAdminProdi()) {
             abort_unless($user->prodi_id, 403, 'Admin prodi belum memiliki program studi');
             $query->where('prodi_id', $user->prodi_id);
         }
@@ -274,7 +274,7 @@ class MahasiswaController extends Controller
         if ($user->role === 'admin_fakultas') {
             abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');
             $query->where('fakultas_id', $user->fakultas_id);
-        } elseif ($user->role === 'admin_prodi') {
+        } elseif ($user->isAdminProdi()) {
             abort_unless($user->prodi_id, 403, 'Admin prodi belum memiliki program studi');
             $query->whereKey($user->prodi_id);
         }
@@ -290,7 +290,7 @@ class MahasiswaController extends Controller
         if ($user->role === 'admin_fakultas') {
             abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');
             $query->whereHas('prodi', fn ($prodiQuery) => $prodiQuery->where('fakultas_id', $user->fakultas_id));
-        } elseif ($user->role === 'admin_prodi') {
+        } elseif ($user->isAdminProdi()) {
             abort_unless($user->prodi_id, 403, 'Admin prodi belum memiliki program studi');
             $query->where('prodi_id', $user->prodi_id);
         }
@@ -309,7 +309,7 @@ class MahasiswaController extends Controller
             return $rule->where('fakultas_id', $user->fakultas_id);
         }
 
-        if ($user->role === 'admin_prodi') {
+        if ($user->isAdminProdi()) {
             abort_unless($user->prodi_id, 403, 'Admin prodi belum memiliki program studi');
 
             return $rule->where('id', $user->prodi_id);
@@ -335,7 +335,7 @@ class MahasiswaController extends Controller
 
     private function applyProdiScope(Request $request, array &$validated): void
     {
-        if ($request->user()->role !== 'admin_prodi') {
+        if (! $request->user()->isAdminProdi()) {
             return;
         }
 
@@ -355,7 +355,7 @@ class MahasiswaController extends Controller
     {
         $user = request()->user();
 
-        if ($user->role === 'admin_prodi') {
+        if ($user->isAdminProdi()) {
             abort_unless($user->prodi_id && (int) $mahasiswa->prodi_id === (int) $user->prodi_id, 404);
         }
     }

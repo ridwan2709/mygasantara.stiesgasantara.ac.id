@@ -131,7 +131,7 @@ class MataKuliahController extends Controller
             'prodi_id' => 'nullable|exists:prodi,id',
         ]);
 
-        if ($request->user()->role === 'admin_prodi') {
+        if ($request->user()->isAdminProdi()) {
             $validated['prodi_id'] = $request->user()->prodi_id;
         }
 
@@ -151,7 +151,7 @@ class MataKuliahController extends Controller
             'prodi_id' => 'nullable|exists:prodi,id',
         ]);
 
-        if ($request->user()->role === 'admin_prodi') {
+        if ($request->user()->isAdminProdi()) {
             $validated['prodi_id'] = $request->user()->prodi_id;
         }
 
@@ -175,7 +175,7 @@ class MataKuliahController extends Controller
 
     private function ensureProdiScope(MataKuliah $mataKuliah): void
     {
-        if (auth()->user()->role === 'admin_prodi') {
+        if (auth()->user()->isAdminProdi()) {
             abort_unless((int) $mataKuliah->prodi_id === (int) auth()->user()->prodi_id, 404);
         }
     }

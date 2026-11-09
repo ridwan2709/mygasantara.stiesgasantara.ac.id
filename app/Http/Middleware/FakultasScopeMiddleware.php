@@ -26,7 +26,7 @@ class FakultasScopeMiddleware
             return $next($request);
         }
 
-        if ($user->role === 'admin_prodi') {
+        if ($user->isAdminProdi()) {
             $user->loadMissing('prodi');
 
             abort_unless($user->prodi, 403, 'Akun admin prodi belum memiliki prodi yang ditetapkan.');

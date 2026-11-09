@@ -33,7 +33,8 @@ class RoleMiddleware
             }
         }
 
-        $hasAccess = in_array($user->role, $allowedRoles, true);
+        $hasAccess = in_array($user->role, $allowedRoles, true)
+            || $user->hasAnyRole($allowedRoles);
 
         if (! $hasAccess) {
             if ($request->expectsJson()) {
@@ -49,6 +50,7 @@ class RoleMiddleware
     {
         return match ($role) {
             'admin' => ['superadmin', 'admin_fakultas', 'admin_prodi'],
+            'admin_fakultas' => ['admin_fakultas', 'admin_prodi'],
             default => [$role],
         };
     }

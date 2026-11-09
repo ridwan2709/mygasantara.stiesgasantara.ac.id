@@ -138,7 +138,7 @@ class KrsApprovalController extends Controller
 
     private function ensureProdiScope(Krs $krs): void
     {
-        if (auth()->user()->role === 'admin_prodi') {
+        if (auth()->user()->isAdminProdi()) {
             abort_unless(
                 $krs->mahasiswa()->where('prodi_id', auth()->user()->prodi_id)->exists(),
                 404

@@ -20,9 +20,9 @@ Route::get('/dashboard', function () {
         'staff' => 'staff.dashboard',
     ];
 
-    $role = auth()->user()->role;
+    $user = auth()->user();
 
-    return redirect()->route($routes[$role] ?? 'login');
+    return redirect()->route($user->isAdminProdi() ? 'admin.dashboard' : ($routes[$user->role] ?? 'login'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'role:bendahara'])->prefix('bendahara')->name('bendahara.')->group(function () {

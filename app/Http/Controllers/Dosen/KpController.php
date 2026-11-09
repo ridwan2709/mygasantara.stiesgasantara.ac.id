@@ -82,6 +82,15 @@ class KpController extends Controller
     {
         $user = Auth::user();
 
+        if ($user->isAdminProdi()) {
+            abort_unless($user->prodi_id, 403, 'Admin prodi belum memiliki program studi');
+
+            return KerjaPraktek::query()->whereHas(
+                'mahasiswa',
+                fn ($query) => $query->where('prodi_id', $user->prodi_id)
+            );
+        }
+
         if ($user->role === 'admin_fakultas') {
             abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');
 
@@ -103,6 +112,15 @@ class KpController extends Controller
     private function accessibleLogbookQuery(): Builder
     {
         $user = Auth::user();
+
+        if ($user->isAdminProdi()) {
+            abort_unless($user->prodi_id, 403, 'Admin prodi belum memiliki program studi');
+
+            return LogbookKp::query()->whereHas(
+                'kerjaPraktek.mahasiswa',
+                fn ($query) => $query->where('prodi_id', $user->prodi_id)
+            );
+        }
 
         if ($user->role === 'admin_fakultas') {
             abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');

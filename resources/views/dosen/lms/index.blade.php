@@ -6,7 +6,7 @@
     <div class="mb-6">
         <h2 class="text-xl font-bold text-siakad-dark dark:text-white">Pilih Kelas</h2>
         <p class="text-sm text-siakad-secondary dark:text-gray-400">
-            {{ $isAdminFakultas ? 'Kelola materi dan tugas untuk kelas di fakultas Anda' : 'Kelola materi dan tugas untuk kelas yang Anda ampu' }}
+            {{ auth()->user()->isAdminProdi() ? 'Kelola materi dan tugas untuk kelas di program studi Anda' : ($isAdminFakultas ? 'Kelola materi dan tugas untuk kelas di fakultas Anda' : 'Kelola materi dan tugas untuk kelas yang Anda ampu') }}
         </p>
     </div>
 
@@ -21,7 +21,7 @@
     @if($kelasList->isEmpty())
     <div class="card-saas p-8 text-center dark:bg-gray-800">
         <svg class="w-16 h-16 mx-auto mb-4 text-siakad-secondary/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>
-        <p class="text-siakad-secondary dark:text-gray-400">{{ $isAdminFakultas ? 'Belum ada kelas di fakultas Anda.' : 'Anda belum mengampu kelas apapun.' }}</p>
+        <p class="text-siakad-secondary dark:text-gray-400">{{ auth()->user()->isAdminProdi() ? 'Belum ada kelas di program studi Anda.' : ($isAdminFakultas ? 'Belum ada kelas di fakultas Anda.' : 'Anda belum mengampu kelas apapun.') }}</p>
     </div>
     @else
     <div id="kelasGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">

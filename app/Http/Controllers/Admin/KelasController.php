@@ -175,7 +175,7 @@ class KelasController extends Controller
 
     private function ensureRelatedDataInProdi(Request $request, array $validated): void
     {
-        if ($request->user()->role !== 'admin_prodi') {
+        if (! $request->user()->isAdminProdi()) {
             return;
         }
 
@@ -189,7 +189,7 @@ class KelasController extends Controller
 
     private function ensureKelasScope(Kelas $kelas): void
     {
-        if (auth()->user()->role === 'admin_prodi') {
+        if (auth()->user()->isAdminProdi()) {
             abort_unless(
                 $kelas->dosen()->where('prodi_id', auth()->user()->prodi_id)->exists()
                     && $kelas->mataKuliah()->where('prodi_id', auth()->user()->prodi_id)->exists(),

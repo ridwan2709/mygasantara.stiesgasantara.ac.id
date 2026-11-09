@@ -1,10 +1,10 @@
 <x-app-layout>
-    <x-slot name="header">{{ $isAdminFakultas ? 'Honorarium Fakultas' : 'Riwayat Honorarium' }}</x-slot>
+    <x-slot name="header">{{ auth()->user()->isAdminProdi() ? 'Honorarium Program Studi' : ($isAdminFakultas ? 'Honorarium Fakultas' : 'Riwayat Honorarium') }}</x-slot>
 
     <div class="card-saas overflow-hidden dark:bg-gray-800">
         <div class="border-b border-siakad-light p-5 dark:border-gray-700">
             @if($isAdminFakultas)
-                <h2 class="text-lg font-semibold">Riwayat honorarium dosen di fakultas Anda</h2>
+                <h2 class="text-lg font-semibold">{{ auth()->user()->isAdminProdi() ? 'Riwayat honorarium dosen di program studi Anda' : 'Riwayat honorarium dosen di fakultas Anda' }}</h2>
                 <p class="text-sm text-siakad-secondary dark:text-gray-400">Slip honorarium per periode</p>
             @else
                 <h2 class="text-lg font-semibold">{{ $dosen->user->name }}</h2>

@@ -31,7 +31,7 @@ class AuthenticatedSessionController extends Controller
         $user = Auth::user();
 
         // Redirect berdasarkan role
-        $redirectRoute = match ($user->role) {
+        $redirectRoute = $user->isAdminProdi() ? 'admin.dashboard' : match ($user->role) {
             'mahasiswa' => 'mahasiswa.dashboard',
             'dosen' => 'dosen.dashboard',
             'bendahara' => 'bendahara.dashboard',

@@ -87,7 +87,7 @@ class SkripsiController extends Controller
         $this->ensureProdiScope($skripsi);
         $skripsi->load(['mahasiswa.user', 'pembimbing1.user', 'pembimbing2.user', 'bimbingan.dosen.user']);
         $dosenList = Dosen::with('user')
-            ->when(auth()->user()->role === 'admin_prodi', fn ($query) => $query->where('prodi_id', auth()->user()->prodi_id))
+            ->when(auth()->user()->isAdminProdi(), fn ($query) => $query->where('prodi_id', auth()->user()->prodi_id))
             ->get();
 
         return view('admin.skripsi.show', compact('skripsi', 'dosenList'));
@@ -101,7 +101,7 @@ class SkripsiController extends Controller
             'pembimbing2_id' => 'nullable|exists:dosen,id|different:pembimbing1_id',
         ]);
         abort_unless(
-            auth()->user()->role !== 'admin_prodi'
+            ! auth()->user()->isAdminProdi()
                 || Dosen::whereKey($validated['pembimbing1_id'])->where('prodi_id', auth()->user()->prodi_id)->exists()
                     && (empty($validated['pembimbing2_id']) || Dosen::whereKey($validated['pembimbing2_id'])->where('prodi_id', auth()->user()->prodi_id)->exists()),
             404
@@ -169,7 +169,7 @@ class SkripsiController extends Controller
 
     private function ensureProdiScope(Skripsi $skripsi): void
     {
-        if (auth()->user()->role === 'admin_prodi') {
+        if (auth()->user()->isAdminProdi()) {
             abort_unless(
                 $skripsi->mahasiswa()->where('prodi_id', auth()->user()->prodi_id)->exists(),
                 404

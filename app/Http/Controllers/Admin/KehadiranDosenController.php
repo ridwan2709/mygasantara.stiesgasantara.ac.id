@@ -76,7 +76,7 @@ class KehadiranDosenController extends Controller
     public function show(Dosen $dosen, Request $request)
     {
         abort_unless(
-            auth()->user()->role !== 'admin_prodi'
+            ! auth()->user()->isAdminProdi()
                 || (int) $dosen->prodi_id === (int) auth()->user()->prodi_id,
             404
         );

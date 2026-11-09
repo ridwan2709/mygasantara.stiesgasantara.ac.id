@@ -14,7 +14,7 @@ class HonorariumController extends Controller
     public function index(Request $request): Response
     {
         $dosen = $request->user()->dosen;
-        $isAdminFakultas = $request->user()->role === 'admin_fakultas';
+        $isAdminFakultas = $request->user()->role === 'admin_fakultas' || $request->user()->isAdminProdi();
         abort_unless($isAdminFakultas || $dosen, 404);
 
         $honorariumList = $this->accessibleHonorariumQuery($request)
@@ -40,6 +40,15 @@ class HonorariumController extends Controller
     private function accessibleHonorariumQuery(Request $request): Builder
     {
         $user = $request->user();
+
+        if ($user->isAdminProdi()) {
+            abort_unless($user->prodi_id, 403, 'Admin prodi belum memiliki program studi');
+
+            return Honorarium::query()->whereHas(
+                'dosen.prodi',
+                fn ($query) => $query->whereKey($user->prodi_id)
+            );
+        }
 
         if ($user->role === 'admin_fakultas') {
             abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');

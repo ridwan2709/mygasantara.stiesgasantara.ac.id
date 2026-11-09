@@ -34,7 +34,7 @@ class UserController extends Controller
     {
         $this->authorizeSuperAdmin();
 
-        $query = User::with(['fakultas', 'mahasiswa.prodi', 'dosen.prodi']);
+        $query = User::with(['fakultas', 'mahasiswa.prodi', 'dosen.prodi', 'roles']);
 
         // Search
         if ($search = $request->get('search')) {
@@ -46,7 +46,12 @@ class UserController extends Controller
 
         // Filter by role
         if ($role = $request->get('role')) {
-            $query->where('role', $role);
+            $query->where(function ($query) use ($role): void {
+                $query->where('role', $role);
+                if ($role === 'admin_prodi') {
+                    $query->orWhereHas('roles', fn ($roles) => $roles->where('name', 'admin_prodi'));
+                }
+            });
         }
 
         // Faculty scoping for admin_fakultas
@@ -74,12 +79,13 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => ['required', 'string', Password::min(8)],
-            'role' => 'required|in:superadmin,admin_fakultas,dosen,mahasiswa,bendahara,staff',
+            'role' => 'required|in:superadmin,admin_prodi,admin_fakultas,dosen,mahasiswa,bendahara,staff',
             'fakultas_id' => 'nullable|exists:fakultas,id',
+            'is_admin_prodi' => 'nullable|boolean|prohibited_unless:role,dosen',
             // Polymorphic validation
             'nim' => 'required_if:role,mahasiswa|nullable|unique:mahasiswa,nim',
             'nidn' => 'required_if:role,dosen|nullable|unique:dosen,nidn',
-            'prodi_id' => 'required_if:role,mahasiswa,dosen|nullable|exists:prodi,id',
+            'prodi_id' => 'required_if:role,mahasiswa,dosen,admin_prodi|nullable|exists:prodi,id',
             'angkatan' => 'required_if:role,mahasiswa|nullable|numeric',
         ]);
 
@@ -108,8 +114,10 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
             'password' => ['nullable', 'string', Password::min(8)],
-            'role' => 'required|in:superadmin,admin_fakultas,dosen,mahasiswa,bendahara,staff',
+            'role' => 'required|in:superadmin,admin_prodi,admin_fakultas,dosen,mahasiswa,bendahara,staff',
             'fakultas_id' => 'nullable|exists:fakultas,id',
+            'prodi_id' => 'nullable|required_if:role,dosen,admin_prodi|exists:prodi,id',
+            'is_admin_prodi' => 'nullable|boolean|prohibited_unless:role,dosen',
         ]);
 
         $userData = [
@@ -117,9 +125,24 @@ class UserController extends Controller
             'email' => $validated['email'],
             'role' => $validated['role'],
             'fakultas_id' => $validated['fakultas_id'] ?? null,
+            'prodi_id' => $validated['prodi_id'] ?? null,
         ];
 
+        if (! empty($validated['prodi_id'])) {
+            $userData['fakultas_id'] = Prodi::findOrFail($validated['prodi_id'])->fakultas_id;
+        }
+
         $user->update($userData);
+        if ($validated['role'] === 'dosen' && $user->dosen) {
+            $user->dosen->update(['prodi_id' => $validated['prodi_id']]);
+        }
+
+        if ($validated['role'] === 'dosen' && ($validated['is_admin_prodi'] ?? false)) {
+            \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin_prodi', 'guard_name' => 'web']);
+            $user->assignRole('admin_prodi');
+        } elseif ($user->hasRole('admin_prodi')) {
+            $user->removeRole('admin_prodi');
+        }
 
         if (! empty($validated['password'])) {
             $user->update(['password' => Hash::make($validated['password'])]);

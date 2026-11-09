@@ -81,6 +81,15 @@ class SkripsiController extends Controller
     {
         $user = Auth::user();
 
+        if ($user->isAdminProdi()) {
+            abort_unless($user->prodi_id, 403, 'Admin prodi belum memiliki program studi');
+
+            return Skripsi::query()->whereHas(
+                'mahasiswa',
+                fn ($query) => $query->where('prodi_id', $user->prodi_id)
+            );
+        }
+
         if ($user->role === 'admin_fakultas') {
             abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');
 
@@ -105,6 +114,15 @@ class SkripsiController extends Controller
     private function accessibleBimbinganQuery(): Builder
     {
         $user = Auth::user();
+
+        if ($user->isAdminProdi()) {
+            abort_unless($user->prodi_id, 403, 'Admin prodi belum memiliki program studi');
+
+            return BimbinganSkripsi::query()->whereHas(
+                'skripsi.mahasiswa',
+                fn ($query) => $query->where('prodi_id', $user->prodi_id)
+            );
+        }
 
         if ($user->role === 'admin_fakultas') {
             abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');

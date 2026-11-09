@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Spatie\Permission\Models\Role;
 
 class UserService
 {
@@ -20,7 +21,8 @@ class UserService
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
                 'role' => $data['role'],
-                'fakultas_id' => $data['fakultas_id'] ?? null,
+                'fakultas_id' => $data['fakultas_id'] ?? Prodi::find($data['prodi_id'] ?? null)?->fakultas_id,
+                'prodi_id' => $data['prodi_id'] ?? null,
             ];
 
             if (Schema::hasColumn('users', 'boleh_absen')) {
@@ -28,6 +30,11 @@ class UserService
             }
 
             $user = User::create($userData);
+
+            if ($data['role'] === 'dosen' && ($data['is_admin_prodi'] ?? false)) {
+                Role::firstOrCreate(['name' => 'admin_prodi', 'guard_name' => 'web']);
+                $user->assignRole('admin_prodi');
+            }
 
             if ($data['role'] === 'mahasiswa') {
                 Mahasiswa::create([

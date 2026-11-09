@@ -84,7 +84,7 @@ class KpController extends Controller
         $this->ensureProdiScope($kp);
         $kp->load(['mahasiswa.user', 'pembimbing.user', 'logbook']);
         $dosenList = Dosen::with('user')
-            ->when(auth()->user()->role === 'admin_prodi', fn ($query) => $query->where('prodi_id', auth()->user()->prodi_id))
+            ->when(auth()->user()->isAdminProdi(), fn ($query) => $query->where('prodi_id', auth()->user()->prodi_id))
             ->get();
 
         return view('admin.kp.show', compact('kp', 'dosenList'));
@@ -97,7 +97,7 @@ class KpController extends Controller
             'pembimbing_id' => 'required|exists:dosen,id',
         ]);
         abort_unless(
-            auth()->user()->role !== 'admin_prodi'
+            ! auth()->user()->isAdminProdi()
                 || Dosen::whereKey($validated['pembimbing_id'])->where('prodi_id', auth()->user()->prodi_id)->exists(),
             404
         );
@@ -147,7 +147,7 @@ class KpController extends Controller
 
     private function ensureProdiScope(KerjaPraktek $kp): void
     {
-        if (auth()->user()->role === 'admin_prodi') {
+        if (auth()->user()->isAdminProdi()) {
             abort_unless(
                 $kp->mahasiswa()->where('prodi_id', auth()->user()->prodi_id)->exists(),
                 404

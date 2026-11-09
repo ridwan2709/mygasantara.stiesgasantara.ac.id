@@ -37,7 +37,7 @@ class LmsController extends Controller
                 return $kelas;
             });
 
-        $isAdminFakultas = $user->role === 'admin_fakultas';
+        $isAdminFakultas = $user->role === 'admin_fakultas' || $user->isAdminProdi();
 
         return view('dosen.lms.index', compact('kelasList', 'activeTA', 'isAdminFakultas'));
     }
@@ -45,6 +45,15 @@ class LmsController extends Controller
     private function accessibleKelasQuery(): Builder
     {
         $user = Auth::user();
+
+        if ($user->isAdminProdi()) {
+            abort_unless($user->prodi_id, 403, 'Admin prodi belum memiliki program studi');
+
+            return Kelas::query()->whereHas(
+                'dosen.prodi',
+                fn ($query) => $query->whereKey($user->prodi_id)
+            );
+        }
 
         if ($user->role === 'admin_fakultas') {
             abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');

@@ -3,7 +3,7 @@
 
     <div class="mb-6 flex items-center justify-between">
         <p class="text-sm text-siakad-secondary">
-            {{ auth()->user()->role === 'admin_fakultas' ? 'Mahasiswa Kerja Praktek di fakultas Anda' : 'Mahasiswa Kerja Praktek bimbingan Anda' }}
+            {{ auth()->user()->isAdminProdi() ? 'Mahasiswa Kerja Praktek di program studi Anda' : (auth()->user()->role === 'admin_fakultas' ? 'Mahasiswa Kerja Praktek di fakultas Anda' : 'Mahasiswa Kerja Praktek bimbingan Anda') }}
         </p>
         @if($pendingLogbook > 0)
         <span class="px-3 py-1 text-sm font-medium bg-siakad-primary/10 text-siakad-primary rounded-full">{{ $pendingLogbook }} logbook pending</span>

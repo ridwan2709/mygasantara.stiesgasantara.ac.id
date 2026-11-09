@@ -75,7 +75,7 @@ class RuanganController extends Controller
 
         $validated['is_active'] = $request->has('is_active');
 
-        if ($request->user()->role === 'admin_prodi') {
+        if ($request->user()->isAdminProdi()) {
             $validated['fakultas_id'] = $request->get('fakultas_scope');
         }
 
@@ -99,7 +99,7 @@ class RuanganController extends Controller
         ]);
 
         $validated['is_active'] = $request->has('is_active');
-        if ($request->user()->role === 'admin_prodi') {
+        if ($request->user()->isAdminProdi()) {
             $validated['fakultas_id'] = $request->get('fakultas_scope');
         }
 
@@ -123,7 +123,7 @@ class RuanganController extends Controller
 
     private function ensureFakultasScope(Ruangan $ruangan): void
     {
-        if (auth()->user()->role === 'admin_prodi') {
+        if (auth()->user()->isAdminProdi()) {
             abort_unless((int) $ruangan->fakultas_id === (int) auth()->user()->prodi?->fakultas_id, 404);
         }
     }

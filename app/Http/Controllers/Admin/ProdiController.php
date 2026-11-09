@@ -23,13 +23,13 @@ class ProdiController extends Controller
 
         $query = Fakultas::with(['prodi' => function ($q) use ($user) {
             $q->withCount(['mahasiswa', 'dosen']);
-            if ($user->role === 'admin_prodi') {
+            if ($user->isAdminProdi()) {
                 $q->whereKey($user->prodi_id);
             }
         }]);
 
         // Scope to user's fakultas if not superadmin
-        if ($user->role === 'admin_prodi') {
+        if ($user->isAdminProdi()) {
             $query->where('id', $user->prodi?->fakultas_id);
         }
 

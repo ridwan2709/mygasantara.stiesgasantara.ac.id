@@ -15,6 +15,7 @@
                     class="input-saas px-4 py-2 text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300">
                     <option value="">Semua Role</option>
                     <option value="superadmin" {{ request('role') == 'superadmin' ? 'selected' : '' }}>Superadmin</option>
+                    <option value="admin_prodi" {{ request('role') == 'admin_prodi' ? 'selected' : '' }}>Admin Prodi</option>
                     <option value="admin_fakultas" {{ request('role') == 'admin_fakultas' ? 'selected' : '' }}>Admin
                         Fakultas</option>
                     <option value="dosen" {{ request('role') == 'dosen' ? 'selected' : '' }}>Dosen</option>
@@ -71,11 +72,14 @@
                         <td class="py-4 px-5 text-sm text-siakad-secondary">{{ $user->email }}</td>
                         <td class="py-4 px-5">
                             @php
-                                $roleColors = ['superadmin' => 'bg-purple-100 text-purple-800', 'admin' => 'bg-blue-100 text-blue-800', 'admin_fakultas' => 'bg-indigo-100 text-indigo-800', 'dosen' => 'bg-green-100 text-green-800', 'mahasiswa' => 'bg-yellow-100 text-yellow-800', 'bendahara' => 'bg-orange-100 text-orange-800', 'staff' => 'bg-cyan-100 text-cyan-800'];
+                                $roleColors = ['superadmin' => 'bg-purple-100 text-purple-800', 'admin' => 'bg-blue-100 text-blue-800', 'admin_fakultas' => 'bg-indigo-100 text-indigo-800', 'admin_prodi' => 'bg-indigo-100 text-indigo-800', 'dosen' => 'bg-green-100 text-green-800', 'mahasiswa' => 'bg-yellow-100 text-yellow-800', 'bendahara' => 'bg-orange-100 text-orange-800', 'staff' => 'bg-cyan-100 text-cyan-800'];
                             @endphp
                             <div class="flex flex-wrap items-center gap-2">
                                 <span
                                     class="inline-flex px-2.5 py-1 text-xs font-medium rounded-full {{ $roleColors[$user->role] ?? 'bg-gray-100 text-gray-800' }}">{{ ucfirst(str_replace('_', ' ', $user->role)) }}</span>
+                                @if($user->role !== 'admin_prodi' && $user->isAdminProdi())
+                                    <span class="inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-indigo-100 text-indigo-800">Admin Prodi</span>
+                                @endif
                                 @if(in_array($user->role, ['superadmin', 'bendahara', 'staff'], true))
                                     <span
                                         class="inline-flex px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide rounded-full bg-emerald-100 text-emerald-700">Absen</span>
@@ -83,11 +87,17 @@
                             </div>
                         </td>
                         <td class="py-4 px-5 text-sm text-siakad-secondary">
-                            {{ $user->fakultas?->nama ?? ($user->mahasiswa?->prodi?->fakultas?->nama ?? ($user->dosen?->prodi?->fakultas?->nama ?? '-')) }}
+                            {{ $user->prodi?->nama ?? ($user->mahasiswa?->prodi?->nama ?? ($user->dosen?->prodi?->nama ?? '-')) }}
                         </td>
                         <td class="py-4 px-5 text-right">
                             <div class="flex items-center justify-end gap-1">
-                                <button onclick="openEditModal({{ json_encode($user) }})"
+                                <button type="button" onclick="openEditModal(this)"
+                                    data-user-id="{{ $user->id }}"
+                                    data-user-name="{{ $user->name }}"
+                                    data-user-email="{{ $user->email }}"
+                                    data-user-role="{{ $user->role }}"
+                                    data-user-prodi-id="{{ $user->prodi_id ?? $user->dosen?->prodi_id }}"
+                                    data-user-is-admin-prodi="{{ $user->isAdminProdi() ? '1' : '0' }}"
                                     class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg" title="Edit"><svg class="w-4 h-4"
                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -137,9 +147,10 @@
                             type="password" name="password" required minlength="8"
                             class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
                     <div><label class="block text-sm font-medium text-siakad-secondary mb-1">Role</label>
-                        <select name="role" id="createRole" required onchange="toggleFakultasField('create')"
+                        <select name="role" id="createRole" required onchange="toggleUserFields('create')"
                             class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                             <option value="superadmin">Superadmin</option>
+                            <option value="admin_prodi">Admin Prodi</option>
                             <option value="admin_fakultas">Admin Fakultas</option>
                             <option value="dosen">Dosen</option>
                             <option value="mahasiswa">Mahasiswa</option>
@@ -147,15 +158,26 @@
                             <option value="staff">Staff</option>
                         </select>
                     </div>
-                    <div id="createFakultasField" class="hidden"><label
-                            class="block text-sm font-medium text-siakad-secondary mb-1">Fakultas</label>
-                        <select name="fakultas_id"
-                            class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                            <option value="">-- Pilih --</option>
-                            @foreach($prodiList as $f)
-                            <option value="{{ $f->id }}">{{ $f->nama }}</option>
-                            @endforeach
-                        </select>
+                    <div id="createNidnField" class="hidden"><label
+                                class="block text-sm font-medium text-siakad-secondary mb-1">NIDN</label><input
+                                type="text" name="nidn" id="createNidn"
+                                class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
+                    <div id="createAdminProdiField" class="hidden">
+                            <label class="flex items-center gap-2 text-sm text-siakad-secondary">
+                                <input type="checkbox" name="is_admin_prodi" id="createIsAdminProdi" value="1"
+                                    onchange="toggleUserFields('create')">
+                                Jadikan juga Admin Prodi
+                            </label>
+                    </div>
+                    <div id="createProdiField" class="hidden"><label
+                            class="block text-sm font-medium text-siakad-secondary mb-1">Program Studi</label>
+                            <select name="prodi_id" id="createProdiId"
+                                class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                <option value="">-- Pilih Program Studi --</option>
+                                @foreach($prodiList as $prodi)
+                                <option value="{{ $prodi->id }}">{{ $prodi->nama }} ({{ $prodi->fakultas?->nama }})</option>
+                                @endforeach
+                            </select>
                     </div>
                     <div class="flex justify-end gap-3"><button type="button" onclick="closeModal('createModal')"
                             class="px-4 py-2 text-sm text-siakad-secondary hover:bg-gray-100 rounded-lg">Batal</button><button
@@ -183,9 +205,10 @@
                             tidak diubah)</label><input type="password" name="password" minlength="8"
                             class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
                     <div><label class="block text-sm font-medium text-siakad-secondary mb-1">Role</label>
-                        <select name="role" id="editRole" required onchange="toggleFakultasField('edit')"
+                        <select name="role" id="editRole" required onchange="toggleUserFields('edit')"
                             class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                             <option value="superadmin">Superadmin</option>
+                            <option value="admin_prodi">Admin Prodi</option>
                             <option value="admin_fakultas">Admin Fakultas</option>
                             <option value="dosen">Dosen</option>
                             <option value="mahasiswa">Mahasiswa</option>
@@ -193,13 +216,21 @@
                             <option value="staff">Staff</option>
                         </select>
                     </div>
-                    <div id="editFakultasField" class="hidden"><label
-                            class="block text-sm font-medium text-siakad-secondary mb-1">Fakultas</label>
-                        <select name="fakultas_id" id="editFakultasId"
-                            class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                            <option value="">-- Pilih --</option>
-                            @foreach($prodiList as $f)
-                            <option value="{{ $f->id }}">{{ $f->nama }}</option>
+                    <div id="editAdminProdiField" class="hidden">
+                            <label class="flex items-center gap-2 text-sm text-siakad-secondary">
+                                <input type="checkbox" name="is_admin_prodi" id="editIsAdminProdi" value="1"
+                                    onchange="toggleUserFields('edit')">
+                                Jadikan juga Admin Prodi
+                            </label>
+                    </div>
+                    <div id="editProdiField" class="hidden"><label
+                            class="block text-sm font-medium text-siakad-secondary mb-1">Program Studi</label>
+                            <select name="prodi_id" id="editProdiId"
+                                disabled
+                                class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                <option value="">-- Pilih Program Studi --</option>
+                                @foreach($prodiList as $prodi)
+                                <option value="{{ $prodi->id }}">{{ $prodi->nama }} ({{ $prodi->fakultas?->nama }})</option>
                             @endforeach
                         </select>
                     </div>
@@ -214,18 +245,40 @@
     <script>
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-        function toggleProdiField(prefix) {
+        function toggleUserFields(prefix) {
             const role = document.getElementById(prefix + 'Role').value;
-            document.getElementById(prefix + 'ProdiField').classList.toggle('hidden', role !== 'admin_prodi');
+            const isDosen = role === 'dosen';
+            const needsProdi = isDosen || role === 'admin_prodi';
+            const adminProdiCheckbox = document.getElementById(prefix + 'IsAdminProdi');
+            const nidnInput = document.getElementById('createNidn');
+            const prodiSelect = document.getElementById(prefix + 'ProdiId');
+
+            document.getElementById(prefix + 'ProdiField').classList.toggle('hidden', !needsProdi);
+            prodiSelect.required = needsProdi;
+            prodiSelect.disabled = !needsProdi;
+
+            if (prefix === 'create') {
+                document.getElementById('createNidnField').classList.toggle('hidden', !isDosen);
+                nidnInput.required = isDosen;
+                document.getElementById('createAdminProdiField').classList.toggle('hidden', !isDosen);
+            } else {
+                document.getElementById('editAdminProdiField').classList.toggle('hidden', !isDosen);
+            }
+
+            adminProdiCheckbox.disabled = !isDosen;
         }
-        function openEditModal(user) {
-            document.getElementById('editForm').action = `/admin/users/${user.id}`;
-            document.getElementById('editName').value = user.name;
-            document.getElementById('editEmail').value = user.email;
-            document.getElementById('editRole').value = user.role;
-            document.getElementById('editProdiId').value = user.prodi_id || '';
-            toggleProdiField('edit');
+
+        function openEditModal(button) {
+            document.getElementById('editForm').action = `/admin/users/${button.dataset.userId}`;
+            document.getElementById('editName').value = button.dataset.userName;
+            document.getElementById('editEmail').value = button.dataset.userEmail;
+            document.getElementById('editRole').value = button.dataset.userRole;
+            document.getElementById('editProdiId').value = button.dataset.userProdiId || '';
+            document.getElementById('editIsAdminProdi').checked = button.dataset.userIsAdminProdi === '1';
+            toggleUserFields('edit');
             openModal('editModal');
         }
+
+        toggleUserFields('create');
     </script>
 </x-app-layout>

@@ -42,7 +42,7 @@ class HonorariumController extends Controller
         $tahun = (int) ($validated['tahun'] ?? now()->year);
         $dosenList = $this->scopedDosenQuery()->with('user')->orderBy('nidn')->get();
         $kelasQuery = Kelas::with(['dosen.user', 'mataKuliah']);
-        if ($request->user()->role === 'admin_prodi') {
+        if ($request->user()->isAdminProdi()) {
             $kelasQuery->whereHas('dosen', fn (Builder $query) => $query->where('prodi_id', $request->user()->prodi_id))
                 ->whereHas('mataKuliah', fn (Builder $query) => $query->where('prodi_id', $request->user()->prodi_id));
         }
@@ -500,7 +500,7 @@ class HonorariumController extends Controller
     {
         $query = Dosen::query();
 
-        if (request()->user()->role === 'admin_prodi') {
+        if (request()->user()->isAdminProdi()) {
             $query->where('prodi_id', request()->user()->prodi_id);
         }
 
@@ -509,7 +509,7 @@ class HonorariumController extends Controller
 
     private function authorizeDosenScope(Dosen $dosen): void
     {
-        if (request()->user()->role === 'admin_prodi'
+        if (request()->user()->isAdminProdi()
             && (int) $dosen->prodi_id !== (int) request()->user()->prodi_id) {
             abort(403);
         }

@@ -74,7 +74,7 @@ class DosenController extends Controller
             'prodi_id' => 'required|exists:prodi,id',
         ]);
 
-        if ($request->user()->role === 'admin_prodi') {
+        if ($request->user()->isAdminProdi()) {
             $validated['prodi_id'] = $request->user()->prodi_id;
         }
 
@@ -107,7 +107,7 @@ class DosenController extends Controller
             'password' => 'nullable|string|min:8',
         ]);
 
-        if ($request->user()->role === 'admin_prodi') {
+        if ($request->user()->isAdminProdi()) {
             $validated['prodi_id'] = $request->user()->prodi_id;
         }
 
@@ -221,7 +221,7 @@ class DosenController extends Controller
 
     private function ensureProdiScope(Dosen $dosen): void
     {
-        if (auth()->user()->role === 'admin_prodi') {
+        if (auth()->user()->isAdminProdi()) {
             abort_unless((int) $dosen->prodi_id === (int) auth()->user()->prodi_id, 404);
         }
     }

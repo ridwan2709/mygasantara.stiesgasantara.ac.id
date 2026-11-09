@@ -54,7 +54,7 @@
     @if($isAdminFakultas)
     <form method="GET" class="card-saas mb-6 flex flex-col gap-3 p-4 sm:flex-row sm:items-end">
         <div class="flex-1">
-            <label for="dosen_id" class="mb-1 block text-sm font-medium text-siakad-dark dark:text-gray-200">Pilih dosen fakultas</label>
+            <label for="dosen_id" class="mb-1 block text-sm font-medium text-siakad-dark dark:text-gray-200">{{ auth()->user()->isAdminProdi() ? 'Pilih dosen program studi' : 'Pilih dosen fakultas' }}</label>
             <select id="dosen_id" name="dosen_id" class="input-saas w-full text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-white" required>
                 <option value="">Pilih dosen</option>
                 @foreach($dosenList as $dosenOption)
