@@ -19,7 +19,7 @@ class KehadiranController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $isAdminFakultas = $user->role === 'admin_fakultas';
+        $isAdminFakultas = $user->role === 'admin_fakultas' || $user->isAdminProdi();
         $canManageAttendance = $this->canManageAttendance($user->role);
         $isStaffLike = in_array($user->role, ['superadmin', 'bendahara', 'staff'], true);
 
@@ -93,7 +93,6 @@ class KehadiranController extends Controller
     {
         $user = Auth::user();
         $canManageAttendance = $this->canManageAttendance($user->role);
-
         $validated = $request->validate([
             'jadwal_kuliah_id' => 'required|exists:jadwal_kuliah,id',
             'dosen_id' => $canManageAttendance ? 'required|integer|exists:dosen,id' : 'prohibited',
@@ -103,6 +102,7 @@ class KehadiranController extends Controller
             'latitude' => 'required_if:status,hadir|nullable|numeric|between:-90,90',
             'longitude' => 'required_if:status,hadir|nullable|numeric|between:-180,180',
         ]);
+
 
         if ($canManageAttendance) {
             $dosen = $this->accessibleDosenQuery()->find($validated['dosen_id']);
@@ -213,6 +213,15 @@ class KehadiranController extends Controller
     {
         $user = Auth::user();
 
+        if ($user->isAdminProdi()) {
+            abort_unless($user->prodi_id, 403, 'Admin prodi belum memiliki program studi');
+
+            return Dosen::query()->whereHas(
+                'prodi',
+                fn ($query) => $query->whereKey($user->prodi_id)
+            );
+        }
+
         if ($user->role === 'admin_fakultas') {
             abort_unless($user->fakultas_id, 403, 'Admin fakultas belum memiliki fakultas');
 
@@ -252,7 +261,8 @@ class KehadiranController extends Controller
 
     private function canManageAttendance(string $role): bool
     {
-        return in_array($role, ['admin_fakultas', 'superadmin', 'bendahara', 'staff'], true);
+        return in_array($role, ['admin_fakultas', 'superadmin', 'bendahara', 'staff'], true)
+            || Auth::user()->isAdminProdi();
     }
 
     /**
