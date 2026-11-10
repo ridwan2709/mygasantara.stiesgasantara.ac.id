@@ -510,14 +510,14 @@
                     <div class="pt-4 pb-1">
                         <p class="px-3 text-[10px] font-semibold text-siakad-secondary/60 uppercase tracking-widest sidebar-section-title">Akademik</p>
                     </div>
-                    <a href="{{ url('mahasiswa/krs') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('mahasiswa/krs*') ? 'active' : '' }}">
+                    {{-- <a href="{{ url('mahasiswa/krs') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('mahasiswa/krs*') ? 'active' : '' }}">
                         <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                         <span class="sidebar-text">Pengisian KRS</span>
                         @php $krsStatus = \App\Models\Krs::where('mahasiswa_id', Auth::user()->mahasiswa?->id)->latest()->first(); @endphp
                         @if(!$krsStatus || $krsStatus->status === 'draft')
                         <span class="ml-auto px-2 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-700 rounded-full">Baru</span>
                         @endif
-                    </a>
+                    </a> --}}
                     <a href="{{ url('mahasiswa/transkrip') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('mahasiswa/transkrip*') ? 'active' : '' }}">
                         <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
                         <span class="sidebar-text">Riwayat Kuliah</span>
@@ -534,22 +534,22 @@
                         <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         <span class="sidebar-text">KHS / Nilai</span>
                     </a>
-                    <a href="{{ url('mahasiswa/skripsi') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('mahasiswa/skripsi*') ? 'active' : '' }}">
+                    {{-- <a href="{{ url('mahasiswa/skripsi') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('mahasiswa/skripsi*') ? 'active' : '' }}">
                         <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                         <span class="sidebar-text">Skripsi / TA</span>
                     </a>
                     <a href="{{ url('mahasiswa/kp') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('mahasiswa/kp*') ? 'active' : '' }}">
                         <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                         <span class="sidebar-text">Kerja Praktek</span>
-                    </a>
+                    </a> --}}
 
-                    <div class="pt-4 pb-1">
+                    {{-- <div class="pt-4 pb-1">
                         <p class="px-3 text-[10px] font-semibold text-siakad-secondary/60 uppercase tracking-widest sidebar-section-title">AI Assistant</p>
                     </div>
                     <a href="{{ url('mahasiswa/ai-advisor') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('mahasiswa/ai-advisor*') ? 'active' : '' }} bg-gradient-to-r from-purple-500/10 to-indigo-500/10 hover:from-purple-500/20 hover:to-indigo-500/20">
                         <svg class="w-[18px] h-[18px] flex-shrink-0 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
                         <span class="sidebar-text">AI Advisor</span>
-                    </a>
+                    </a> --}}
 
                     <div class="pt-4 pb-1">
                         <p class="px-3 text-[10px] font-semibold text-siakad-secondary/60 uppercase tracking-widest sidebar-section-title">E-Learning</p>

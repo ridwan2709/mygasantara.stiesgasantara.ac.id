@@ -68,7 +68,7 @@
         <!-- Quick Action Cards -->
         <div class="lg:col-span-2 grid grid-cols-2 gap-4">
             <!-- Pengisian KRS -->
-            <a href="{{ route('mahasiswa.krs.index') }}" class="relative card-saas p-5 hover:border-siakad-primary/30 group">
+            {{-- <a href="{{ route('mahasiswa.krs.index') }}" class="relative card-saas p-5 hover:border-siakad-primary/30 group">
                 @if($currentKrs && $currentKrs->status === 'draft')
                 <span class="absolute top-4 right-4 px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-semibold rounded-full">Draft</span>
                 @elseif(!$currentKrs)
@@ -79,7 +79,7 @@
                 </div>
                 <h3 class="font-semibold text-siakad-dark mb-1">Pengisian KRS</h3>
                 <p class="text-sm text-siakad-secondary">{{ $activeTA?->tahun ?? '-' }} {{ $activeTA?->semester ?? '' }}</p>
-            </a>
+            </a> --}}
 
             <!-- Perkuliahan -->
             <a href="{{ route('mahasiswa.jadwal.index') }}" class="card-saas p-5 hover:border-siakad-primary/30 group">
