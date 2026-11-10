@@ -7,7 +7,6 @@ use App\Models\KehadiranMengajar;
 use App\Models\Kelas;
 use App\Models\MataKuliah;
 use App\Models\Prodi;
-use App\Models\TarifHonorPegawai;
 use App\Models\TarifHonorarium;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -160,6 +159,22 @@ it('does not count unverified or non-present meetings and prevents editing paid 
             'tanggal' => '2026-09-15',
         ])
         ->assertStatus(409);
+});
+
+it('shows eligible employees without attendance in the selected month without allowing payment', function () {
+    $this->withoutVite();
+    $admin = User::factory()->create(['role' => 'superadmin']);
+    User::factory()->create([
+        'name' => 'Pegawai Tanpa Absen',
+        'role' => 'staff',
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.honorarium.index', ['bulan' => 9, 'tahun' => 2026]))
+        ->assertOk()
+        ->assertSee('Pegawai Tanpa Absen')
+        ->assertSee('Belum ada absensi')
+        ->assertDontSee('Tandai dibayar');
 });
 
 it('limits lecturer honorarium history and slips to the authenticated lecturer', function () {

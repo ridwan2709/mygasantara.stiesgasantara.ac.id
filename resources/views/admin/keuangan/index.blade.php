@@ -174,6 +174,8 @@
                             <td class="px-5 py-3">
                                 @if($pegawai['pembayaran'])
                                     Dibayar {{ $pegawai['pembayaran']->tanggal_bayar->format('d/m/Y') }}
+                                @elseif($pegawai['total_kehadiran'] === 0)
+                                    Belum ada absensi
                                 @elseif($pegawai['tarif_belum_ada'] > 0)
                                     Belum ada tarif untuk {{ $pegawai['tarif_belum_ada'] }} hari
                                 @else
@@ -181,14 +183,14 @@
                                 @endif
                             </td>
                             <td class="px-5 py-3">
-                                @if(!$pegawai['pembayaran'] && $pegawai['tarif_belum_ada'] === 0 && in_array(auth()->user()->role, ['superadmin', 'bendahara'], true))
+                                @if(!$pegawai['pembayaran'] && $pegawai['total_kehadiran'] > 0 && $pegawai['tarif_belum_ada'] === 0 && in_array(auth()->user()->role, ['superadmin', 'bendahara'], true))
                                     <form method="POST" action="{{ route('admin.honorarium.pegawai.pay', $pegawai['user_id']) }}" onsubmit="return confirm('Tandai honor pegawai ini sudah dibayar?')">
                                         @csrf @method('PATCH')
                                         <input type="hidden" name="bulan" value="{{ $bulan }}">
                                         <input type="hidden" name="tahun" value="{{ $tahun }}">
                                         <button class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-medium text-white">Tandai dibayar</button>
                                     </form>
-                                @elseif(!$pegawai['pembayaran'] && $pegawai['tarif_belum_ada'] > 0)
+                                @elseif(!$pegawai['pembayaran'] && $pegawai['total_kehadiran'] > 0 && $pegawai['tarif_belum_ada'] > 0)
                                     <span class="text-xs text-siakad-secondary">Lengkapi tarif terlebih dahulu</span>
                                 @else
                                     <span class="text-xs text-siakad-secondary">-</span>

@@ -151,9 +151,6 @@
                             class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                             <option value="superadmin">Superadmin</option>
                             <option value="admin_prodi">Admin Prodi</option>
-                            <option value="admin_fakultas">Admin Fakultas</option>
-                            <option value="dosen">Dosen</option>
-                            <option value="mahasiswa">Mahasiswa</option>
                             <option value="bendahara">Bendahara</option>
                             <option value="staff">Staff</option>
                         </select>
@@ -209,9 +206,6 @@
                             class="input-saas w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                             <option value="superadmin">Superadmin</option>
                             <option value="admin_prodi">Admin Prodi</option>
-                            <option value="admin_fakultas">Admin Fakultas</option>
-                            <option value="dosen">Dosen</option>
-                            <option value="mahasiswa">Mahasiswa</option>
                             <option value="bendahara">Bendahara</option>
                             <option value="staff">Staff</option>
                         </select>

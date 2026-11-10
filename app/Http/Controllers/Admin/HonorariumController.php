@@ -11,8 +11,8 @@ use App\Models\KehadiranDosen;
 use App\Models\KehadiranMengajar;
 use App\Models\Kelas;
 use App\Models\MataKuliah;
-use App\Models\TarifHonorPegawai;
 use App\Models\TarifHonorarium;
+use App\Models\TarifHonorPegawai;
 use App\Models\User;
 use App\Services\HonorariumService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -20,6 +20,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
@@ -75,9 +76,33 @@ class HonorariumController extends Controller
             ->where(fn (Builder $query) => $query->whereNull('berlaku_sampai')->orWhereDate('berlaku_sampai', '>=', today()))
             ->latest('berlaku_mulai')
             ->first();
-        $honorariumPegawaiList = in_array($request->user()->role, ['superadmin', 'bendahara'], true)
+        $canViewPegawaiHonorarium = in_array($request->user()->role, ['superadmin', 'bendahara', 'staff_keuangan'], true);
+        $honorariumPegawaiList = $canViewPegawaiHonorarium
             ? $this->pegawaiAttendanceSummaries($bulan, $tahun)
             : collect();
+
+        if ($canViewPegawaiHonorarium) {
+            $pegawaiList = User::query()
+                ->whereIn('role', self::PEGAWAI_ROLES)
+                ->orderBy('name')
+                ->get(['id', 'name']);
+
+            foreach ($pegawaiList as $pegawai) {
+                if ($honorariumPegawaiList->has($pegawai->id)) {
+                    continue;
+                }
+
+                $honorariumPegawaiList->put($pegawai->id, [
+                    'user_id' => $pegawai->id,
+                    'name' => $pegawai->name,
+                    'total_kehadiran' => 0,
+                    'total_honor' => '0.00',
+                    'tarif_belum_ada' => 0,
+                    'pembayaran' => null,
+                ]);
+            }
+        }
+
         $semuaPembayaranPegawai = Honorarium::query()
             ->whereNotNull('nama_pegawai')
             ->where('bulan', $bulan)
@@ -188,7 +213,7 @@ class HonorariumController extends Controller
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, array{
+     * @return Collection<int, array{
      *     user_id: int,
      *     name: string,
      *     total_kehadiran: int,
@@ -196,7 +221,7 @@ class HonorariumController extends Controller
      *     tarif_belum_ada: int
      * }>
      */
-    private function pegawaiAttendanceSummaries(int $bulan, int $tahun, ?int $userId = null): \Illuminate\Support\Collection
+    private function pegawaiAttendanceSummaries(int $bulan, int $tahun, ?int $userId = null): Collection
     {
         $periodStart = Carbon::create($tahun, $bulan, 1)->startOfMonth();
         $periodEnd = $periodStart->copy()->endOfMonth();
