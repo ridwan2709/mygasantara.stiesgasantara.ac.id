@@ -10,8 +10,6 @@ class DashboardController extends Controller
 {
     public function index(): View
     {
-        $khsCount = Krs::query()->where('status', 'approved')->count();
-
-        return view('staff.dashboard', compact('khsCount'));
+        return view('staff.dashboard');
     }
 }

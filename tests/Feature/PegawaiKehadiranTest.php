@@ -17,10 +17,10 @@ function buatPengaturanGpsPegawai(): PengaturanGpsKehadiran
     ]);
 }
 
-it('allows designated roles to view employee attendance without an attendance flag', function () {
+it('allows staff and superadmins to view employee attendance without an attendance flag', function (string $role) {
     $this->withoutVite();
     $user = User::factory()->create([
-        'role' => 'staff',
+        'role' => $role,
         'boleh_absen' => false,
     ]);
 
@@ -29,8 +29,12 @@ it('allows designated roles to view employee attendance without an attendance fl
         ->assertOk()
         ->assertSee('Absen')
         ->assertSee('Belum absen')
+        ->assertSee('Kehadiran Saya')
         ->assertHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
-});
+})->with([
+    'staff' => 'staff',
+    'superadmin' => 'superadmin',
+]);
 
 it('denies attendance to roles outside the employee attendance roles even if flagged', function () {
     $user = User::factory()->create([
