@@ -44,7 +44,7 @@
                         <td class="number">Rp{{ number_format((float) $pegawai['total_honor'], 2, ',', '.') }}</td>
                         <td>
                             @if($pegawai['tarif_belum_ada'] > 0)
-                                Tarif belum lengkap ({{ $pegawai['tarif_belum_ada'] }} hari)
+                                Tarif bulanan belum tersedia
                             @else
                                 {{ $pegawai['status_pembayaran'] === 'paid' ? 'Dibayar' : 'Draft' }}
                             @endif

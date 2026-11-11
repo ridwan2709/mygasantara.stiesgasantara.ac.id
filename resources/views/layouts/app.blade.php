@@ -472,12 +472,26 @@
                     <div class="pt-4 pb-1">
                         <p class="px-3 text-[10px] font-semibold text-siakad-secondary/60 uppercase tracking-widest sidebar-section-title">Keuangan</p>
                     </div>
-                    <a href="{{ route('admin.honorarium.index') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('admin/keuangan*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.honorarium.index') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('admin/keuangan/honorarium*') ? 'active' : '' }}">
                         <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2zm0 0V6m0 8v4m0 0H9m3 0h3"></path></svg>
                         <span class="sidebar-text">Honorarium</span>
                     </a>
+                    <a href="{{ route('admin.pengaturan-tarif.index') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('admin/keuangan/pengaturan-tarif*') ? 'active' : '' }}">
+                        <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8c-1.657 0-3 .895-3 2 0 1.105 1.343 2 3 2s3 .895 3 2-1.343 2-3 2m0-8V6m0 8v4m8-6a8 8 0 11-16 0 8 8 0 0116 0z"></path></svg>
+                        <span class="sidebar-text">Pengaturan Tarif</span>
+                    </a>
                     @endif
                      @endif
+
+                    @if(in_array(Auth::user()->role, ['admin_fakultas', 'admin_prodi'], true))
+                    <div class="pt-4 pb-1">
+                        <p class="px-3 text-[10px] font-semibold text-siakad-secondary/60 uppercase tracking-widest sidebar-section-title">Keuangan</p>
+                    </div>
+                    <a href="{{ route('admin.pengaturan-tarif.index') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('admin/keuangan/pengaturan-tarif*') ? 'active' : '' }}">
+                        <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8c-1.657 0-3 .895-3 2 0 1.105 1.343 2 3 2s3 .895 3 2-1.343 2-3 2m0-8V6m0 8v4m8-6a8 8 0 11-16 0 8 8 0 0116 0z"></path></svg>
+                        <span class="sidebar-text">Pengaturan Tarif</span>
+                    </a>
+                    @endif
 
                     @if(Auth::user()->role === 'mahasiswa')
                     <a href="{{ url('mahasiswa/dashboard') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('mahasiswa/dashboard') ? 'active' : '' }}">
@@ -701,11 +715,10 @@
                         <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <span class="sidebar-text">Kehadiran Saya</span>
                     </a>
-                    <a href="{{ route('admin.honorarium.index') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('admin/keuangan*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.honorarium.index') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('admin/keuangan/honorarium*') ? 'active' : '' }}">
                         <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2zm0 0V6m0 8v4m0 0H9m3 0h3"></path></svg>
                         <span class="sidebar-text">Honorarium</span>
                     </a>
-
                     @endif
                 </nav>
 
