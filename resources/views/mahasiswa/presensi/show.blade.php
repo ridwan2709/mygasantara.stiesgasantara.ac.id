@@ -3,6 +3,21 @@
         Detail Presensi
     </x-slot>
 
+    @if(session('success'))
+        <div class="mb-4 rounded-lg bg-emerald-50 p-4 text-sm text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+            {{ session('success') }}
+        </div>
+    @endif
+    @if($errors->any())
+        <div class="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800 dark:bg-red-900/30 dark:text-red-300">
+            <ul class="list-inside list-disc">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <div class="mb-6">
         <a href="{{ route('mahasiswa.presensi.index') }}" class="inline-flex items-center gap-2 text-siakad-secondary hover:text-[#234C6A] transition text-sm font-medium">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -95,6 +110,8 @@
                     'alpa' => 'Alpa',
                     'belum' => 'Belum Dicatat',
                 ];
+                $canPresensi = $pertemuan->status === \App\Models\Pertemuan::STATUS_TERLAKSANA
+                    && (! $presensi || $presensi->status === \App\Models\Presensi::STATUS_ALPA);
             @endphp
             <div class="p-4">
                 <div class="flex items-center justify-between mb-2">
@@ -112,6 +129,15 @@
                     {{ $pertemuan->tanggal->format('d M Y') }} 
                     @if($pertemuan->materi) • {{ $pertemuan->materi }} @endif
                 </div>
+                @if($canPresensi)
+                    <form action="{{ route('mahasiswa.presensi.store', $pertemuan) }}" method="POST" class="ml-11 mt-3" onsubmit="return captureStudentAttendanceGps(event, this)">
+                        @csrf
+                        <input type="hidden" name="latitude">
+                        <input type="hidden" name="longitude">
+                        <p data-gps-status role="status" aria-live="polite" class="mb-2 text-xs text-siakad-secondary dark:text-gray-400">Presensi memerlukan GPS dan izin lokasi browser.</p>
+                        <button type="submit" class="min-h-[40px] rounded-lg bg-siakad-primary px-4 py-2 text-xs font-semibold text-white transition hover:bg-siakad-primary/90">Presensi Sekarang</button>
+                    </form>
+                @endif
             </div>
             @endforeach
         </div>
@@ -146,6 +172,8 @@
                             'alpa' => 'Alpa',
                             'belum' => 'Belum Dicatat',
                         ];
+                        $canPresensi = $pertemuan->status === \App\Models\Pertemuan::STATUS_TERLAKSANA
+                            && (! $presensi || $presensi->status === \App\Models\Presensi::STATUS_ALPA);
                     @endphp
                     <tr class="hover:bg-siakad-light/30 dark:hover:bg-slate-700/50 transition">
                         <td class="px-6 py-4">
@@ -166,6 +194,15 @@
                             <span class="inline-flex px-3 py-1 rounded-full text-sm font-medium {{ $statusColors[$status] }}">
                                 {{ $statusLabels[$status] }}
                             </span>
+                            @if($canPresensi)
+                                <form action="{{ route('mahasiswa.presensi.store', $pertemuan) }}" method="POST" class="mt-2" onsubmit="return captureStudentAttendanceGps(event, this)">
+                                    @csrf
+                                    <input type="hidden" name="latitude">
+                                    <input type="hidden" name="longitude">
+                                    <p data-gps-status role="status" aria-live="polite" class="mb-2 text-xs text-siakad-secondary dark:text-gray-400">Perlu GPS</p>
+                                    <button type="submit" class="min-h-[40px] rounded-lg bg-siakad-primary px-4 py-2 text-xs font-semibold text-white transition hover:bg-siakad-primary/90">Presensi Sekarang</button>
+                                </form>
+                            @endif
                         </td>
                     </tr>
                     @endforeach
@@ -174,4 +211,44 @@
         </div>
         @endif
     </div>
+
+    <script>
+        function captureStudentAttendanceGps(event, form) {
+            if (form.dataset.gpsReady === 'true') {
+                return true;
+            }
+
+            event.preventDefault();
+            const status = form.querySelector('[data-gps-status]');
+            const submitButton = form.querySelector('button[type="submit"]');
+
+            if (!navigator.geolocation) {
+                status.textContent = 'Browser ini tidak mendukung GPS. Gunakan browser lain untuk presensi.';
+                return false;
+            }
+
+            status.textContent = 'Mengambil lokasi GPS...';
+            submitButton.disabled = true;
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    form.elements.latitude.value = position.coords.latitude;
+                    form.elements.longitude.value = position.coords.longitude;
+                    form.dataset.gpsReady = 'true';
+                    form.requestSubmit();
+                },
+                (error) => {
+                    const messages = {
+                        1: 'Izin lokasi ditolak. Aktifkan izin lokasi pada browser untuk melanjutkan.',
+                        2: 'Lokasi tidak dapat ditemukan. Pastikan GPS perangkat aktif lalu coba lagi.',
+                        3: 'Pengambilan lokasi terlalu lama. Silakan coba lagi.',
+                    };
+                    status.textContent = messages[error.code] || 'Gagal mengambil lokasi GPS. Silakan coba lagi.';
+                    submitButton.disabled = false;
+                },
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+            );
+
+            return false;
+        }
+    </script>
 </x-app-layout>

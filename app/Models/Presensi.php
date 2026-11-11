@@ -13,8 +13,11 @@ class Presensi extends Model
     protected $table = 'presensi';
 
     const STATUS_HADIR = 'hadir';
+
     const STATUS_SAKIT = 'sakit';
+
     const STATUS_IZIN = 'izin';
+
     const STATUS_ALPA = 'alpa';
 
     protected $fillable = [
@@ -22,11 +25,15 @@ class Presensi extends Model
         'mahasiswa_id',
         'status',
         'waktu_presensi',
+        'latitude',
+        'longitude',
         'keterangan',
     ];
 
     protected $casts = [
         'waktu_presensi' => 'datetime:H:i',
+        'latitude' => 'float',
+        'longitude' => 'float',
     ];
 
     public function pertemuan(): BelongsTo
@@ -60,7 +67,7 @@ class Presensi extends Model
      */
     public function getStatusColor(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_HADIR => 'emerald',
             self::STATUS_SAKIT => 'amber',
             self::STATUS_IZIN => 'blue',
@@ -74,7 +81,7 @@ class Presensi extends Model
      */
     public function getStatusLabel(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_HADIR => 'Hadir',
             self::STATUS_SAKIT => 'Sakit',
             self::STATUS_IZIN => 'Izin',

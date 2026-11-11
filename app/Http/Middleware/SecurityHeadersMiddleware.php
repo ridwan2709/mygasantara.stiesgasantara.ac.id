@@ -28,7 +28,12 @@ class SecurityHeadersMiddleware
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
         // Permissions policy (formerly Feature-Policy)
-        $geolocationPolicy = $request->routeIs('dosen.kehadiran.index', 'dosen.dashboard', 'pegawai.kehadiran.index')
+        $geolocationPolicy = $request->routeIs(
+            'dosen.kehadiran.index',
+            'dosen.dashboard',
+            'pegawai.kehadiran.index',
+            'mahasiswa.presensi.show'
+        )
             ? '(self)'
             : '()';
         $response->headers->set('Permissions-Policy', "camera=(), microphone=(), geolocation={$geolocationPolicy}");

@@ -6,7 +6,6 @@ use App\Models\Kelas;
 use App\Models\Mahasiswa;
 use App\Models\Pertemuan;
 use App\Models\Presensi;
-use App\Models\JadwalKuliah;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -28,9 +27,8 @@ class PresensiService
 
     /**
      * Record attendance for a pertemuan
-     * 
-     * @param int $pertemuanId
-     * @param array $presensiData Array of [mahasiswa_id => status, ...]
+     *
+     * @param  array  $presensiData  Array of [mahasiswa_id => status, ...]
      */
     public function recordPresensi(int $pertemuanId, array $presensiData): void
     {
@@ -56,7 +54,7 @@ class PresensiService
     public function getRekapPresensi(int $mahasiswaId, int $kelasId): array
     {
         $pertemuanIds = Pertemuan::byKelas($kelasId)->terlaksana()->pluck('id');
-        
+
         $presensi = Presensi::where('mahasiswa_id', $mahasiswaId)
             ->whereIn('pertemuan_id', $pertemuanIds)
             ->get();
@@ -67,8 +65,8 @@ class PresensiService
         $izin = $presensi->where('status', Presensi::STATUS_IZIN)->count();
         $alpa = $presensi->where('status', Presensi::STATUS_ALPA)->count();
 
-        $persentase = $totalPertemuan > 0 
-            ? round(($hadir / $totalPertemuan) * 100, 1) 
+        $persentase = $totalPertemuan > 0
+            ? round(($hadir / $totalPertemuan) * 100, 1)
             : 0;
 
         return [
@@ -87,13 +85,14 @@ class PresensiService
     public function getPresensiByKelas(int $kelasId): Collection
     {
         $kelas = Kelas::with(['krsDetail.krs.mahasiswa.user'])->findOrFail($kelasId);
-        
+
         $mahasiswaList = $kelas->krsDetail
-            ->filter(fn($d) => $d->krs->status === 'approved')
-            ->map(fn($d) => $d->krs->mahasiswa);
+            ->filter(fn ($d) => $d->krs->status === 'approved')
+            ->map(fn ($d) => $d->krs->mahasiswa);
 
         return $mahasiswaList->map(function ($mahasiswa) use ($kelasId) {
             $rekap = $this->getRekapPresensi($mahasiswa->id, $kelasId);
+
             return [
                 'mahasiswa' => $mahasiswa,
                 'rekap' => $rekap,
@@ -107,6 +106,7 @@ class PresensiService
     public function isMinimumAttendanceMet(int $mahasiswaId, int $kelasId, float $threshold = 75): bool
     {
         $rekap = $this->getRekapPresensi($mahasiswaId, $kelasId);
+
         return $rekap['persentase'] >= $threshold;
     }
 
@@ -118,7 +118,7 @@ class PresensiService
         return Kelas::where('dosen_id', $dosenId)
             ->with(['mataKuliah', 'jadwal'])
             ->withCount(['krsDetail as jumlah_mahasiswa' => function ($q) {
-                $q->whereHas('krs', fn($q2) => $q2->where('status', 'approved'));
+                $q->whereHas('krs', fn ($q2) => $q2->where('status', 'approved'));
             }])
             ->get();
     }
@@ -130,7 +130,9 @@ class PresensiService
     {
         return Pertemuan::byKelas($kelasId)
             ->with('jadwalKuliah')
-            ->orderBy('pertemuan_ke')
+            ->orderByDesc('tanggal')
+            ->orderByDesc('pertemuan_ke')
+            ->orderByDesc('id')
             ->get();
     }
 
@@ -141,7 +143,7 @@ class PresensiService
     {
         $last = Pertemuan::where('jadwal_kuliah_id', $jadwalKuliahId)
             ->max('pertemuan_ke');
-        
+
         return ($last ?? 0) + 1;
     }
 
@@ -152,7 +154,7 @@ class PresensiService
     {
         return Mahasiswa::whereHas('krs', function ($q) use ($kelasId) {
             $q->where('status', 'approved')
-              ->whereHas('krsDetail', fn($q2) => $q2->where('kelas_id', $kelasId));
+                ->whereHas('krsDetail', fn ($q2) => $q2->where('kelas_id', $kelasId));
         })->with('user')->get();
     }
 }
