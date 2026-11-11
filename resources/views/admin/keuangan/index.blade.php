@@ -30,37 +30,7 @@
         </form>
     </div>
 
-    <div class="grid gap-6 xl:grid-cols-3">
-        <section class="card-saas p-5 dark:bg-gray-800">
-            <h2 class="mb-1 text-lg font-semibold">Pengaturan tarif</h2>
-            @if($tarifAktif)
-                <p class="mb-4 text-sm text-siakad-secondary dark:text-gray-400">
-                    Tarif aktif sejak {{ $tarifAktif->berlaku_mulai->format('d/m/Y') }}:
-                    Rp{{ number_format((float) $tarifAktif->nominal, 0, ',', '.') }}/{{ $tarifAktif->basis_tarif === 'per_sks' ? 'SKS' : 'kehadiran' }}.
-                </p>
-            @else
-                <p class="mb-4 text-sm text-amber-700 dark:text-amber-300">Belum ada tarif aktif.</p>
-            @endif
-           @if(in_array(auth()->user()->role, ['superadmin', 'bendahara'], true))
-            <form method="POST" action="{{ route('admin.honorarium.tarif.store') }}" class="space-y-3">
-                @csrf
-                <label class="block text-sm">Basis tarif
-                    <select name="basis_tarif" required class="input-saas mt-1 w-full rounded-lg px-3 py-2">
-                        <option value="per_sks">Per SKS</option>
-                        <option value="per_kehadiran">Per kehadiran</option>
-                    </select>
-                </label>
-                <label class="block text-sm">Nominal tarif
-                    <input name="nominal" type="number" min="1" step="0.01" required class="input-saas mt-1 w-full rounded-lg px-3 py-2">
-                </label>
-                <label class="block text-sm">Berlaku mulai
-                    <input name="berlaku_mulai" type="date" required class="input-saas mt-1 w-full rounded-lg px-3 py-2">
-                </label>
-                <button class="btn-primary-saas rounded-lg px-4 py-2">Simpan tarif</button>
-            </form>
-            @endif
-        </section>
-
+    <div class="grid gap-6 xl:grid-cols-2">
         <section class="card-saas p-5 dark:bg-gray-800">
             <h2 class="mb-4 text-lg font-semibold">Catat kehadiran mengajar</h2>
             <form method="POST" action="{{ route('admin.honorarium.kehadiran.store') }}" class="space-y-3">
@@ -160,7 +130,7 @@
     <section class="card-saas mt-6 overflow-hidden dark:bg-gray-800">
         <div class="border-b border-siakad-light p-5 dark:border-gray-700">
             <h2 class="text-lg font-semibold">Rekap Honor Pegawai {{ \Carbon\Carbon::create($tahun, $bulan)->locale('id')->monthName }} {{ $tahun }}</h2>
-            <p class="text-sm text-siakad-secondary dark:text-gray-400">Hanya absen hadir yang sudah melakukan absen masuk dan keluar. Tarif diambil dari pengaturan tarif pegawai berdasarkan tanggal kehadiran.</p>
+            <p class="text-sm text-siakad-secondary dark:text-gray-400">Jumlah hari hadir direkap dari absen yang sudah melakukan absen masuk dan keluar. Honor pegawai mengikuti tarif bulanan dan dibayarkan satu kali jika memiliki kehadiran pada bulan tersebut.</p>
         </div>
         <div class="overflow-x-auto">
             <table class="table-saas w-full">
@@ -177,7 +147,7 @@
                                 @elseif($pegawai['total_kehadiran'] === 0)
                                     Belum ada absensi
                                 @elseif($pegawai['tarif_belum_ada'] > 0)
-                                    Belum ada tarif untuk {{ $pegawai['tarif_belum_ada'] }} hari
+                                    Belum ada tarif bulanan
                                 @else
                                     Belum dibayar
                                 @endif
