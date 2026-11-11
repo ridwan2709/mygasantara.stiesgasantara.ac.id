@@ -103,7 +103,6 @@ class KehadiranController extends Controller
             'longitude' => 'required_if:status,hadir|nullable|numeric|between:-180,180',
         ]);
 
-
         if ($canManageAttendance) {
             $dosen = $this->accessibleDosenQuery()->find($validated['dosen_id']);
             abort_unless($dosen, 403, 'Dosen tidak termasuk cakupan akses Anda.');
@@ -176,28 +175,16 @@ class KehadiranController extends Controller
         return redirect()->back()->with('success', 'Kehadiran berhasil dicatat');
     }
 
-    public function checkout(Request $request, KehadiranDosen $kehadiran)
+    public function checkout(KehadiranDosen $kehadiran)
     {
         $user = Auth::user();
         $this->authorizeKehadiran($kehadiran);
 
-        $validated = $request->validate([
-            'latitude' => ['required', 'numeric', 'between:-90,90'],
-            'longitude' => ['required', 'numeric', 'between:-180,180'],
-        ]);
-
-        $coordinates = $this->validatedGpsCoordinates($validated['latitude'], $validated['longitude']);
-        if ($coordinates instanceof RedirectResponse) {
-            return $coordinates;
-        }
-
-        DB::transaction(function () use ($kehadiran, $coordinates, $user): void {
+        DB::transaction(function () use ($kehadiran, $user): void {
             $jamKeluar = now()->format('H:i:s');
 
             $kehadiran->update([
                 'jam_keluar' => $jamKeluar,
-                'latitude_keluar' => $coordinates['latitude'],
-                'longitude_keluar' => $coordinates['longitude'],
                 'dicatat_oleh' => $user->id,
             ]);
 

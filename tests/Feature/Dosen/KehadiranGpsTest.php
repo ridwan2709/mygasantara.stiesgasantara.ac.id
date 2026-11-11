@@ -1,20 +1,21 @@
 <?php
 
 use App\Models\Dosen;
-use App\Models\KehadiranMengajar;
 use App\Models\JadwalKuliah;
 use App\Models\KehadiranDosen;
+use App\Models\KehadiranMengajar;
 use App\Models\Kelas;
 use App\Models\MataKuliah;
 use App\Models\PengaturanGpsKehadiran;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
 afterEach(function () {
-    \Carbon\Carbon::setTestNow();
+    Carbon::setTestNow();
 });
 
 function buatJadwalDosen(Dosen $dosen): JadwalKuliah
@@ -69,7 +70,7 @@ it('renders the dashboard attendance button with its class schedule', function (
 
 it('shows the class currently in progress instead of the first scheduled class', function () {
     $this->withoutVite();
-    $this->travelTo(\Carbon\Carbon::parse('2026-10-20 10:30:00'));
+    $this->travelTo(Carbon::parse('2026-10-20 10:30:00'));
 
     $dosen = Dosen::factory()->create();
     $pastSchedule = buatJadwalDosen($dosen);
@@ -95,7 +96,7 @@ it('shows the class currently in progress instead of the first scheduled class',
 
 it('shows the next class when no class is currently in progress', function () {
     $this->withoutVite();
-    $this->travelTo(\Carbon\Carbon::parse('2026-10-20 10:30:00'));
+    $this->travelTo(Carbon::parse('2026-10-20 10:30:00'));
 
     $dosen = Dosen::factory()->create();
     $pastSchedule = buatJadwalDosen($dosen);
@@ -137,7 +138,7 @@ it('allows staff to open the add attendance route', function () {
         ->assertSee(route('dosen.kehadiran.store'));
 });
 
-it('records lecturer check-in and checkout coordinates within the configured radius', function () {
+it('records lecturer check-in with gps and allows checkout without gps', function () {
     $this->withoutVite();
     $dosen = Dosen::factory()->create();
     $jadwal = buatJadwalDosen($dosen);
@@ -173,16 +174,15 @@ it('records lecturer check-in and checkout coordinates within the configured rad
 
     $this->assertDatabaseCount('kehadiran_mengajar', 1);
 
+    PengaturanGpsKehadiran::query()->delete();
+
     $this->actingAs($dosen->user)
-        ->post(route('dosen.kehadiran.checkout', $kehadiran), [
-            'latitude' => -6.2001,
-            'longitude' => 106.8167,
-        ])
+        ->post(route('dosen.kehadiran.checkout', $kehadiran))
         ->assertSessionHasNoErrors();
 
     $kehadiran->refresh();
-    expect((float) $kehadiran->latitude_keluar)->toBe(-6.2001)
-        ->and((float) $kehadiran->longitude_keluar)->toBe(106.8167)
+    expect($kehadiran->latitude_keluar)->toBeNull()
+        ->and($kehadiran->longitude_keluar)->toBeNull()
         ->and($kehadiran->jam_keluar)->not->toBeNull();
 
     expect($catatanHonorarium->fresh()->jam_selesai)->toBe($kehadiran->jam_keluar);

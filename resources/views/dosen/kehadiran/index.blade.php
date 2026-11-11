@@ -236,11 +236,8 @@
                                     Selesai
                                 </span>
                             @elseif($isAbsen)
-                                <form action="{{ route('dosen.kehadiran.checkout', $kehadiranData) }}" method="POST" onsubmit="return captureAttendanceGps(event, this)">
+                                <form action="{{ route('dosen.kehadiran.checkout', $kehadiranData) }}" method="POST">
                                     @csrf
-                                    <input type="hidden" name="latitude">
-                                    <input type="hidden" name="longitude">
-                                    <p data-gps-status role="status" aria-live="polite" class="mb-2 text-xs text-siakad-secondary"></p>
                                     <button type="submit" class="px-5 py-2.5 bg-siakad-primary text-white rounded-lg text-sm font-semibold hover:bg-siakad-primary/90 transition min-h-[44px]">
                                         Absen Keluar
                                     </button>
