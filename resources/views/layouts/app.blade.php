@@ -705,11 +705,7 @@
                         <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2zm0 0V6m0 8v4m0 0H9m3 0h3"></path></svg>
                         <span class="sidebar-text">Honorarium</span>
                     </a>
-                    <a href="{{ route('admin.tarif.index') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('admin/keuangan/tarif-honor-pegawai*') ? 'active' : '' }}">
-                        <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2zm0 0V6m0 8v4m0 0H9m3 0h3"></path></svg>
-                        <span class="sidebar-text">Pengaturan Tarif</span>
-                    </a>
-                    
+
                     @endif
                 </nav>
 
