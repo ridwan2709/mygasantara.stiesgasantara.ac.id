@@ -70,7 +70,70 @@ class KehadiranDosenController extends Controller
             ->get()
             ->groupBy('dosen_id');
 
-        return view('admin.kehadiran-dosen.index', compact('kehadiranList', 'stats', 'dosenList', 'rekapDosen', 'month', 'year', 'dosenId'));
+        $pegawaiRoles = ['superadmin', 'bendahara', 'staff'];
+        $adminProdiDosenIds = Dosen::query()
+            ->whereHas('user', fn ($query) => $query
+                ->where('role', 'admin_prodi')
+                ->orWhereHas('roles', fn ($roleQuery) => $roleQuery->where('name', 'admin_prodi'))
+            )
+            ->when($facultyId, fn ($query) => $query->whereHas('prodi', fn ($prodiQuery) => $prodiQuery->where('fakultas_id', $facultyId)))
+            ->pluck('id');
+
+        $rekapPegawaiQuery = KehadiranDosen::query()
+            ->with(['user:id,name,role', 'dosen.user:id,name,role'])
+            ->whereYear('tanggal', $year)
+            ->whereMonth('tanggal', $month)
+            ->where(function ($query) use ($pegawaiRoles, $adminProdiDosenIds): void {
+                $query->where(function ($userAttendanceQuery) use ($pegawaiRoles): void {
+                    $userAttendanceQuery->whereNull('dosen_id')
+                        ->whereHas('user', fn ($userQuery) => $userQuery->whereIn('role', $pegawaiRoles));
+                })->orWhereIn('dosen_id', $adminProdiDosenIds);
+            });
+        $applyFacultyScope($rekapPegawaiQuery);
+
+        $rekapPegawai = $rekapPegawaiQuery
+            ->orderByDesc('tanggal')
+            ->orderByDesc('id')
+            ->get()
+            ->groupBy(fn (KehadiranDosen $kehadiran): string => $kehadiran->dosen_id
+                ? 'dosen-'.$kehadiran->dosen_id
+                : 'user-'.$kehadiran->user_id)
+            ->map(function ($attendances): array {
+                $kehadiran = $attendances->first();
+                $isAdminProdiDosen = $kehadiran->dosen_id !== null;
+                $user = $isAdminProdiDosen ? $kehadiran->dosen?->user : $kehadiran->user;
+                $statusCounts = $attendances->countBy('status');
+                $total = $attendances->count();
+
+                return [
+                    'name' => $user?->name ?? '-',
+                    'role' => $isAdminProdiDosen ? 'Dosen / Admin Prodi' : match ($user?->role) {
+                        'superadmin' => 'Super Admin',
+                        'bendahara' => 'Bendahara',
+                        'staff' => 'Staff',
+                        default => 'Pegawai',
+                    },
+                    'hadir' => $statusCounts->get('hadir', 0),
+                    'izin' => $statusCounts->get('izin', 0),
+                    'sakit' => $statusCounts->get('sakit', 0),
+                    'tugas' => $statusCounts->get('tugas', 0),
+                    'alpa' => $statusCounts->get('alpa', 0),
+                    'persentase' => round(($statusCounts->get('hadir', 0) / $total) * 100),
+                ];
+            })
+            ->sortBy('name')
+            ->values();
+
+        return view('admin.kehadiran-dosen.index', compact(
+            'kehadiranList',
+            'stats',
+            'dosenList',
+            'rekapDosen',
+            'rekapPegawai',
+            'month',
+            'year',
+            'dosenId'
+        ));
     }
 
     public function show(Dosen $dosen, Request $request)
