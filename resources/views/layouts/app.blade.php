@@ -30,32 +30,10 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         <style>
-            :root {
-                --siakad-dark: #1B3C53;
-                --siakad-primary: #234C6A;
-                --siakad-secondary: #456882;
-                --siakad-light: #E3E3E3;
-                --bg-body: #FAFBFC;
-                --bg-card: #FFFFFF;
-                --bg-sidebar: #FFFFFF;
-                --text-primary: #1B3C53;
-                --text-secondary: #456882;
-                --border-color: #E3E3E3;
-            }
-            
             html {
                 scroll-behavior: smooth;
             }
-            
-            .dark {
-                --bg-body: #111827;
-                --bg-card: #1F2937;
-                --bg-sidebar: #1F2937;
-                --text-primary: #FFFFFF;
-                --text-secondary: #9CA3AF;
-                --border-color: #374151;
-            }
-            
+
             body { 
                 font-family: 'Inter', system-ui, sans-serif;
                 -webkit-font-smoothing: antialiased;
@@ -81,7 +59,7 @@
                 position: relative;
             }
             .sidebar-link:hover {
-                background-color: rgba(35, 76, 106, 0.08);
+                background-color: rgb(var(--primary-rgb) / 0.08);
             }
             .sidebar-link.active {
                 background-color: var(--siakad-primary);
@@ -113,7 +91,7 @@
                 color: #D1D5DB !important;
             }
             .dark .text-siakad-primary {
-                color: #60A5FA !important;
+                color: var(--primary-text) !important;
             }
             .dark .border-siakad-light {
                 border-color: var(--border-color) !important;
@@ -130,7 +108,7 @@
                 transition: background-color 0.15s ease;
             }
             .table-saas tbody tr:hover {
-                background-color: rgba(35, 76, 106, 0.04);
+                background-color: rgb(var(--primary-rgb) / 0.04);
             }
 
             /* Buttons */
@@ -142,7 +120,7 @@
             .btn-primary-saas:hover {
                 background-color: var(--siakad-dark);
                 transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(27, 60, 83, 0.3);
+                box-shadow: 0 4px 12px rgb(var(--primary-hover-rgb) / 0.3);
             }
 
             .btn-ghost-saas {
@@ -152,7 +130,7 @@
                 transition: all 0.15s ease;
             }
             .btn-ghost-saas:hover {
-                background-color: rgba(35, 76, 106, 0.08);
+                background-color: rgb(var(--primary-rgb) / 0.08);
                 border-color: var(--siakad-secondary);
             }
 
@@ -171,7 +149,7 @@
             }
             .input-saas:focus {
                 border-color: var(--siakad-primary);
-                box-shadow: 0 0 0 3px rgba(35, 76, 106, 0.1);
+                box-shadow: 0 0 0 3px rgb(var(--primary-rgb) / 0.1);
                 outline: none;
             }
 
@@ -546,7 +524,7 @@
                     {{-- <div class="pt-4 pb-1">
                         <p class="px-3 text-[10px] font-semibold text-siakad-secondary/60 uppercase tracking-widest sidebar-section-title">AI Assistant</p>
                     </div>
-                    <a href="{{ url('mahasiswa/ai-advisor') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('mahasiswa/ai-advisor*') ? 'active' : '' }} bg-gradient-to-r from-purple-500/10 to-indigo-500/10 hover:from-purple-500/20 hover:to-indigo-500/20">
+                    <a href="{{ url('mahasiswa/ai-advisor') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('mahasiswa/ai-advisor*') ? 'active' : '' }} bg-gradient-to-r from-siakad-primary/10 to-siakad-dark/10 hover:from-siakad-primary/20 hover:to-siakad-dark/20">
                         <svg class="w-[18px] h-[18px] flex-shrink-0 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
                         <span class="sidebar-text">AI Advisor</span>
                     </a> --}}
@@ -727,6 +705,10 @@
                         <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2zm0 0V6m0 8v4m0 0H9m3 0h3"></path></svg>
                         <span class="sidebar-text">Honorarium</span>
                     </a>
+                    <a href="{{ route('admin.tarif.index') }}" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-siakad-secondary text-sm font-medium {{ request()->is('admin/keuangan/tarif-honor-pegawai*') ? 'active' : '' }}">
+                        <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2zm0 0V6m0 8v4m0 0H9m3 0h3"></path></svg>
+                        <span class="sidebar-text">Pengaturan Tarif</span>
+                    </a>
                     
                     @endif
                 </nav>
@@ -800,18 +782,18 @@
                                     @if($unreadCount > 0)
                                     <form action="{{ route('notifications.mark-all-read') }}" method="POST">
                                         @csrf
-                                        <button type="submit" class="text-xs text-indigo-600 hover:underline">Tandai semua dibaca</button>
+                                        <button type="submit" class="text-xs text-siakad-primary hover:underline">Tandai semua dibaca</button>
                                     </form>
                                     @endif
                                 </div>
                                 <div class="max-h-80 overflow-y-auto">
                                     @php $notifications = \App\Models\Notification::where('user_id', Auth::id())->orderBy('created_at', 'desc')->limit(10)->get(); @endphp
                                     @forelse($notifications as $notif)
-                                    <a href="{{ route('notifications.index') }}" class="block px-4 py-3 hover:bg-siakad-light/30 transition {{ !$notif->is_read ? 'bg-indigo-50/50' : '' }}" style="border-bottom: 1px solid var(--border-color);">
+                                    <a href="{{ route('notifications.index') }}" class="block px-4 py-3 hover:bg-siakad-light/30 transition {{ !$notif->is_read ? 'bg-siakad-50/50' : '' }}" style="border-bottom: 1px solid var(--border-color);">
                                         <div class="flex gap-3">
                                             <span class="text-lg">{{ $notif->icon }}</span>
                                             <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-medium truncate {{ !$notif->is_read ? 'text-indigo-700' : '' }}" style="color: {{ $notif->is_read ? 'var(--text-primary)' : '' }};">{{ $notif->title }}</p>
+                                                <p class="text-sm font-medium truncate {{ !$notif->is_read ? 'text-siakad-800' : '' }}" style="color: {{ $notif->is_read ? 'var(--text-primary)' : '' }};">{{ $notif->title }}</p>
                                                 <p class="text-xs mt-0.5 truncate" style="color: var(--text-secondary);">{{ Str::limit($notif->message, 50) }}</p>
                                                 <p class="text-[10px] mt-1" style="color: var(--text-secondary);">{{ $notif->created_at->diffForHumans() }}</p>
                                             </div>
@@ -824,7 +806,7 @@
                                     @endforelse
                                 </div>
                                 @if($notifications->isNotEmpty())
-                                <a href="{{ route('notifications.index') }}" class="block px-4 py-3 text-center text-sm text-indigo-600 hover:bg-siakad-light/30 transition">Lihat Semua</a>
+                                <a href="{{ route('notifications.index') }}" class="block px-4 py-3 text-center text-sm text-siakad-primary hover:bg-siakad-light/30 transition">Lihat Semua</a>
                                 @endif
                             </div>
                         </div>
@@ -835,7 +817,7 @@
                         </time>
                         
                         <div class="hidden md:flex items-center gap-2">
-                            <svg class="w-8 h-8 flex-shrink-0 rounded-full p-1.5" style="color: var(--siakad-primary); background-color: rgba(35, 76, 106, 0.08);" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M20 21a8 8 0 00-16 0m8-10a4 4 0 100-8 4 4 0 000 8z"></path></svg>
+                            <svg class="w-8 h-8 flex-shrink-0 rounded-full p-1.5" style="color: var(--siakad-primary); background-color: rgb(var(--primary-rgb) / 0.08);" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M20 21a8 8 0 00-16 0m8-10a4 4 0 100-8 4 4 0 000 8z"></path></svg>
                             <div class="text-right">
                                 <p class="text-sm font-medium" style="color: var(--text-primary);">{{ Auth::user()->name }}</p>
                                 <p class="text-[11px]" style="color: var(--text-secondary);">{{ now()->format('l, d M Y') }}</p>
@@ -866,24 +848,24 @@
         @if(Auth::user()->role === 'mahasiswa')
         <!-- Bottom Navigation (Mobile Only) -->
         <nav class="fixed bottom-0 z-50 w-full bg-white border-t border-gray-200 dark:bg-gray-800 dark:border-gray-700 md:hidden flex justify-around items-center h-16 pb-safe safe-area-bottom">
-            <a href="{{ url('mahasiswa/dashboard') }}" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-medium {{ request()->is('mahasiswa/dashboard') ? 'text-siakad-primary dark:text-blue-400' : 'text-gray-500 dark:text-gray-400' }}">
+            <a href="{{ url('mahasiswa/dashboard') }}" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-medium {{ request()->is('mahasiswa/dashboard') ? 'text-primary-text' : 'text-gray-500 dark:text-gray-400' }}">
                 <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                 <span>Beranda</span>
             </a>
             
-            <a href="{{ url('mahasiswa/jadwal') }}" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-medium {{ request()->is('mahasiswa/jadwal*') ? 'text-siakad-primary dark:text-blue-400' : 'text-gray-500 dark:text-gray-400' }}">
+            <a href="{{ url('mahasiswa/jadwal') }}" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-medium {{ request()->is('mahasiswa/jadwal*') ? 'text-primary-text' : 'text-gray-500 dark:text-gray-400' }}">
                 <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 <span>Jadwal</span>
             </a>
 
-            <a href="{{ url('mahasiswa/presensi') }}" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-medium {{ request()->is('mahasiswa/presensi*') ? 'text-siakad-primary dark:text-blue-400' : 'text-gray-500 dark:text-gray-400' }}">
+            <a href="{{ url('mahasiswa/presensi') }}" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-medium {{ request()->is('mahasiswa/presensi*') ? 'text-primary-text' : 'text-gray-500 dark:text-gray-400' }}">
                 <div class="w-12 h-12 bg-siakad-primary rounded-full flex items-center justify-center -mt-6 border-4 border-white dark:border-gray-900 shadow-lg">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4h2v-4zM6 16H4v4h2v-4zM6 9H4v5h2V9zm6 0h-2v5h2V9zm6 0h-2v5h2V9z"></path></svg>
                 </div>
                 <span class="mt-1">Presensi</span>
             </a>
 
-        <a href="{{ url('mahasiswa/khs') }}" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-medium {{ request()->is('mahasiswa/khs*') ? 'text-siakad-primary dark:text-blue-400' : 'text-gray-500 dark:text-gray-400' }}">
+        <a href="{{ url('mahasiswa/khs') }}" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-medium {{ request()->is('mahasiswa/khs*') ? 'text-primary-text' : 'text-gray-500 dark:text-gray-400' }}">
                 <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                 <span>Nilai</span>
             </a>
@@ -916,14 +898,14 @@
                             <div class="relative flex-1 px-4 sm:px-6">
                                 <div class="grid grid-cols-3 gap-4">
                                     <a href="{{ url('mahasiswa/krs') }}" class="flex flex-col items-center justify-center p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                                        <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center mb-2">
+                                        <div class="w-10 h-10 rounded-full bg-siakad-100 text-siakad-700 flex items-center justify-center mb-2">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
                                         </div>
                                         <span class="text-xs text-center font-medium text-gray-700 dark:text-gray-300">Pengisian KRS</span>
                                     </a>
                                     
                                     <a href="{{ url('mahasiswa/transkrip') }}" class="flex flex-col items-center justify-center p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-2">
+                                        <div class="w-10 h-10 rounded-full bg-siakad-100 text-siakad-700 flex items-center justify-center mb-2">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
                                         </div>
                                         <span class="text-xs text-center font-medium text-gray-700 dark:text-gray-300">Riwayat Kuliah</span>

@@ -147,10 +147,14 @@
     @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const siakadPrimary = '#234C6A';
-        const siakadSecondary = '#456882';
-        const siakadDark = '#1B3C53';
+        const themeColors = getComputedStyle(document.documentElement);
+        const siakadPrimary = themeColors.getPropertyValue('--siakad-primary').trim();
+        const siakadSecondary = themeColors.getPropertyValue('--siakad-secondary').trim();
+        const siakadDark = themeColors.getPropertyValue('--siakad-dark').trim();
         const siakadLight = '#E3E3E3';
+        const primaryTint100 = themeColors.getPropertyValue('--primary-100').trim();
+        const primaryTint200 = themeColors.getPropertyValue('--primary-200').trim();
+        const primaryTint300 = themeColors.getPropertyValue('--primary-300').trim();
 
         // IPS Chart
         const ipsData = @json($ipsHistory->filter(fn($s) => $s['ips'] > 0)->values());
@@ -163,7 +167,7 @@
                     label: 'IPS',
                     data: ipsData.map(d => d.ips),
                     borderColor: siakadPrimary,
-                    backgroundColor: 'rgba(35, 76, 106, 0.1)',
+                    backgroundColor: `rgba(${themeColors.getPropertyValue('--primary-rgb').trim().split(/\s+/).join(', ')}, 0.1)`,
                     fill: true,
                     tension: 0.4,
                     pointRadius: 5,
@@ -190,7 +194,7 @@
                 labels: Object.keys(gradeData),
                 datasets: [{
                     data: Object.values(gradeData),
-                    backgroundColor: [siakadPrimary, siakadSecondary, siakadDark, '#86c5e0', '#b9dded', '#dceef6', siakadLight],
+                    backgroundColor: [siakadPrimary, siakadSecondary, siakadDark, primaryTint300, primaryTint200, primaryTint100, siakadLight],
                     borderWidth: 0,
                 }]
             },

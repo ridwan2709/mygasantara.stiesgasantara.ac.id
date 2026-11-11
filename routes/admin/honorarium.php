@@ -23,7 +23,7 @@ Route::middleware(['auth', 'role:superadmin,bendahara'])->prefix('admin')->name(
     Route::patch('/keuangan/honorarium/pegawai/{user}/bayar', [HonorariumController::class, 'markPegawaiPaid'])->name('honorarium.pegawai.pay');
 });
 
-Route::middleware(['auth', 'role:superadmin,bendahara'])->prefix('admin')->name('admin.honorarium.tarif-pegawai.')->group(function () {
+Route::middleware(['auth', 'role:superadmin,bendahara'])->prefix('admin')->name('admin.tarif.')->group(function () {
     Route::get('/keuangan/tarif-honor-pegawai', [TarifHonorPegawaiController::class, 'index'])->name('index');
     Route::post('/keuangan/tarif-honor-pegawai', [TarifHonorPegawaiController::class, 'store'])->name('store');
 });

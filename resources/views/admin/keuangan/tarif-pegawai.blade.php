@@ -25,7 +25,7 @@
                     Belum ada pegawai dengan role superadmin, bendahara, atau staff.
                 </p>
             @endif
-            <form method="POST" action="{{ route('admin.honorarium.tarif-pegawai.store') }}" class="space-y-3">
+            <form method="POST" action="{{ route('admin.tarif.store') }}" class="space-y-3">
                 @csrf
                 <label class="block text-sm text-siakad-dark dark:text-gray-300">
                     Pegawai

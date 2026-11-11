@@ -162,7 +162,7 @@
                         <td class="py-4 px-5 text-sm text-siakad-secondary dark:text-gray-400">{{ $mahasiswa->firstItem() + $index }}</td>
                         <td class="py-4 px-5">
                             <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 rounded-lg bg-siakad-primary dark:bg-blue-600 flex items-center justify-center text-white text-sm font-semibold">
+                                <div class="w-9 h-9 rounded-lg bg-siakad-primary flex items-center justify-center text-white text-sm font-semibold">
                                     {{ strtoupper(substr($m->user->name ?? '-', 0, 1)) }}
                                 </div>
                                 <span class="text-sm font-medium text-siakad-dark dark:text-white">{{ $m->user->name ?? '-' }}</span>
@@ -178,7 +178,7 @@
                             <span class="inline-flex px-2.5 py-1 text-xs font-medium bg-siakad-secondary/10 text-siakad-secondary dark:bg-gray-700 dark:text-gray-300 rounded-full">{{ $m->angkatan }}</span>
                         </td>
                         <td class="py-4 px-5">
-                            <span class="text-sm font-semibold text-siakad-primary dark:text-blue-400">{{ number_format($m->ipk ?? 0, 2) }}</span>
+                            <span class="text-sm font-semibold text-siakad-primary dark:text-siakad-300">{{ number_format($m->ipk ?? 0, 2) }}</span>
                         </td>
                         <td class="py-4 px-5">
                             @if($m->status === 'aktif')
@@ -194,7 +194,7 @@
                                 <a href="{{ route('admin.mahasiswa.show', $m) }}" class="p-2 text-siakad-secondary hover:text-siakad-primary hover:bg-siakad-primary/10 rounded-lg transition" title="Detail">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                 </a>
-                                <button onclick="openEditModal({{ json_encode(['id'=>$m->id,'name'=>$m->user->name,'email'=>$m->user->email,'nim'=>$m->nim,'prodi_id'=>$m->prodi_id,'angkatan'=>$m->angkatan,'dosen_pa_id'=>$m->dosen_pa_id,'status'=>$m->status]) }})" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg" title="Edit">
+                                <button onclick="openEditModal({{ json_encode(['id'=>$m->id,'name'=>$m->user->name,'email'=>$m->user->email,'nim'=>$m->nim,'prodi_id'=>$m->prodi_id,'angkatan'=>$m->angkatan,'dosen_pa_id'=>$m->dosen_pa_id,'status'=>$m->status]) }})" class="p-2 text-siakad-primary hover:bg-siakad-primary/10 rounded-lg" title="Edit">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                 </button>
                                 <form action="{{ route('admin.mahasiswa.destroy', $m) }}" method="POST" class="inline" onsubmit="return confirm('Yakin?')">@csrf @method('DELETE')
@@ -226,7 +226,7 @@
         <div class="card-saas p-4 dark:bg-gray-800">
             <div class="flex items-start justify-between mb-3">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-siakad-primary dark:bg-blue-600 flex items-center justify-center text-white text-sm font-semibold">
+                    <div class="w-10 h-10 rounded-lg bg-siakad-primary flex items-center justify-center text-white text-sm font-semibold">
                         {{ strtoupper(substr($m->user->name ?? '-', 0, 1)) }}
                     </div>
                     <div>
@@ -254,7 +254,7 @@
                 </div>
                 <div>
                     <span class="block text-xs text-gray-400">IPK</span>
-                    <span class="font-semibold text-siakad-primary dark:text-blue-400">{{ number_format($m->ipk ?? 0, 2) }}</span>
+                    <span class="font-semibold text-siakad-primary dark:text-siakad-300">{{ number_format($m->ipk ?? 0, 2) }}</span>
                 </div>
             </div>
 

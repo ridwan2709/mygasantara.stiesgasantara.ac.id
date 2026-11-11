@@ -8,7 +8,7 @@
         <div class="lg:col-span-1 space-y-6">
             <div class="card-saas p-8 dark:bg-gray-800">
                 <div class="text-center mb-8">
-                    <div class="w-24 h-24 rounded-full bg-siakad-primary/10 dark:bg-blue-900/30 flex items-center justify-center text-siakad-primary dark:text-blue-400 text-3xl font-bold mx-auto mb-5 ring-4 ring-white dark:ring-gray-700 shadow-lg">
+                    <div class="w-24 h-24 rounded-full bg-siakad-primary/10 dark:bg-siakad-900/30 flex items-center justify-center text-siakad-primary dark:text-siakad-300 text-3xl font-bold mx-auto mb-5 ring-4 ring-white dark:ring-gray-700 shadow-lg">
                         {{ strtoupper(substr($dosen->user->name, 0, 1)) }}
                     </div>
                     <h3 class="text-xl font-bold text-siakad-dark dark:text-white mb-1">{{ $dosen->user->name }}</h3>
@@ -49,7 +49,7 @@
                 </div>
             </div>
 
-            <a href="{{ route('admin.dosen.index') }}" class="flex items-center justify-center gap-2 w-full py-3 text-sm font-medium text-siakad-secondary dark:text-gray-400 hover:text-siakad-primary dark:hover:text-blue-400 transition-colors">
+            <a href="{{ route('admin.dosen.index') }}" class="flex items-center justify-center gap-2 w-full py-3 text-sm font-medium text-siakad-secondary dark:text-gray-400 hover:text-siakad-primary dark:hover:text-siakad-300 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                 Kembali ke daftar dosen
             </a>
@@ -64,7 +64,7 @@
                         <p class="text-sm text-siakad-secondary dark:text-gray-400 mt-1 pb-2">Monitoring aktivitas pengajaran semester ini</p>
                     </div>
                     @if($teachingLoad->isNotEmpty())
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-siakad-primary/10 text-siakad-primary dark:bg-blue-900/50 dark:text-blue-400 border border-siakad-primary/20 dark:border-blue-500/30">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-siakad-primary/10 text-siakad-primary dark:bg-siakad-900/50 dark:text-siakad-300 border border-siakad-primary/20 dark:border-siakad-primary/30">
                         {{ count($teachingLoad) }} Mata Kuliah Aktif
                     </span>
                     @endif
@@ -80,7 +80,7 @@
                     <div class="p-6 hover:bg-siakad-light/5 dark:hover:bg-gray-700/20 transition-colors group">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                             <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-xl bg-siakad-primary/5 dark:bg-gray-700 flex items-center justify-center text-siakad-primary dark:text-blue-400 font-bold text-lg group-hover:bg-siakad-primary text-transition group-hover:text-white dark:group-hover:bg-blue-600 dark:group-hover:text-white transition-all duration-300">
+                                <div class="w-12 h-12 rounded-xl bg-siakad-primary/5 dark:bg-gray-700 flex items-center justify-center text-siakad-primary dark:text-siakad-300 font-bold text-lg group-hover:bg-siakad-primary text-transition group-hover:text-white dark:group-hover:bg-siakad-primary dark:group-hover:text-white transition-all duration-300">
                                     {{ substr($kelas->nama_kelas, 0, 1) }}
                                 </div>
                                 <div>
@@ -106,7 +106,7 @@
                                 <span>{{ $progress }}%</span>
                             </div>
                             <div class="flex w-full h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                                <div class="flex flex-col justify-center overflow-hidden bg-siakad-primary dark:bg-blue-500 text-xs text-white text-center whitespace-nowrap transition-all duration-500 ease-out shadow-sm"
+                                <div class="flex flex-col justify-center overflow-hidden bg-siakad-primary text-xs text-white text-center whitespace-nowrap transition-all duration-500 ease-out shadow-sm"
                                      style="width: {{ $progress }}%">
                                      @if($progress > 0)<div class="w-full h-full bg-white/20 animate-pulse"></div>@endif
                                 </div>
