@@ -55,4 +55,11 @@ it('shows employee attendance summaries including lecturers who are program admi
     $employeeSummary = strstr($response->getContent(), 'id="rekap-kehadiran-pegawai"');
     $employeeSummary = strstr($employeeSummary, '<!-- Detail -->', true);
     expect($employeeSummary)->not->toContain($regularLecturer->user->name);
+
+    $this->get(route('admin.kehadiran-dosen.export.pdf', [
+        'month' => now()->month,
+        'year' => now()->year,
+    ]))
+        ->assertOk()
+        ->assertDownload('rekap-kehadiran-'.now()->year.'-'.str_pad((string) now()->month, 2, '0', STR_PAD_LEFT).'.pdf');
 });

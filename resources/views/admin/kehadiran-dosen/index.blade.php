@@ -40,6 +40,7 @@
                 </select>
             </div>
             <button type="submit" class="w-full md:w-auto btn-primary-saas px-4 py-2.5 rounded-lg text-sm font-medium">Filter</button>
+            <a href="{{ route('admin.kehadiran-dosen.export.pdf', ['month' => $month, 'year' => $year]) }}" class="w-full md:w-auto btn-ghost-saas px-4 py-2.5 rounded-lg text-center text-sm font-medium">Export PDF</a>
         </form>
     </div>
 

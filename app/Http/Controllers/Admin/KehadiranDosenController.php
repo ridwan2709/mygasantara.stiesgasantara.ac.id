@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Dosen;
 use App\Models\KehadiranDosen;
 use App\Models\PengaturanGpsKehadiran;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class KehadiranDosenController extends Controller
 {
@@ -134,6 +136,34 @@ class KehadiranDosenController extends Controller
             'year',
             'dosenId'
         ));
+    }
+
+    public function exportPdf(Request $request): Response
+    {
+        $validated = $request->validate([
+            'month' => ['nullable', 'integer', 'between:1,12'],
+            'year' => ['nullable', 'integer', 'between:2000,2100'],
+            'dosen_id' => ['nullable', 'integer', 'exists:dosen,id'],
+        ]);
+        $month = (int) ($validated['month'] ?? now()->month);
+        $year = (int) ($validated['year'] ?? now()->year);
+        $request->merge([
+            'month' => $month,
+            'year' => $year,
+            'dosen_id' => $validated['dosen_id'] ?? null,
+        ]);
+
+        $data = $this->index($request)->getData();
+        $fileName = sprintf('rekap-kehadiran-%d-%02d.pdf', $year, $month);
+
+        return Pdf::loadView('admin.kehadiran-dosen.pdf', [
+            'month' => $month,
+            'year' => $year,
+            'stats' => $data['stats'],
+            'dosenList' => $data['dosenList'],
+            'rekapDosen' => $data['rekapDosen'],
+            'rekapPegawai' => $data['rekapPegawai'],
+        ])->setPaper('a4', 'landscape')->download($fileName);
     }
 
     public function show(Dosen $dosen, Request $request)
