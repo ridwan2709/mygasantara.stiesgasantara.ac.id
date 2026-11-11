@@ -46,7 +46,7 @@
                             <span class="text-sm font-medium text-siakad-dark dark:text-white">{{ $f->nama }}</span>
                         </td>
                         <td class="py-4 px-5">
-                            <span class="inline-flex px-2.5 py-1 text-xs font-medium bg-siakad-primary/10 text-siakad-primary dark:bg-blue-500/10 dark:text-blue-400 rounded-full">{{ $f->prodi_count ?? $f->prodi->count() }}</span>
+                            <span class="inline-flex px-2.5 py-1 text-xs font-medium bg-siakad-primary/10 text-siakad-primary dark:bg-siakad-primary/10 dark:text-siakad-300 rounded-full">{{ $f->prodi_count ?? $f->prodi->count() }}</span>
                         </td>
                         <td class="py-4 px-5">
                             <span class="text-sm text-siakad-secondary dark:text-gray-400">{{ $f->prodi->sum(fn($p) => $p->mahasiswa->count()) }}</span>
@@ -93,7 +93,7 @@
             <div class="grid grid-cols-2 gap-3 mb-4">
                 <div class="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg text-center">
                     <span class="block text-[10px] text-siakad-secondary dark:text-gray-400 uppercase tracking-wider">Prodi</span>
-                    <span class="font-bold text-siakad-primary dark:text-blue-400">{{ $f->prodi_count ?? $f->prodi->count() }}</span>
+                    <span class="font-bold text-siakad-primary dark:text-siakad-300">{{ $f->prodi_count ?? $f->prodi->count() }}</span>
                 </div>
                 <div class="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg text-center">
                     <span class="block text-[10px] text-siakad-secondary dark:text-gray-400 uppercase tracking-wider">Mahasiswa</span>

@@ -12,7 +12,7 @@
     </div>
 
     <!-- Header Card -->
-    <div class="rounded-2xl p-6 bg-[#1B3C53] text-white mb-8">
+    <div class="rounded-2xl p-6 bg-siakad-dark text-white mb-8">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
                 <h2 class="text-xl md:text-2xl font-bold">Kartu Hasil Studi</h2>
@@ -57,8 +57,8 @@
             <p class="text-sm text-siakad-secondary">IPS</p>
         </div>
         <div class="card-saas p-5 text-center">
-            <div class="w-12 h-12 rounded-xl bg-[#234C6A]/10 flex items-center justify-center mx-auto mb-3">
-                <svg class="w-6 h-6 text-[#234C6A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+            <div class="w-12 h-12 rounded-xl bg-siakad-primary/10 flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6 text-siakad-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
             </div>
             <p class="text-2xl font-bold text-siakad-dark">{{ number_format($ipkData['ips'], 2) }}</p>
             <p class="text-sm text-siakad-secondary">IPK Kumulatif</p>
@@ -71,8 +71,8 @@
             <p class="text-sm text-siakad-secondary">Mata Kuliah</p>
         </div>
         <div class="card-saas p-5 text-center">
-            <div class="w-12 h-12 rounded-xl bg-[#1B3C53]/10 flex items-center justify-center mx-auto mb-3">
-                <svg class="w-6 h-6 text-[#1B3C53] dark:text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+            <div class="w-12 h-12 rounded-xl bg-siakad-dark/10 flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6 text-siakad-dark dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
             </div>
             <p class="text-2xl font-bold text-siakad-dark">{{ $ipsData['total_sks'] }}</p>
             <p class="text-sm text-siakad-secondary">Total SKS</p>
@@ -99,7 +99,7 @@
                 <div class="overflow-x-auto">
                     <table class="w-full table-saas">
                         <thead>
-                            <tr class="bg-[#234C6A] text-white">
+                            <tr class="bg-siakad-primary text-white">
                                 <th class="text-left px-6 py-3 text-xs font-semibold uppercase tracking-wider">Kode</th>
                                 <th class="text-left px-6 py-3 text-xs font-semibold uppercase tracking-wider">Mata Kuliah</th>
                                 <th class="text-center px-6 py-3 text-xs font-semibold uppercase tracking-wider">SKS</th>
@@ -154,7 +154,7 @@
                             @endforeach
                         </tbody>
                         <tfoot>
-                            <tr class="bg-[#234C6A] text-white font-semibold">
+                            <tr class="bg-siakad-primary text-white font-semibold">
                                 <td colspan="2" class="px-6 py-4 text-right">Total</td>
                                 <td class="px-6 py-4 text-center">{{ $ipsData['total_sks'] }}</td>
                                 <td colspan="2" class="px-6 py-4 text-center">IPS</td>

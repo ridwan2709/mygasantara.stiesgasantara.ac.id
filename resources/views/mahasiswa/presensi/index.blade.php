@@ -129,12 +129,12 @@
                     <!-- Filter Buttons -->
                     <div class="flex w-full md:w-auto gap-1">
                         <button @click="filter = 'all'" 
-                            :class="filter === 'all' ? 'bg-[#234C6A] text-white shadow-md' : 'text-slate-500 hover:text-slate-700'"
+                            :class="filter === 'all' ? 'bg-siakad-primary text-white shadow-md' : 'text-slate-500 hover:text-slate-700'"
                             class="flex-1 md:flex-none text-center px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 whitespace-nowrap">
                             Semua
                         </button>
                         <button @click="filter = 'today'" 
-                            :class="filter === 'today' ? 'bg-[#234C6A] text-white shadow-md' : 'text-slate-500 hover:text-slate-700'"
+                            :class="filter === 'today' ? 'bg-siakad-primary text-white shadow-md' : 'text-slate-500 hover:text-slate-700'"
                             class="flex-1 md:flex-none text-center px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 whitespace-nowrap">
                             Hari Ini
                         </button>
@@ -146,7 +146,7 @@
                     <div class="flex flex-1 md:flex-none gap-2 items-center justify-between md:justify-start w-full md:w-auto pt-2 md:pt-0 border-t border-slate-200 dark:border-slate-600 md:border-0 hidden md:flex">
                         <!-- Sort Toggle -->
                         <button @click="sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'" 
-                            class="flex-1 md:flex-none p-2 rounded-lg transition-colors text-slate-500 hover:text-[#234C6A] hover:bg-white flex justify-center hidden md:block" 
+                            class="flex-1 md:flex-none p-2 rounded-lg transition-colors text-slate-500 hover:text-siakad-primary hover:bg-white flex justify-center hidden md:block" 
                             :title="sortOrder === 'asc' ? 'A-Z' : 'Z-A'">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path x-show="sortOrder === 'asc'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"></path>
@@ -157,10 +157,10 @@
                         <div class="w-px h-6 bg-slate-300 mx-1"></div>
                         
                         <div class="flex flex-1 md:flex-none gap-1">
-                            <button @click="viewMode = 'card'" class="flex-1 md:flex-none p-2 rounded-lg transition-colors flex justify-center" :class="viewMode === 'card' ? 'bg-white shadow text-[#234C6A]' : 'text-slate-400 hover:text-slate-600'">
+                            <button @click="viewMode = 'card'" class="flex-1 md:flex-none p-2 rounded-lg transition-colors flex justify-center" :class="viewMode === 'card' ? 'bg-white shadow text-siakad-primary' : 'text-slate-400 hover:text-slate-600'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                             </button>
-                            <button @click="viewMode = 'list'" class="flex-1 md:flex-none p-2 rounded-lg transition-colors flex justify-center" :class="viewMode === 'list' ? 'bg-white shadow text-[#234C6A]' : 'text-slate-400 hover:text-slate-600'">
+                            <button @click="viewMode = 'list'" class="flex-1 md:flex-none p-2 rounded-lg transition-colors flex justify-center" :class="viewMode === 'list' ? 'bg-white shadow text-siakad-primary' : 'text-slate-400 hover:text-slate-600'">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                             </button>
                         </div>
@@ -172,13 +172,13 @@
         <!-- Quick Access (Today's Classes) - No Gradient -->
         <div x-show="filter === 'all' && todayCourses.length > 0" class="mb-10" style="display: none;">
             <div class="flex items-center gap-2 mb-4">
-                <div class="w-1 h-6 bg-[#234C6A] rounded-full"></div>
+                <div class="w-1 h-6 bg-siakad-primary rounded-full"></div>
                 <h2 class="text-lg font-bold text-siakad-dark">Mata Kuliah Hari Ini</h2>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 <template x-for="course in todayCourses" :key="'today-'+course.id">
-                    <div class="bg-[#1B3C53] rounded-2xl p-5 text-white shadow-lg relative overflow-hidden group">
+                    <div class="bg-siakad-dark rounded-2xl p-5 text-white shadow-lg relative overflow-hidden group">
                         <div class="relative z-10 flex flex-col h-full justify-between">
                             <div>
                                 <div class="flex justify-between items-start mb-2">
@@ -195,7 +195,7 @@
                                 </p>
                             </div>
                             
-                            <a :href="course.url" class="mt-4 w-full py-2 bg-white text-[#1B3C53] text-center text-xs font-bold rounded-lg hover:bg-slate-100 transition shadow-sm">
+                            <a :href="course.url" class="mt-4 w-full py-2 bg-white text-siakad-dark text-center text-xs font-bold rounded-lg hover:bg-slate-100 transition shadow-sm">
                                 Buka Presensi
                             </a>
                         </div>
@@ -219,7 +219,7 @@
                 </div>
                 <h3 class="text-lg font-bold text-slate-700">Tidak ada mata kuliah ditemukan</h3>
                 <p class="text-slate-400 mt-1 max-w-xs mx-auto">Coba ubah kata kunci pencarian atau filter yang Anda gunakan.</p>
-                <button @click="search = ''; filter = 'all'" class="mt-6 text-[#234C6A] font-semibold text-sm hover:underline">
+                <button @click="search = ''; filter = 'all'" class="mt-6 text-siakad-primary font-semibold text-sm hover:underline">
                     Reset Filter
                 </button>
             </div>
@@ -249,7 +249,7 @@
                                 <div class="flex justify-between items-start mb-4">
                                     <div>
                                         <span class="inline-block px-2.5 py-1 rounded-md bg-white dark:bg-slate-800 text-siakad-secondary text-[10px] font-bold tracking-wide uppercase">{{ $course['code'] }}</span>
-                                        <h3 class="font-bold text-siakad-dark text-sm mt-2 group-hover:text-[#234C6A] transition-colors line-clamp-1">{{ $course['name'] }}</h3>
+                                        <h3 class="font-bold text-siakad-dark text-sm mt-2 group-hover:text-siakad-primary transition-colors line-clamp-1">{{ $course['name'] }}</h3>
                                         <p class="text-siakad-secondary text-xs mt-0.5 line-clamp-1">{{ $course['lecturer'] }}</p>
                                     </div>
                                     <div class="text-right">
@@ -266,7 +266,7 @@
                                     <div class="text-xs text-slate-400 font-medium">
                                         {{ $course['done_meetings'] }} dari {{ $course['total_meetings'] }} pertemuan
                                     </div>
-                                    <a href="{{ $course['url'] }}" class="flex items-center gap-1 text-xs font-bold text-[#234C6A] dark:text-white hover:text-[#1B3C53] dark:hover:text-slate-200 transition-colors group/link">
+                                    <a href="{{ $course['url'] }}" class="flex items-center gap-1 text-xs font-bold text-siakad-primary dark:text-white hover:text-siakad-dark dark:hover:text-slate-200 transition-colors group/link">
                                         Detail
                                         <svg class="w-3.5 h-3.5 transform group-hover/link:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                                     </a>
@@ -284,7 +284,7 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-[#234C6A] text-white text-xs uppercase tracking-wider">
+                            <tr class="bg-siakad-primary text-white text-xs uppercase tracking-wider">
                                 <th class="p-4 font-semibold">Mata Kuliah</th>
                                 <th class="p-4 font-semibold w-32">Dosen</th>
                                 <th class="p-4 font-semibold text-center w-24">SKS</th>
@@ -298,7 +298,7 @@
                                 <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group">
                                     <td class="p-4">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-[#234C6A] dark:text-white font-bold text-xs" x-text="course.code.substring(0,3)"></div>
+                                            <div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-siakad-primary dark:text-white font-bold text-xs" x-text="course.code.substring(0,3)"></div>
                                             <div>
                                                 <div class="font-bold text-slate-800 dark:text-slate-100 text-sm" x-text="course.name"></div>
                                                 <div class="text-xs text-slate-500 dark:text-slate-400" x-text="course.code"></div>
@@ -327,7 +327,7 @@
                                         </div>
                                     </td>
                                     <td class="p-4 text-right">
-                                        <a :href="course.url" class="p-2 text-slate-400 hover:text-[#234C6A] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all inline-block">
+                                        <a :href="course.url" class="p-2 text-slate-400 hover:text-siakad-primary dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all inline-block">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
                                         </a>
                                     </td>
@@ -349,7 +349,7 @@
                 <template x-for="page in totalPages" :key="page">
                     <button @click="goToPage(page)"
                         class="w-10 h-10 rounded-lg text-sm font-semibold transition-colors"
-                        :class="currentPage === page ? 'bg-[#234C6A] text-white shadow-md' : 'card-saas text-siakad-secondary hover:text-siakad-dark'"
+                        :class="currentPage === page ? 'bg-siakad-primary text-white shadow-md' : 'card-saas text-siakad-secondary hover:text-siakad-dark'"
                         x-text="page">
                     </button>
                 </template>

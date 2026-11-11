@@ -12,8 +12,8 @@
     <div class="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
         <div class="card-saas p-5 dark:bg-gray-800">
             <div class="flex items-center gap-3">
-                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-siakad-primary/10 dark:bg-blue-500/20">
-                    <svg class="h-5 w-5 text-siakad-primary dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-siakad-primary/10 dark:bg-siakad-primary/20">
+                    <svg class="h-5 w-5 text-siakad-primary dark:text-siakad-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                     </svg>
                 </div>

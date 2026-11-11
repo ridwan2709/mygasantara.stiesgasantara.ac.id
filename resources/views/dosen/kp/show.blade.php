@@ -6,7 +6,7 @@
             <div class="card-saas p-6">
                 <div class="flex items-start justify-between mb-4">
                     <div><span class="px-3 py-1 text-xs font-medium rounded-full bg-{{ $kp->status_color }}-100 text-{{ $kp->status_color }}-700 dark:bg-gray-800 dark:text-{{ $kp->status_color }}-400 border dark:border-{{ $kp->status_color }}-400/20">{{ $kp->status_label }}</span><h2 class="text-lg font-bold text-siakad-dark dark:text-white mt-3">{{ $kp->nama_perusahaan }}</h2></div>
-                    <span class="text-2xl font-bold text-siakad-primary dark:text-blue-400">{{ $kp->progress_percent }}%</span>
+                    <span class="text-2xl font-bold text-siakad-primary dark:text-siakad-300">{{ $kp->progress_percent }}%</span>
                 </div>
                 <div class="grid grid-cols-2 gap-4 text-sm">
                     <div class="p-3 rounded-lg bg-siakad-light/30 dark:bg-gray-700/50"><p class="text-xs text-siakad-secondary dark:text-gray-400">Mahasiswa</p><p class="font-medium text-siakad-dark dark:text-white">{{ $kp->mahasiswa->user->name }}</p><p class="text-xs text-siakad-secondary dark:text-gray-400">{{ $kp->mahasiswa->nim }}</p></div>
@@ -22,7 +22,7 @@
                 @forelse($kp->logbook as $log)
                 <div class="p-4 border-b border-siakad-light/50 dark:border-gray-700/50">
                     <div class="flex items-start gap-4">
-                        <div class="text-center"><p class="text-lg font-bold text-siakad-primary dark:text-blue-400">{{ $log->tanggal->format('d') }}</p><p class="text-xs text-siakad-secondary dark:text-gray-400">{{ $log->tanggal->format('M') }}</p></div>
+                        <div class="text-center"><p class="text-lg font-bold text-siakad-primary dark:text-siakad-300">{{ $log->tanggal->format('d') }}</p><p class="text-xs text-siakad-secondary dark:text-gray-400">{{ $log->tanggal->format('M') }}</p></div>
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-1"><span class="text-xs text-siakad-secondary dark:text-gray-400">{{ $log->jam_masuk ?? '-' }} - {{ $log->jam_keluar ?? '-' }}</span><span class="px-2 py-0.5 text-xs rounded-full bg-{{ $log->status_color }}-100 text-{{ $log->status_color }}-700 dark:bg-gray-800 dark:text-{{ $log->status_color }}-400 border dark:border-{{ $log->status_color }}-400/20">{{ $log->status_label }}</span></div>
                             <p class="text-sm text-siakad-dark dark:text-gray-300">{{ $log->kegiatan }}</p>

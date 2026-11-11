@@ -24,3 +24,4 @@ Route::middleware(['auth', 'role:admin,bendahara', 'fakultas.scope'])->prefix('a
 Route::middleware(['auth', 'role:superadmin,bendahara'])->prefix('admin')->name('admin.')->group(function () {
     Route::patch('/keuangan/honorarium/pegawai/{user}/bayar', [HonorariumController::class, 'markPegawaiPaid'])->name('honorarium.pegawai.pay');
 });
+

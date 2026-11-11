@@ -86,7 +86,7 @@
                     <tr class="hover:bg-siakad-light/10 dark:hover:bg-gray-700/30 transition">
                         <td class="py-4 px-5 text-sm text-siakad-secondary dark:text-gray-400">{{ $kelas->firstItem() + $index }}</td>
                         <td class="py-4 px-5">
-                            <span class="inline-flex px-3 py-1.5 text-sm font-semibold bg-siakad-primary text-white dark:bg-blue-600 rounded-lg">{{ $k->nama_kelas }}</span>
+                            <span class="inline-flex px-3 py-1.5 text-sm font-semibold bg-siakad-primary text-white rounded-lg">{{ $k->nama_kelas }}</span>
                         </td>
                         <td class="py-4 px-5">
                             <div>
@@ -103,7 +103,7 @@
                                 <span class="font-medium text-siakad-dark dark:text-white">{{ $jadwal->hari }}</span>
                                 <span class="block text-xs text-siakad-secondary dark:text-gray-400">{{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jadwal->jam_selesai)->format('H:i') }}</span>
                                 @if($jadwal->ruangan)
-                                <span class="block text-xs text-siakad-primary dark:text-blue-400">{{ $jadwal->ruangan }}</span>
+                                <span class="block text-xs text-siakad-primary dark:text-siakad-300">{{ $jadwal->ruangan }}</span>
                                 @endif
                             </div>
                             @else
@@ -170,7 +170,7 @@
         <div class="card-saas p-4 dark:bg-gray-800">
             <div class="flex items-start justify-between mb-3">
                 <div>
-                    <span class="inline-flex px-2.5 py-1 text-xs font-semibold bg-siakad-primary text-white dark:bg-blue-600 rounded-md mb-2">Kelas {{ $k->nama_kelas }}</span>
+                    <span class="inline-flex px-2.5 py-1 text-xs font-semibold bg-siakad-primary text-white rounded-md mb-2">Kelas {{ $k->nama_kelas }}</span>
                     <h4 class="font-bold text-siakad-dark dark:text-white">{{ $k->mataKuliah->nama_mk ?? '-' }}</h4>
                     <p class="text-xs text-siakad-secondary dark:text-gray-400 font-mono">{{ $k->mataKuliah->kode_mk ?? '' }}</p>
                 </div>
@@ -195,7 +195,7 @@
                     @if($jadwal && $jadwal->ruangan)
                     <div class="flex-1">
                         <p class="text-xs text-siakad-secondary dark:text-gray-400 mb-1">Ruangan</p>
-                        <span class="text-sm font-medium text-siakad-primary dark:text-blue-400">{{ $jadwal->ruangan }}</span>
+                        <span class="text-sm font-medium text-siakad-primary dark:text-siakad-300">{{ $jadwal->ruangan }}</span>
                     </div>
                     @endif
                 </div>
@@ -206,7 +206,7 @@
                         <span>{{ $k->kapasitas }} Mahasiswa</span>
                     </div>
                     <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                        <div class="bg-siakad-primary dark:bg-blue-500 h-1.5 rounded-full" style="width: 100%"></div>
+                        <div class="bg-siakad-primary h-1.5 rounded-full" style="width: 100%"></div>
                     </div>
                 </div>
             </div>
@@ -228,7 +228,7 @@
                     'jam_mulai' => $jadwal ? \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') : null,
                     'jam_selesai' => $jadwal ? \Carbon\Carbon::parse($jadwal->jam_selesai)->format('H:i') : null,
                     'ruangan' => $jadwal?->ruangan,
-                ]) }})" class="flex-1 py-2 text-sm font-medium text-siakad-primary bg-siakad-primary/10 dark:text-blue-400 rounded-lg hover:bg-siakad-primary/20 transition text-center">
+                ]) }})" class="flex-1 py-2 text-sm font-medium text-siakad-primary bg-siakad-primary/10 dark:text-siakad-300 rounded-lg hover:bg-siakad-primary/20 transition text-center">
                     Jadwal
                 </button>
                 <form action="{{ route('admin.kelas.destroy', $k) }}" method="POST" onsubmit="return confirm('Hapus kelas ini?')" class="flex-1">
