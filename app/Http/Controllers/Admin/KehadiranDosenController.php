@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Dosen;
 use App\Models\KehadiranDosen;
 use App\Models\PengaturanGpsKehadiran;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class KehadiranDosenController extends Controller
 {
@@ -70,7 +72,98 @@ class KehadiranDosenController extends Controller
             ->get()
             ->groupBy('dosen_id');
 
-        return view('admin.kehadiran-dosen.index', compact('kehadiranList', 'stats', 'dosenList', 'rekapDosen', 'month', 'year', 'dosenId'));
+        $pegawaiRoles = ['superadmin', 'bendahara', 'staff'];
+        $adminProdiDosenIds = Dosen::query()
+            ->whereHas('user', fn ($query) => $query
+                ->where('role', 'admin_prodi')
+                ->orWhereHas('roles', fn ($roleQuery) => $roleQuery->where('name', 'admin_prodi'))
+            )
+            ->when($facultyId, fn ($query) => $query->whereHas('prodi', fn ($prodiQuery) => $prodiQuery->where('fakultas_id', $facultyId)))
+            ->pluck('id');
+
+        $rekapPegawaiQuery = KehadiranDosen::query()
+            ->with(['user:id,name,role', 'dosen.user:id,name,role'])
+            ->whereYear('tanggal', $year)
+            ->whereMonth('tanggal', $month)
+            ->where(function ($query) use ($pegawaiRoles, $adminProdiDosenIds): void {
+                $query->where(function ($userAttendanceQuery) use ($pegawaiRoles): void {
+                    $userAttendanceQuery->whereNull('dosen_id')
+                        ->whereHas('user', fn ($userQuery) => $userQuery->whereIn('role', $pegawaiRoles));
+                })->orWhereIn('dosen_id', $adminProdiDosenIds);
+            });
+        $applyFacultyScope($rekapPegawaiQuery);
+
+        $rekapPegawai = $rekapPegawaiQuery
+            ->orderByDesc('tanggal')
+            ->orderByDesc('id')
+            ->get()
+            ->groupBy(fn (KehadiranDosen $kehadiran): string => $kehadiran->dosen_id
+                ? 'dosen-'.$kehadiran->dosen_id
+                : 'user-'.$kehadiran->user_id)
+            ->map(function ($attendances): array {
+                $kehadiran = $attendances->first();
+                $isAdminProdiDosen = $kehadiran->dosen_id !== null;
+                $user = $isAdminProdiDosen ? $kehadiran->dosen?->user : $kehadiran->user;
+                $statusCounts = $attendances->countBy('status');
+                $total = $attendances->count();
+
+                return [
+                    'name' => $user?->name ?? '-',
+                    'role' => $isAdminProdiDosen ? 'Dosen / Admin Prodi' : match ($user?->role) {
+                        'superadmin' => 'Super Admin',
+                        'bendahara' => 'Bendahara',
+                        'staff' => 'Staff',
+                        default => 'Pegawai',
+                    },
+                    'hadir' => $statusCounts->get('hadir', 0),
+                    'izin' => $statusCounts->get('izin', 0),
+                    'sakit' => $statusCounts->get('sakit', 0),
+                    'tugas' => $statusCounts->get('tugas', 0),
+                    'alpa' => $statusCounts->get('alpa', 0),
+                    'persentase' => round(($statusCounts->get('hadir', 0) / $total) * 100),
+                ];
+            })
+            ->sortBy('name')
+            ->values();
+
+        return view('admin.kehadiran-dosen.index', compact(
+            'kehadiranList',
+            'stats',
+            'dosenList',
+            'rekapDosen',
+            'rekapPegawai',
+            'month',
+            'year',
+            'dosenId'
+        ));
+    }
+
+    public function exportPdf(Request $request): Response
+    {
+        $validated = $request->validate([
+            'month' => ['nullable', 'integer', 'between:1,12'],
+            'year' => ['nullable', 'integer', 'between:2000,2100'],
+            'dosen_id' => ['nullable', 'integer', 'exists:dosen,id'],
+        ]);
+        $month = (int) ($validated['month'] ?? now()->month);
+        $year = (int) ($validated['year'] ?? now()->year);
+        $request->merge([
+            'month' => $month,
+            'year' => $year,
+            'dosen_id' => $validated['dosen_id'] ?? null,
+        ]);
+
+        $data = $this->index($request)->getData();
+        $fileName = sprintf('rekap-kehadiran-%d-%02d.pdf', $year, $month);
+
+        return Pdf::loadView('admin.kehadiran-dosen.pdf', [
+            'month' => $month,
+            'year' => $year,
+            'stats' => $data['stats'],
+            'dosenList' => $data['dosenList'],
+            'rekapDosen' => $data['rekapDosen'],
+            'rekapPegawai' => $data['rekapPegawai'],
+        ])->setPaper('a4', 'landscape')->download($fileName);
     }
 
     public function show(Dosen $dosen, Request $request)

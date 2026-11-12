@@ -11,6 +11,7 @@ class TarifHonorPegawai extends Model
 
     protected $fillable = [
         'user_id',
+        'role',
         'nominal',
         'berlaku_mulai',
         'berlaku_sampai',

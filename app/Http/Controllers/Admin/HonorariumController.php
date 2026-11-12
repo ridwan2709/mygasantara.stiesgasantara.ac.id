@@ -71,11 +71,6 @@ class HonorariumController extends Controller
             ->whereIn('dosen_id', $dosenList->modelKeys())
             ->orderByDesc('tanggal')
             ->get();
-        $tarifAktif = TarifHonorarium::query()
-            ->whereDate('berlaku_mulai', '<=', today())
-            ->where(fn (Builder $query) => $query->whereNull('berlaku_sampai')->orWhereDate('berlaku_sampai', '>=', today()))
-            ->latest('berlaku_mulai')
-            ->first();
         $canViewPegawaiHonorarium = in_array($request->user()->role, ['superadmin', 'bendahara', 'staff_keuangan'], true);
         $honorariumPegawaiList = $canViewPegawaiHonorarium
             ? $this->pegawaiAttendanceSummaries($bulan, $tahun)
@@ -151,7 +146,6 @@ class HonorariumController extends Controller
             'honorariumList',
             'kehadiranList',
             'insentifList',
-            'tarifAktif',
             'honorariumPegawaiList',
         ));
     }
@@ -242,40 +236,30 @@ class HonorariumController extends Controller
             return collect();
         }
 
-        $tarifByUser = TarifHonorPegawai::query()
-            ->whereIn('user_id', $absensi->pluck('user_id')->unique())
+        $tarifByScope = TarifHonorPegawai::query()
+            ->where(function (Builder $query) use ($absensi): void {
+                $query->whereIn('user_id', $absensi->pluck('user_id')->unique())
+                    ->orWhereIn('role', $absensi->pluck('user.role')->unique());
+            })
             ->whereDate('berlaku_mulai', '<=', $periodEnd->toDateString())
             ->where(fn (Builder $query) => $query->whereNull('berlaku_sampai')->orWhereDate('berlaku_sampai', '>=', $periodStart->toDateString()))
             ->orderByDesc('berlaku_mulai')
             ->get()
-            ->groupBy('user_id');
+            ->groupBy(fn (TarifHonorPegawai $tarif): string => $tarif->user_id === null
+                ? 'role:'.$tarif->role
+                : 'user:'.$tarif->user_id);
 
-        return $absensi->groupBy('user_id')->map(function ($attendances, int|string $id) use ($tarifByUser): array {
+        return $absensi->groupBy('user_id')->map(function ($attendances, int|string $id) use ($tarifByScope): array {
             $user = $attendances->first()->user;
-            $totalHonorCents = 0;
-            $tarifBelumAda = 0;
-
-            foreach ($attendances as $attendance) {
-                $tarif = $tarifByUser->get($id, collect())->first(
-                    fn (TarifHonorPegawai $tarif): bool => $tarif->berlaku_mulai->lte($attendance->tanggal)
-                        && ($tarif->berlaku_sampai === null || $tarif->berlaku_sampai->gte($attendance->tanggal)),
-                );
-
-                if (! $tarif) {
-                    $tarifBelumAda++;
-
-                    continue;
-                }
-
-                $totalHonorCents += (int) round((float) $tarif->nominal * 100);
-            }
+            $tarif = $tarifByScope->get('user:'.$id)?->first()
+                ?? $tarifByScope->get('role:'.$user->role)?->first();
 
             return [
                 'user_id' => (int) $id,
                 'name' => $user->name,
                 'total_kehadiran' => $attendances->count(),
-                'total_honor' => number_format($totalHonorCents / 100, 2, '.', ''),
-                'tarif_belum_ada' => $tarifBelumAda,
+                'total_honor' => number_format((float) ($tarif?->nominal ?? 0), 2, '.', ''),
+                'tarif_belum_ada' => $tarif ? 0 : 1,
             ];
         });
     }
@@ -365,7 +349,6 @@ class HonorariumController extends Controller
 
     public function storeTarif(Request $request): RedirectResponse
     {
-        abort_unless($request->user()->isSuperAdmin(), 403);
         $validated = $request->validate([
             'basis_tarif' => ['required', 'in:per_sks,per_kehadiran'],
             'nominal' => ['required', 'numeric', 'gt:0', 'max:999999999999.99'],

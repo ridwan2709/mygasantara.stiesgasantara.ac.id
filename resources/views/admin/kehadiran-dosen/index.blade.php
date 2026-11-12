@@ -40,12 +40,25 @@
                 </select>
             </div>
             <button type="submit" class="w-full md:w-auto btn-primary-saas px-4 py-2.5 rounded-lg text-sm font-medium">Filter</button>
+            <a href="{{ route('admin.kehadiran-dosen.export.pdf', ['month' => $month, 'year' => $year]) }}" class="w-full md:w-auto btn-ghost-saas px-4 py-2.5 rounded-lg text-center text-sm font-medium">Export PDF</a>
         </form>
     </div>
 
     <!-- Rekap Per Dosen -->
-    <div class="card-saas mb-6 overflow-hidden dark:bg-gray-800">
-        <div class="px-6 py-4 border-b border-siakad-light dark:border-gray-700"><h3 class="font-semibold text-siakad-dark dark:text-white">Rekap Per Dosen</h3></div>
+    <div class="card-saas mb-6 overflow-hidden dark:bg-gray-800" x-data="{ open: true }">
+        <button
+            type="button"
+            @click="open = !open"
+            :aria-expanded="open.toString()"
+            aria-controls="rekap-kehadiran-dosen"
+            class="flex w-full items-center justify-between border-b border-siakad-light px-6 py-4 text-left transition hover:bg-siakad-primary/5 dark:border-gray-700 dark:hover:bg-gray-700/50"
+        >
+            <h3 class="font-semibold text-siakad-dark dark:text-white">Rekap Per Dosen</h3>
+            <svg class="h-5 w-5 text-siakad-secondary transition-transform duration-200 dark:text-gray-400" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"></path>
+            </svg>
+        </button>
+        <div id="rekap-kehadiran-dosen" x-show="open">
         <div class="overflow-x-auto">
             <!-- Table (Desktop) -->
             <table class="hidden md:table w-full table-saas">
@@ -115,10 +128,99 @@
             </div>
         </div>
     </div>
+    </div>
+
+    <!-- Rekap Pegawai -->
+    <div class="card-saas mb-6 overflow-hidden dark:bg-gray-800" x-data="{ open: true }">
+        <button
+            type="button"
+            @click="open = !open"
+            :aria-expanded="open.toString()"
+            aria-controls="rekap-kehadiran-pegawai"
+            class="flex w-full items-center justify-between border-b border-siakad-light px-6 py-4 text-left transition hover:bg-siakad-primary/5 dark:border-gray-700 dark:hover:bg-gray-700/50"
+        >
+            <h3 class="font-semibold text-siakad-dark dark:text-white">Rekap Kehadiran Pegawai</h3>
+            <svg class="h-5 w-5 text-siakad-secondary transition-transform duration-200 dark:text-gray-400" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"></path>
+            </svg>
+        </button>
+        <div id="rekap-kehadiran-pegawai" x-show="open">
+            <div class="overflow-x-auto">
+                <table class="hidden md:table w-full table-saas">
+                    <thead>
+                        <tr class="bg-siakad-light/30 dark:bg-gray-900">
+                            <th class="py-3 px-5 text-left text-xs font-semibold uppercase text-siakad-secondary dark:text-gray-400">Pegawai</th>
+                            <th class="py-3 px-5 text-left text-xs font-semibold uppercase text-siakad-secondary dark:text-gray-400">Jabatan</th>
+                            <th class="py-3 px-5 text-center text-xs font-semibold uppercase text-siakad-secondary dark:text-gray-400">Hadir</th>
+                            <th class="py-3 px-5 text-center text-xs font-semibold uppercase text-siakad-secondary dark:text-gray-400">Izin</th>
+                            <th class="py-3 px-5 text-center text-xs font-semibold uppercase text-siakad-secondary dark:text-gray-400">Sakit</th>
+                            <th class="py-3 px-5 text-center text-xs font-semibold uppercase text-siakad-secondary dark:text-gray-400">Tugas</th>
+                            <th class="py-3 px-5 text-center text-xs font-semibold uppercase text-siakad-secondary dark:text-gray-400">Alpa</th>
+                            <th class="py-3 px-5 text-center text-xs font-semibold uppercase text-siakad-secondary dark:text-gray-400">%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($rekapPegawai as $pegawai)
+                            <tr class="border-b border-siakad-light/50 dark:border-gray-700/50">
+                                <td class="py-3 px-5 font-medium text-siakad-dark dark:text-white">{{ $pegawai['name'] }}</td>
+                                <td class="py-3 px-5 text-sm text-siakad-secondary dark:text-gray-400">{{ $pegawai['role'] }}</td>
+                                <td class="py-3 px-5 text-center text-sm font-medium text-emerald-600 dark:text-emerald-400">{{ $pegawai['hadir'] }}</td>
+                                <td class="py-3 px-5 text-center text-sm text-blue-600 dark:text-blue-400">{{ $pegawai['izin'] }}</td>
+                                <td class="py-3 px-5 text-center text-sm text-amber-600 dark:text-amber-400">{{ $pegawai['sakit'] }}</td>
+                                <td class="py-3 px-5 text-center text-sm text-purple-600 dark:text-purple-400">{{ $pegawai['tugas'] }}</td>
+                                <td class="py-3 px-5 text-center text-sm text-red-600 dark:text-red-400">{{ $pegawai['alpa'] }}</td>
+                                <td class="py-3 px-5 text-center">
+                                    <span class="rounded-full px-2 py-1 text-xs font-medium {{ $pegawai['persentase'] >= 80 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400' : ($pegawai['persentase'] >= 60 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400' : 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400') }}">{{ $pegawai['persentase'] }}%</span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="8" class="py-8 text-center text-sm text-siakad-secondary dark:text-gray-400">Belum ada data kehadiran pegawai pada periode ini</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+
+                <div class="divide-y divide-siakad-light dark:divide-gray-700 md:hidden">
+                    @forelse($rekapPegawai as $pegawai)
+                        <div class="p-4">
+                            <div class="mb-3 flex items-start justify-between gap-3">
+                                <div>
+                                    <h4 class="text-sm font-bold text-siakad-dark dark:text-white">{{ $pegawai['name'] }}</h4>
+                                    <p class="text-xs text-siakad-secondary dark:text-gray-400">{{ $pegawai['role'] }}</p>
+                                </div>
+                                <span class="rounded-full px-2 py-1 text-xs font-medium {{ $pegawai['persentase'] >= 80 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400' : ($pegawai['persentase'] >= 60 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400' : 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400') }}">{{ $pegawai['persentase'] }}%</span>
+                            </div>
+                            <div class="grid grid-cols-5 gap-2 text-center text-xs">
+                                @foreach([['Hadir', $pegawai['hadir'], 'emerald'], ['Izin', $pegawai['izin'], 'blue'], ['Sakit', $pegawai['sakit'], 'amber'], ['Tugas', $pegawai['tugas'], 'purple'], ['Alpa', $pegawai['alpa'], 'red']] as [$label, $count, $color])
+                                    <div class="rounded bg-{{ $color }}-50 p-1.5 dark:bg-{{ $color }}-900/20">
+                                        <span class="mb-0.5 block font-bold text-{{ $color }}-600 dark:text-{{ $color }}-400">{{ $count }}</span>
+                                        <span class="text-[10px] text-{{ $color }}-600/70 dark:text-{{ $color }}-400/70">{{ $label }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @empty
+                        <div class="p-8 text-center text-sm text-siakad-secondary dark:text-gray-400">Belum ada data kehadiran pegawai pada periode ini</div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Detail -->
-    <div class="card-saas overflow-hidden dark:bg-gray-800">
-        <div class="px-6 py-4 border-b border-siakad-light dark:border-gray-700"><h3 class="font-semibold text-siakad-dark dark:text-white">Detail Kehadiran</h3></div>
+    <div class="card-saas overflow-hidden dark:bg-gray-800" x-data="{ open: true }">
+        <button
+            type="button"
+            @click="open = !open"
+            :aria-expanded="open.toString()"
+            aria-controls="detail-kehadiran-dosen"
+            class="flex w-full items-center justify-between border-b border-siakad-light px-6 py-4 text-left transition hover:bg-siakad-primary/5 dark:border-gray-700 dark:hover:bg-gray-700/50"
+        >
+            <h3 class="font-semibold text-siakad-dark dark:text-white">Detail Kehadiran</h3>
+            <svg class="h-5 w-5 text-siakad-secondary transition-transform duration-200 dark:text-gray-400" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"></path>
+            </svg>
+        </button>
+        <div id="detail-kehadiran-dosen" x-show="open">
         <div class="overflow-x-auto">
             <!-- Table (Desktop) -->
             <table class="hidden md:table w-full table-saas">
@@ -164,5 +266,6 @@
             </div>
         </div>
         @if($kehadiranList->hasPages())<div class="px-5 py-4 border-t border-siakad-light dark:border-gray-700">{{ $kehadiranList->links() }}</div>@endif
+        </div>
     </div>
 </x-app-layout>
