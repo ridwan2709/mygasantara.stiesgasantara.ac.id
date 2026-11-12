@@ -24,8 +24,8 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div class="bg-white dark:bg-gray-800 rounded-xl border border-slate-100 dark:border-gray-700 p-4">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                <div class="w-10 h-10 rounded-lg bg-siakad-100 dark:bg-siakad-900/50 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-siakad-primary dark:text-siakad-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                 </div>
                 <div>
                     <p class="text-2xl font-bold text-slate-800 dark:text-white">{{ $stats['total'] }}</p>
@@ -130,7 +130,7 @@
                     <tr class="hover:bg-siakad-light/10 dark:hover:bg-gray-700/30 transition">
                         <td class="py-4 px-5 text-sm text-siakad-secondary dark:text-gray-400">{{ $ruanganList->firstItem() + $index }}</td>
                         <td class="py-4 px-5">
-                            <span class="inline-flex px-3 py-1.5 text-sm font-semibold bg-siakad-primary text-white dark:bg-blue-600 rounded-lg">{{ $ruangan->kode_ruangan }}</span>
+                            <span class="inline-flex px-3 py-1.5 text-sm font-semibold bg-siakad-primary text-white rounded-lg">{{ $ruangan->kode_ruangan }}</span>
                         </td>
                         <td class="py-4 px-5">
                             <p class="font-medium text-siakad-dark dark:text-white">{{ $ruangan->nama_ruangan }}</p>
@@ -196,7 +196,7 @@
         <div class="card-saas p-4 dark:bg-gray-800">
             <div class="flex items-start justify-between mb-3">
                 <div>
-                    <span class="inline-flex px-2.5 py-1 text-xs font-semibold bg-siakad-primary text-white dark:bg-blue-600 rounded-md mb-2">{{ $ruangan->kode_ruangan }}</span>
+                    <span class="inline-flex px-2.5 py-1 text-xs font-semibold bg-siakad-primary text-white rounded-md mb-2">{{ $ruangan->kode_ruangan }}</span>
                     <h4 class="font-bold text-siakad-dark dark:text-white">{{ $ruangan->nama_ruangan }}</h4>
                     @if($ruangan->fasilitas)
                     <p class="text-xs text-siakad-secondary dark:text-gray-400 mt-1 line-clamp-1">{{ $ruangan->fasilitas }}</p>

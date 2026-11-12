@@ -1,3 +1,55 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    :root {
+        --primary: #a53041;
+        --primary-hover: #8c2937;
+        --primary-light: #fbeef0;
+        --primary-rgb: 165 48 65;
+        --primary-hover-rgb: 140 41 55;
+        --primary-light-rgb: 251 238 240;
+        --primary-text-rgb: 165 48 65;
+        --primary-100: #f6e5e8;
+        --primary-200: #efcbd2;
+        --primary-300: #e5a4b0;
+        --primary-400: #d47787;
+        --primary-700: #7a2330;
+        --primary-900: #4f171f;
+        --primary-text: var(--primary);
+        --siakad-dark: var(--primary-hover);
+        --siakad-primary: var(--primary);
+        --siakad-secondary: #456882;
+        --siakad-light: var(--primary-light);
+        --bg-body: #fafbfc;
+        --bg-card: #ffffff;
+        --bg-sidebar: #ffffff;
+        --text-primary: var(--primary-900);
+        --text-secondary: #456882;
+        --border-color: #eadadd;
+    }
+
+    .dark {
+        --primary-text: #e5a4b0;
+        --primary-text-rgb: 229 164 176;
+        --siakad-dark: var(--primary-hover);
+        --siakad-secondary: #9ca3af;
+        --siakad-light: #334155;
+        --bg-body: #111827;
+        --bg-card: #1f2937;
+        --bg-sidebar: #1f2937;
+        --text-primary: #ffffff;
+        --text-secondary: #9ca3af;
+        --border-color: #374151;
+    }
+
+    input.input-saas:-webkit-autofill,
+    input.input-saas:-webkit-autofill:hover,
+    input.input-saas:-webkit-autofill:focus {
+        -webkit-text-fill-color: var(--text-primary);
+        -webkit-box-shadow: 0 0 0 1000px var(--bg-card) inset;
+        transition: background-color 9999s ease-out;
+    }
+
+}

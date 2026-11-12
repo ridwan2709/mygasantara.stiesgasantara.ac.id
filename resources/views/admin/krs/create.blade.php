@@ -106,7 +106,7 @@
                 <div
                     id="selectedSks"
                     data-max-sks="{{ $maxSks }}"
-                    class="inline-flex items-center gap-2 rounded-lg bg-siakad-primary/10 px-4 py-2 text-sm font-semibold text-siakad-primary dark:bg-blue-500/20 dark:text-blue-300"
+                    class="inline-flex items-center gap-2 rounded-lg bg-siakad-primary/10 px-4 py-2 text-sm font-semibold text-siakad-primary dark:bg-siakad-primary/20 dark:text-siakad-200"
                     aria-live="polite"
                 >
                     Total SKS:

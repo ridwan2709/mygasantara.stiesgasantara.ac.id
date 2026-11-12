@@ -41,7 +41,7 @@
                 </div>
             </div>
             <div class="flex items-center gap-4">
-                <span class="inline-flex items-center px-3 py-1 text-xs font-medium bg-siakad-primary/10 text-siakad-primary dark:bg-indigo-900/50 dark:text-indigo-400 rounded-full">
+                <span class="inline-flex items-center px-3 py-1 text-xs font-medium bg-siakad-primary/10 text-siakad-primary dark:bg-siakad-900/50 dark:text-siakad-300 rounded-full">
                     {{ $f->prodi->sum(fn($p) => $p->mahasiswa_count ?? 0) }} Mahasiswa
                 </span>
                 <!-- Chevron Icon -->
@@ -83,7 +83,7 @@
                             </div>
                         </td>
                         <td class="py-4 px-5">
-                            <span class="inline-flex px-2.5 py-1 text-xs font-medium bg-siakad-primary/10 text-siakad-primary dark:bg-blue-900/50 dark:text-blue-400 rounded-full">{{ $p->mahasiswa_count ?? 0 }}</span>
+                            <span class="inline-flex px-2.5 py-1 text-xs font-medium bg-siakad-primary/10 text-siakad-primary dark:bg-siakad-900/50 dark:text-siakad-300 rounded-full">{{ $p->mahasiswa_count ?? 0 }}</span>
                         </td>
                         <td class="py-4 px-5">
                             <span class="inline-flex px-2.5 py-1 text-xs font-medium bg-siakad-secondary/10 text-siakad-secondary dark:bg-gray-700 dark:text-gray-300 rounded-full">{{ $p->dosen_count ?? 0 }}</span>
@@ -91,7 +91,7 @@
                         @if($isSuperAdmin)
                         <td class="py-4 px-5 text-right">
                             <div class="flex items-center justify-end gap-2">
-                                <button onclick="editProdi({{ $p->id }}, '{{ $p->nama }}', {{ $f->id }})" class="p-2 text-siakad-secondary dark:text-gray-400 hover:text-siakad-primary dark:hover:text-blue-400 hover:bg-siakad-primary/10 dark:hover:bg-gray-700 rounded-lg transition">
+                                <button onclick="editProdi({{ $p->id }}, '{{ $p->nama }}', {{ $f->id }})" class="p-2 text-siakad-secondary dark:text-gray-400 hover:text-siakad-primary dark:hover:text-siakad-300 hover:bg-siakad-primary/10 dark:hover:bg-gray-700 rounded-lg transition">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                 </button>
                                 <form action="{{ route('admin.prodi.destroy', $p) }}" method="POST" onsubmit="return confirm('Hapus prodi ini?')">

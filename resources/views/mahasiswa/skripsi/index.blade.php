@@ -97,13 +97,13 @@
                 <div class="flex items-start gap-3 relative">
                     <!-- Connector Line -->
                     @if($index < count($milestones) - 1)
-                    <div class="absolute left-[7px] top-4 w-0.5 h-full {{ $isCompleted ? 'bg-[#234C6A]' : 'bg-slate-200' }}"></div>
+                    <div class="absolute left-[7px] top-4 w-0.5 h-full {{ $isCompleted ? 'bg-siakad-primary' : 'bg-slate-200' }}"></div>
                     @endif
                     
                     <!-- Dot -->
                     <div class="relative z-10 mt-1 flex-shrink-0">
                         @if($isCompleted)
-                        <div class="w-4 h-4 rounded-full bg-[#234C6A] flex items-center justify-center">
+                        <div class="w-4 h-4 rounded-full bg-siakad-primary flex items-center justify-center">
                             <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                         </div>
                         @elseif($isCurrent)
@@ -129,8 +129,8 @@
     <!-- Quick Stats & Actions -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div class="card-saas p-5 flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-[#234C6A]/10 flex items-center justify-center">
-                <svg class="w-6 h-6 text-[#234C6A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            <div class="w-12 h-12 rounded-xl bg-siakad-primary/10 flex items-center justify-center">
+                <svg class="w-6 h-6 text-siakad-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
             </div>
             <div>
                 <p class="text-2xl font-bold text-siakad-dark">{{ $bimbinganList->count() ?? 0 }}</p>
@@ -203,11 +203,11 @@
                     </div>
                     <div x-data="{ fileName: '' }">
                         <label class="block text-sm font-medium text-siakad-dark mb-2">Upload Dokumen</label>
-                        <label class="relative flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:border-[#234C6A] hover:bg-[#234C6A]/5 transition-all">
+                        <label class="relative flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:border-siakad-primary hover:bg-siakad-primary/5 transition-all">
                             <div class="flex flex-col items-center justify-center text-center px-4">
                                 <svg class="w-8 h-8 text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                                 <p class="text-sm text-slate-500" x-show="!fileName">Klik untuk upload atau drag file</p>
-                                <p class="text-sm font-medium text-[#234C6A]" x-show="fileName" x-text="fileName"></p>
+                                <p class="text-sm font-medium text-siakad-primary" x-show="fileName" x-text="fileName"></p>
                                 <p class="text-xs text-slate-400 mt-1">PDF, DOC, DOCX (max 10MB)</p>
                             </div>
                             <input type="file" name="file_dokumen" accept=".pdf,.doc,.docx" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" @change="fileName = $event.target.files[0]?.name || ''">
