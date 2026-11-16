@@ -29,6 +29,11 @@
             @if(request('status'))
             <input type="hidden" name="status" value="{{ request('status') }}">
             @endif
+            @foreach(['prodi_id', 'angkatan', 'rombel'] as $filter)
+            @if(request()->filled($filter))
+            <input type="hidden" name="{{ $filter }}" value="{{ request($filter) }}">
+            @endif
+            @endforeach
             
             <div class="relative">
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari Nama / NIM..." class="input-saas pl-9 pr-4 py-2 text-sm w-full sm:w-64">
@@ -40,6 +45,23 @@
             </button>
         </form>
     </div>
+
+    @if(request()->filled('rombel') || request()->filled('angkatan'))
+    <div class="mb-4 flex flex-col gap-2 rounded-lg border border-siakad-primary/20 bg-siakad-primary/5 px-4 py-3 text-sm text-siakad-dark dark:text-gray-200 sm:flex-row sm:items-center sm:justify-between">
+        <p>
+            Menampilkan KRS
+            @if(request()->filled('angkatan'))
+            angkatan {{ request('angkatan') }}
+            @endif
+            @if(request()->filled('rombel'))
+            · rombel {{ request('rombel') === '__unassigned__' ? 'Belum ditentukan' : request('rombel') }}
+            @endif
+        </p>
+        <a href="{{ route('admin.krs-approval.index', ['status' => request('status', 'approved')]) }}" class="font-medium text-siakad-primary hover:underline">
+            Tampilkan semua KRS
+        </a>
+    </div>
+    @endif
 
     <!-- Table Card (Desktop) -->
     <div class="hidden md:block card-saas overflow-hidden dark:bg-gray-800">
@@ -82,6 +104,7 @@
                             </a>
                         </th>
 
+                        <th class="text-left py-3 px-5 text-xs font-semibold text-siakad-secondary dark:text-gray-400 uppercase tracking-wider">Rombel</th>
                         <th class="text-left py-3 px-5 text-xs font-semibold text-siakad-secondary dark:text-gray-400 uppercase tracking-wider">Total SKS</th>
                         
                         <!-- Sortable: Status -->
@@ -117,6 +140,9 @@
                             <span class="text-sm text-siakad-secondary dark:text-gray-400">{{ $krs->mahasiswa->prodi->nama ?? '-' }}</span>
                         </td>
                         <td class="py-4 px-5">
+                            <span class="text-sm text-siakad-secondary dark:text-gray-400">{{ $krs->mahasiswa->rombel ?? 'Belum diatur' }}</span>
+                        </td>
+                        <td class="py-4 px-5">
                             <span class="inline-flex px-2.5 py-1 text-xs font-medium bg-siakad-primary/10 text-siakad-primary dark:bg-siakad-primary/10 dark:text-siakad-300 rounded-full">{{ $krs->krsDetail?->sum(fn($d) => $d->kelas->mataKuliah->sks ?? 0) ?? 0 }} SKS</span>
                         </td>
                         <td class="py-4 px-5">
@@ -138,7 +164,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="py-12 text-center">
+                        <td colspan="8" class="py-12 text-center">
                             <div class="flex flex-col items-center">
                                 <div class="w-12 h-12 bg-siakad-light/50 dark:bg-gray-700/50 rounded-xl flex items-center justify-center mb-3">
                                     <svg class="w-6 h-6 text-siakad-secondary dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
@@ -184,6 +210,10 @@
                 <div>
                     <span class="block text-xs text-gray-400">Prodi</span>
                     <span class="font-medium text-siakad-dark dark:text-gray-200">{{ $krs->mahasiswa->prodi->nama ?? '-' }}</span>
+                </div>
+                <div>
+                    <span class="block text-xs text-gray-400">Rombel</span>
+                    <span class="font-medium text-siakad-dark dark:text-gray-200">{{ $krs->mahasiswa->rombel ?? 'Belum diatur' }}</span>
                 </div>
                 <div>
                     <span class="block text-xs text-gray-400">Total SKS</span>

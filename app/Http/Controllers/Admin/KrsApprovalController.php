@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 
 class KrsApprovalController extends Controller
 {
+    private const UNASSIGNED_ROMBEL = '__unassigned__';
+
     public function index(Request $request)
     {
         $status = $request->get('status', 'pending');
@@ -18,6 +20,27 @@ class KrsApprovalController extends Controller
         if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
             $prodiId = $request->get('prodi_scope');
             $krsList->whereHas('mahasiswa.prodi', fn ($q) => $q->where('id', $prodiId));
+        }
+
+        if ($request->filled('prodi_id')) {
+            $krsList->whereHas('mahasiswa', fn ($query) => $query->where('prodi_id', $request->integer('prodi_id')));
+        }
+
+        if ($request->filled('angkatan')) {
+            $krsList->whereHas('mahasiswa', fn ($query) => $query->where('angkatan', $request->input('angkatan')));
+        }
+
+        if ($request->filled('rombel')) {
+            $rombel = $request->input('rombel');
+            $krsList->whereHas('mahasiswa', function ($query) use ($rombel) {
+                if ($rombel === self::UNASSIGNED_ROMBEL) {
+                    $query->whereNull('rombel');
+
+                    return;
+                }
+
+                $query->where('rombel', $rombel);
+            });
         }
 
         // Sorting
@@ -50,6 +73,24 @@ class KrsApprovalController extends Controller
         if ($request->get('prodi_scoped') && $request->get('prodi_scope')) {
             $prodiId = $request->get('prodi_scope');
             $statusCountsQuery->whereHas('mahasiswa.prodi', fn ($q) => $q->where('id', $prodiId));
+        }
+        if ($request->filled('prodi_id')) {
+            $statusCountsQuery->whereHas('mahasiswa', fn ($query) => $query->where('prodi_id', $request->integer('prodi_id')));
+        }
+        if ($request->filled('angkatan')) {
+            $statusCountsQuery->whereHas('mahasiswa', fn ($query) => $query->where('angkatan', $request->input('angkatan')));
+        }
+        if ($request->filled('rombel')) {
+            $rombel = $request->input('rombel');
+            $statusCountsQuery->whereHas('mahasiswa', function ($query) use ($rombel) {
+                if ($rombel === self::UNASSIGNED_ROMBEL) {
+                    $query->whereNull('rombel');
+
+                    return;
+                }
+
+                $query->where('rombel', $rombel);
+            });
         }
 
         // Optimized: Single query for status counts using groupBy

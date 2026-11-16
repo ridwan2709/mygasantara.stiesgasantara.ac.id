@@ -57,6 +57,10 @@ class MahasiswaController extends Controller
             $query->where('angkatan', $angkatan);
         }
 
+        if ($rombel = $request->get('rombel')) {
+            $query->where('rombel', $rombel);
+        }
+
         // Variable Sorting
         $sortColumn = $request->get('sort', 'nim');
         $sortDirection = $request->get('order', 'asc');
@@ -91,8 +95,13 @@ class MahasiswaController extends Controller
             ->sort()
             ->reverse();
         $dosenList = $this->accessibleDosenQuery($request)->with('user')->get();
+        $rombelList = $this->accessibleMahasiswaQuery($request)
+            ->whereNotNull('rombel')
+            ->distinct()
+            ->orderBy('rombel')
+            ->pluck('rombel');
 
-        return view('admin.mahasiswa.index', compact('mahasiswa', 'fakultasList', 'prodiList', 'angkatanList', 'dosenList', 'isFacultyAdmin', 'isProgramAdmin'));
+        return view('admin.mahasiswa.index', compact('mahasiswa', 'fakultasList', 'prodiList', 'angkatanList', 'dosenList', 'rombelList', 'isFacultyAdmin', 'isProgramAdmin'));
     }
 
     public function store(Request $request)
@@ -106,9 +115,11 @@ class MahasiswaController extends Controller
             'nim' => 'required|string|unique:mahasiswa,nim',
             'prodi_id' => ['required', $this->prodiScopeRule($request)],
             'angkatan' => 'required|numeric|min:2000|max:'.(date('Y') + 1),
+            'rombel' => 'nullable|string|max:50',
             'dosen_pa_id' => 'nullable|exists:dosen,id',
         ]);
         $this->applyProdiScope($request, $validated);
+        $validated['rombel'] = $this->normalizeRombel($validated['rombel'] ?? null);
 
         DB::transaction(function () use ($validated) {
             $user = User::create([
@@ -123,6 +134,7 @@ class MahasiswaController extends Controller
                 'nim' => $validated['nim'],
                 'prodi_id' => $validated['prodi_id'],
                 'angkatan' => $validated['angkatan'],
+                'rombel' => $validated['rombel'],
                 'dosen_pa_id' => $validated['dosen_pa_id'] ?? null,
                 'status' => 'aktif',
             ]);
@@ -142,11 +154,13 @@ class MahasiswaController extends Controller
             'nim' => 'required|string|unique:mahasiswa,nim,'.$mahasiswa->id,
             'prodi_id' => ['required', $this->prodiScopeRule($request)],
             'angkatan' => 'required|numeric',
+            'rombel' => 'nullable|string|max:50',
             'dosen_pa_id' => 'nullable|exists:dosen,id',
             'status' => 'required|in:aktif,cuti,lulus,do',
             'password' => 'nullable|string|min:8',
         ]);
         $this->applyProdiScope($request, $validated);
+        $validated['rombel'] = $this->normalizeRombel($validated['rombel'] ?? null);
 
         DB::transaction(function () use ($validated, $mahasiswa) {
             $mahasiswa->user->update([
@@ -162,6 +176,7 @@ class MahasiswaController extends Controller
                 'nim' => $validated['nim'],
                 'prodi_id' => $validated['prodi_id'],
                 'angkatan' => $validated['angkatan'],
+                'rombel' => $validated['rombel'],
                 'dosen_pa_id' => $validated['dosen_pa_id'] ?? null,
                 'status' => $validated['status'],
             ]);
@@ -210,12 +225,15 @@ class MahasiswaController extends Controller
         if ($angkatan = $request->get('angkatan')) {
             $query->where('angkatan', $angkatan);
         }
+        if ($rombel = $request->get('rombel')) {
+            $query->where('rombel', $rombel);
+        }
         $query->orderBy('nim');
 
         return response()->streamDownload(function () use ($query) {
             $handle = fopen('php://output', 'w');
             fwrite($handle, "\xEF\xBB\xBF");
-            fputcsv($handle, ['NIM', 'Nama Mahasiswa', 'Prodi', 'Angkatan', 'Status', 'IPK']);
+            fputcsv($handle, ['NIM', 'Nama Mahasiswa', 'Prodi', 'Angkatan', 'Rombel', 'Status', 'IPK']);
 
             $query->chunk(500, function ($rows) use ($handle) {
                 foreach ($rows as $row) {
@@ -224,6 +242,7 @@ class MahasiswaController extends Controller
                         $row->user->name ?? '-',
                         $row->prodi->nama ?? '-',
                         $row->angkatan,
+                        $row->rombel ?? '',
                         $row->status,
                         $row->ipk ?? 0,
                     ]);
@@ -358,5 +377,12 @@ class MahasiswaController extends Controller
         if ($user->isAdminProdi()) {
             abort_unless($user->prodi_id && (int) $mahasiswa->prodi_id === (int) $user->prodi_id, 404);
         }
+    }
+
+    private function normalizeRombel(?string $rombel): ?string
+    {
+        $rombel = trim((string) $rombel);
+
+        return $rombel === '' ? null : mb_strtoupper($rombel);
     }
 }

@@ -17,6 +17,7 @@ class Mahasiswa extends Model
         'prodi_id',
         'dosen_pa_id',
         'angkatan',
+        'rombel',
         'status',
     ];
 
@@ -65,5 +66,3 @@ class Mahasiswa extends Model
         return $this->hasMany(TugasSubmission::class);
     }
 }
-
-

@@ -5,12 +5,16 @@
 
     <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p class="text-sm text-siakad-secondary dark:text-gray-400">
-            Pilih program studi, angkatan, semester, lalu susun satu KRS untuk seluruh mahasiswa aktif dalam kelompok tersebut.
+            Pilih program studi, angkatan, rombel, dan semester, lalu susun KRS untuk mahasiswa dalam kelompok tersebut.
         </p>
         <a href="{{ route('admin.krs-approval.index') }}" class="text-sm font-medium text-siakad-primary hover:underline">
             Lihat daftar KRS
         </a>
     </div>
+
+    @error('rombel')
+    <p class="mb-4 text-sm text-red-600 dark:text-red-400" role="alert">{{ $message }}</p>
+    @enderror
 
     @if(!$tahunAkademik)
     <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
@@ -25,14 +29,14 @@
 
     <div class="card-saas mb-6 p-6 dark:bg-gray-800">
         <h2 class="mb-4 font-semibold text-siakad-dark dark:text-white">1. Tentukan Kelompok dan Semester</h2>
-        <form id="cohortForm" method="GET" action="{{ route('admin.krs.create') }}" class="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <form id="cohortForm" method="GET" action="{{ route('admin.krs.create') }}" class="grid grid-cols-1 gap-4 md:grid-cols-4">
             <div>
                 <label for="prodi_id" class="mb-2 block text-sm font-medium text-siakad-dark dark:text-gray-300">Program Studi</label>
                 <select
                     id="prodi_id"
                     name="prodi_id"
                     class="input-saas w-full rounded-lg px-4 py-2.5 text-sm dark:bg-gray-900 dark:text-white"
-                    onchange="document.getElementById('angkatan').value = ''; document.getElementById('semester').value = ''; this.form.submit()"
+                    onchange="document.getElementById('angkatan').value = ''; document.getElementById('rombel').value = ''; document.getElementById('semester').value = ''; this.form.submit()"
                     @disabled(!$tahunAkademik)
                 >
                     <option value="">Pilih program studi...</option>
@@ -49,7 +53,7 @@
                     id="angkatan"
                     name="angkatan"
                     class="input-saas w-full rounded-lg px-4 py-2.5 text-sm dark:bg-gray-900 dark:text-white"
-                    onchange="document.getElementById('semester').value = ''; this.form.submit()"
+                    onchange="document.getElementById('rombel').value = ''; document.getElementById('semester').value = ''; this.form.submit()"
                     @disabled(!$prodi)
                 >
                     <option value="">Pilih angkatan...</option>
@@ -59,13 +63,31 @@
                 </select>
             </div>
             <div>
+                <label for="rombel" class="mb-2 block text-sm font-medium text-siakad-dark dark:text-gray-300">Rombel Mahasiswa</label>
+                <select
+                    id="rombel"
+                    name="rombel"
+                    class="input-saas w-full rounded-lg px-4 py-2.5 text-sm dark:bg-gray-900 dark:text-white"
+                    onchange="document.getElementById('semester').value = ''; this.form.submit()"
+                    @disabled(!$prodi || !request('angkatan'))
+                >
+                    <option value="">Pilih rombel...</option>
+                    @foreach($rombelList as $item)
+                    <option value="{{ $item }}" @selected(request('rombel') === $item)>Rombel {{ $item }}</option>
+                    @endforeach
+                    @if($hasUnassignedStudents)
+                    <option value="{{ $unassignedRombelValue }}" @selected(request('rombel') === $unassignedRombelValue)>Belum ditentukan</option>
+                    @endif
+                </select>
+            </div>
+            <div>
                 <label for="semester" class="mb-2 block text-sm font-medium text-siakad-dark dark:text-gray-300">Semester Mata Kuliah</label>
                 <select
                     id="semester"
                     name="semester"
                     class="input-saas w-full rounded-lg px-4 py-2.5 text-sm dark:bg-gray-900 dark:text-white"
                     onchange="this.form.submit()"
-                    @disabled(!$prodi || !request('angkatan'))
+                    @disabled(!$prodi || !request('angkatan') || !request('rombel'))
                 >
                     <option value="">Pilih semester...</option>
                     @foreach($semesterList as $item)
@@ -76,7 +98,7 @@
         </form>
     </div>
 
-    @if($prodi && request('angkatan') && request('semester'))
+    @if($prodi && request('angkatan') && request('rombel') && request('semester'))
     @if($mahasiswaCount === 0)
     <div class="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
         Tidak ada mahasiswa aktif untuk kelompok yang dipilih.
@@ -86,12 +108,13 @@
         @csrf
         <input type="hidden" name="prodi_id" value="{{ $prodi->id }}">
         <input type="hidden" name="angkatan" value="{{ request('angkatan') }}">
+        <input type="hidden" name="rombel" value="{{ request('rombel') }}">
         <input type="hidden" name="semester" value="{{ request('semester') }}">
 
         <div class="border-b border-siakad-light p-6 dark:border-gray-700">
             <h2 class="font-semibold text-siakad-dark dark:text-white">2. Pilih Mata Kuliah dan Kelas</h2>
             <p class="mt-1 text-sm text-siakad-secondary dark:text-gray-400">
-                {{ $prodi->nama }} · Angkatan {{ request('angkatan') }} · Semester {{ request('semester') }} · {{ $mahasiswaCount }} mahasiswa aktif
+                {{ $prodi->nama }} · Angkatan {{ request('angkatan') }} · Rombel {{ request('rombel') === $unassignedRombelValue ? 'Belum ditentukan' : request('rombel') }} · Semester {{ request('semester') }} · {{ $mahasiswaCount }} mahasiswa aktif
             </p>
             <p class="mt-1 text-xs text-siakad-secondary dark:text-gray-400">
                 KRS seluruh mahasiswa kelompok ini akan disamakan dan langsung disetujui. KRS semester aktif yang sudah ada akan diperbarui.
@@ -196,7 +219,7 @@
     @endif
     @endif
 
-    @if($prodi && request('angkatan') && request('semester') && $mahasiswaCount > 0)
+    @if($prodi && request('angkatan') && request('rombel') && request('semester') && $mahasiswaCount > 0)
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const selectAll = document.getElementById('selectAllCourses');

@@ -20,9 +20,9 @@ use Illuminate\View\View;
 
 class KrsManagementController extends Controller
 {
-    public function __construct(private KrsService $krsService)
-    {
-    }
+    private const UNASSIGNED_ROMBEL = '__unassigned__';
+
+    public function __construct(private KrsService $krsService) {}
 
     public function create(Request $request): View
     {
@@ -30,10 +30,13 @@ class KrsManagementController extends Controller
         $prodiList = $this->prodiQuery($request)->orderBy('nama')->get();
         $prodi = null;
         $angkatanList = collect();
+        $rombelList = collect();
+        $hasUnassignedStudents = false;
         $semesterList = collect();
         $mahasiswaCount = 0;
         $availableKelas = collect();
         $maxSks = config('siakad.maks_sks.default', 24);
+        $unassignedRombelValue = self::UNASSIGNED_ROMBEL;
 
         if ($request->filled('prodi_id')) {
             $prodi = $this->prodiQuery($request)->findOrFail($request->integer('prodi_id'));
@@ -56,52 +59,83 @@ class KrsManagementController extends Controller
             $angkatan = (string) $request->input('angkatan');
             abort_unless($angkatanList->contains($angkatan), 404);
 
-            $mahasiswaList = $this->cohortQuery($prodi, $angkatan)->get();
-            $mahasiswaCount = $mahasiswaList->count();
+            $studentsByCohort = Mahasiswa::query()
+                ->where('prodi_id', $prodi->id)
+                ->where('angkatan', $angkatan)
+                ->where('status', 'aktif');
+            $rombelList = (clone $studentsByCohort)
+                ->whereNotNull('rombel')
+                ->distinct()
+                ->orderBy('rombel')
+                ->pluck('rombel');
+            $hasUnassignedStudents = (clone $studentsByCohort)->whereNull('rombel')->exists();
 
-            if ($mahasiswaCount > 0) {
-                $maxSks = $mahasiswaList
-                    ->map(fn (Mahasiswa $mahasiswa) => $this->krsService->getMaxSksForMahasiswa($mahasiswa))
-                    ->min();
-            }
+            if ($request->filled('rombel')) {
+                $selectedRombel = (string) $request->input('rombel');
+                $isUnassignedRombel = $selectedRombel === self::UNASSIGNED_ROMBEL;
+                abort_unless(
+                    ($isUnassignedRombel && $hasUnassignedStudents)
+                        || $rombelList->contains($selectedRombel),
+                    404,
+                );
 
-            if ($request->filled('semester') && $tahunAkademik) {
-                $semester = $request->integer('semester');
-                abort_unless($semesterList->contains($semester), 404);
+                $mahasiswaList = $this->cohortQuery($prodi, $angkatan, $selectedRombel)->get();
+                $mahasiswaCount = $mahasiswaList->count();
 
-                $krsIds = Krs::query()
-                    ->where('tahun_akademik_id', $tahunAkademik->id)
-                    ->whereIn('mahasiswa_id', $mahasiswaList->modelKeys())
-                    ->pluck('id');
+                if ($mahasiswaCount > 0) {
+                    $maxSks = $mahasiswaList
+                        ->map(fn (Mahasiswa $mahasiswa) => $this->krsService->getMaxSksForMahasiswa($mahasiswa))
+                        ->min();
+                }
 
-                $cohortEnrollments = KrsDetail::query()
-                    ->whereIn('krs_id', $krsIds)
-                    ->selectRaw('kelas_id, COUNT(*) as enrollment_count')
-                    ->groupBy('kelas_id')
-                    ->pluck('enrollment_count', 'kelas_id');
+                if ($request->filled('semester') && $tahunAkademik) {
+                    $semester = $request->integer('semester');
+                    abort_unless($semesterList->contains($semester), 404);
 
-                $availableKelas = Kelas::query()
-                    ->with(['mataKuliah', 'dosen.user'])
-                    ->withCount('krsDetail')
-                    ->where(function (Builder $query) use ($tahunAkademik) {
-                        $this->activeSemesterClasses($query, $tahunAkademik);
-                    })
-                    ->whereHas('mataKuliah', fn (Builder $query) => $query
-                        ->where('prodi_id', $prodi->id)
-                        ->where('semester', $semester))
-                    ->orderBy('mata_kuliah_id')
-                    ->orderBy('nama_kelas')
-                    ->get()
-                    ->filter(function (Kelas $kelas) use ($cohortEnrollments, $mahasiswaCount): bool {
-                        $outsideEnrollment = $kelas->krs_detail_count - $cohortEnrollments->get($kelas->id, 0);
-                        $remainingSeats = $kelas->kapasitas - $outsideEnrollment;
-                        $canFitCohort = $remainingSeats >= $mahasiswaCount;
-                        $kelas->setAttribute('available_for_cohort', !$kelas->is_closed && $canFitCohort);
-                        $kelas->setAttribute('cohort_remaining_seats', max(0, $remainingSeats));
+                    $krsIds = Krs::query()
+                        ->where('tahun_akademik_id', $tahunAkademik->id)
+                        ->whereIn('mahasiswa_id', $mahasiswaList->modelKeys())
+                        ->pluck('id');
 
-                        return true;
-                    })
-                    ->groupBy('mata_kuliah_id');
+                    $cohortEnrollments = KrsDetail::query()
+                        ->whereIn('krs_id', $krsIds)
+                        ->selectRaw('kelas_id, COUNT(*) as enrollment_count')
+                        ->groupBy('kelas_id')
+                        ->pluck('enrollment_count', 'kelas_id');
+
+                    $availableKelas = Kelas::query()
+                        ->with(['mataKuliah', 'dosen.user'])
+                        ->withCount('krsDetail')
+                        ->where(function (Builder $query) use ($tahunAkademik) {
+                            $this->activeSemesterClasses($query, $tahunAkademik);
+                        })
+                        ->whereHas('mataKuliah', fn (Builder $query) => $query
+                            ->where('prodi_id', $prodi->id)
+                            ->where('semester', $semester))
+                        ->orderBy('mata_kuliah_id')
+                        ->orderBy('nama_kelas')
+                        ->get()
+                        ->filter(function (Kelas $kelas) use ($cohortEnrollments, $mahasiswaCount, $rombelList, $selectedRombel, $isUnassignedRombel): bool {
+                            $normalizedClassName = mb_strtolower(trim($kelas->nama_kelas));
+                            $matchesAnotherRombel = $rombelList->contains(
+                                fn (string $rombel): bool => mb_strtolower(trim($rombel)) === $normalizedClassName
+                                    && $normalizedClassName !== mb_strtolower(trim($selectedRombel)),
+                            );
+
+                            if (! $isUnassignedRombel && $matchesAnotherRombel) {
+                                return false;
+                            }
+
+                            $outsideEnrollment = $kelas->krs_detail_count - $cohortEnrollments->get($kelas->id, 0);
+                            $remainingSeats = $kelas->kapasitas - $outsideEnrollment;
+                            $canFitCohort = $remainingSeats >= $mahasiswaCount;
+                            $kelas->setAttribute('available_for_cohort', ! $kelas->is_closed && $canFitCohort);
+                            $kelas->setAttribute('cohort_remaining_seats', max(0, $remainingSeats));
+
+                            return true;
+                        })
+                        ->groupBy('mata_kuliah_id');
+                }
             }
         }
 
@@ -110,6 +144,9 @@ class KrsManagementController extends Controller
             'prodiList',
             'prodi',
             'angkatanList',
+            'rombelList',
+            'hasUnassignedStudents',
+            'unassignedRombelValue',
             'semesterList',
             'mahasiswaCount',
             'availableKelas',
@@ -122,6 +159,7 @@ class KrsManagementController extends Controller
         $validated = $request->validate([
             'prodi_id' => ['required', 'integer', 'exists:prodi,id'],
             'angkatan' => ['required', 'string', 'max:20'],
+            'rombel' => ['required', 'string', 'max:50'],
             'semester' => ['required', 'integer', 'min:1'],
             'mata_kuliah_ids' => ['required', 'array', 'min:1'],
             'mata_kuliah_ids.*' => ['required', 'integer', 'distinct', 'exists:mata_kuliah,id'],
@@ -131,19 +169,23 @@ class KrsManagementController extends Controller
 
         $tahunAkademik = TahunAkademik::query()->where('is_active', true)->first();
 
-        if (!$tahunAkademik) {
+        if (! $tahunAkademik) {
             return redirect()->route('admin.krs.create')
                 ->with('error', 'Tidak ada tahun akademik aktif.');
         }
 
         $prodi = $this->prodiQuery($request)->findOrFail($validated['prodi_id']);
+        $validatedRombel = trim($validated['rombel']);
+        $validated['rombel'] = $validatedRombel === self::UNASSIGNED_ROMBEL
+            ? self::UNASSIGNED_ROMBEL
+            : mb_strtoupper($validatedRombel);
         $angkatanList = Mahasiswa::query()
             ->where('prodi_id', $prodi->id)
             ->where('status', 'aktif')
             ->distinct()
             ->pluck('angkatan');
 
-        if (!$angkatanList->contains((string) $validated['angkatan'])) {
+        if (! $angkatanList->contains((string) $validated['angkatan'])) {
             throw ValidationException::withMessages([
                 'angkatan' => 'Angkatan tidak ditemukan pada program studi yang dipilih.',
             ]);
@@ -155,13 +197,13 @@ class KrsManagementController extends Controller
             ->whereHas('kelas', fn (Builder $query) => $this->activeSemesterClasses($query, $tahunAkademik))
             ->exists();
 
-        if (!$semesterExists) {
+        if (! $semesterExists) {
             throw ValidationException::withMessages([
                 'semester' => 'Tidak ada mata kuliah dan kelas aktif untuk semester tersebut.',
             ]);
         }
 
-        $mahasiswaList = $this->cohortQuery($prodi, (string) $validated['angkatan'])->get();
+        $mahasiswaList = $this->cohortQuery($prodi, (string) $validated['angkatan'], $validated['rombel'])->get();
 
         if ($mahasiswaList->isEmpty()) {
             throw ValidationException::withMessages([
@@ -172,6 +214,14 @@ class KrsManagementController extends Controller
         $courseIds = collect($validated['mata_kuliah_ids'])->map(fn ($id) => (int) $id);
         $classSelection = collect($validated['kelas_per_mata_kuliah'])
             ->mapWithKeys(fn ($kelasId, $courseId) => [(int) $courseId => (int) $kelasId]);
+        $cohortRombelNames = Mahasiswa::query()
+            ->where('prodi_id', $prodi->id)
+            ->where('angkatan', $validated['angkatan'])
+            ->where('status', 'aktif')
+            ->whereNotNull('rombel')
+            ->distinct()
+            ->pluck('rombel')
+            ->map(fn (string $rombel): string => mb_strtolower(trim($rombel)));
 
         if ($classSelection->keys()->sort()->values()->all() !== $courseIds->sort()->values()->all()) {
             throw ValidationException::withMessages([
@@ -192,11 +242,19 @@ class KrsManagementController extends Controller
                 ->where('semester', $validated['semester'])
                 ->whereIn('id', $courseIds))
             ->get();
+        $hasClassForAnotherRombel = $validated['rombel'] !== self::UNASSIGNED_ROMBEL
+            && $kelasList->contains(function (Kelas $kelas) use ($cohortRombelNames, $validated): bool {
+                $className = mb_strtolower(trim($kelas->nama_kelas));
+
+                return $className !== mb_strtolower($validated['rombel'])
+                    && $cohortRombelNames->contains($className);
+            });
 
         if ($kelasList->count() !== $courseIds->count()
-            || $kelasList->pluck('mata_kuliah_id')->sort()->values()->all() !== $courseIds->sort()->values()->all()) {
+            || $kelasList->pluck('mata_kuliah_id')->sort()->values()->all() !== $courseIds->sort()->values()->all()
+            || $hasClassForAnotherRombel) {
             throw ValidationException::withMessages([
-                'kelas_per_mata_kuliah' => 'Kelas harus sesuai dengan mata kuliah, program studi, semester, dan tahun akademik aktif.',
+                'kelas_per_mata_kuliah' => 'Kelas harus sesuai dengan mata kuliah, kelompok rombel, program studi, semester, dan tahun akademik aktif.',
             ]);
         }
 
@@ -263,16 +321,20 @@ class KrsManagementController extends Controller
             }
         });
 
-        return redirect()->route('admin.krs-approval.index', ['status' => 'approved'])
-            ->with('success', "KRS berhasil dibuat dan disetujui untuk {$mahasiswaList->count()} mahasiswa.");
+        return redirect()->route('admin.krs-approval.index', [
+            'status' => 'approved',
+            'prodi_id' => $prodi->id,
+            'angkatan' => $validated['angkatan'],
+            'rombel' => $validated['rombel'],
+        ])->with('success', "KRS berhasil dibuat dan disetujui untuk {$mahasiswaList->count()} mahasiswa rombel {$validated['rombel']}.");
     }
 
     private function prodiQuery(Request $request): Builder
     {
         $query = Prodi::query()->with('fakultas');
 
-        if (!$request->user()->isSuperAdmin()) {
-            if (!$request->user()->fakultas_id) {
+        if (! $request->user()->isSuperAdmin()) {
+            if (! $request->user()->fakultas_id) {
                 return $query->whereRaw('1 = 0');
             }
 
@@ -282,14 +344,20 @@ class KrsManagementController extends Controller
         return $query;
     }
 
-    private function cohortQuery(Prodi $prodi, string $angkatan): Builder
+    private function cohortQuery(Prodi $prodi, string $angkatan, string $rombel): Builder
     {
-        return Mahasiswa::query()
+        $query = Mahasiswa::query()
             ->with(['user', 'prodi'])
             ->where('prodi_id', $prodi->id)
             ->where('angkatan', $angkatan)
             ->where('status', 'aktif')
             ->orderBy('nim');
+
+        if ($rombel === self::UNASSIGNED_ROMBEL) {
+            return $query->whereNull('rombel');
+        }
+
+        return $query->where('rombel', $rombel);
     }
 
     private function activeSemesterClasses(Builder $query, ?TahunAkademik $tahunAkademik): Builder

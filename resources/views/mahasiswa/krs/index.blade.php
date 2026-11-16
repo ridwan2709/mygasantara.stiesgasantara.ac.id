@@ -77,7 +77,7 @@
                     <div class="p-4 flex items-center gap-4 hover:bg-siakad-light/20 transition">
                         <div class="flex-1 min-w-0">
                             <p class="font-medium text-siakad-dark truncate">{{ $detail->kelas->mataKuliah->nama_mk }}</p>
-                            <p class="text-xs text-siakad-secondary">{{ $detail->kelas->mataKuliah->kode_mk }} • {{ $detail->kelas->dosen->user->name }}</p>
+                            <p class="text-xs text-siakad-secondary">{{ $detail->kelas->mataKuliah->kode_mk }} • Kelas {{ $detail->kelas->nama_kelas }} • {{ $detail->kelas->dosen->user->name }}</p>
                         </div>
                         <div class="text-center px-3">
                             <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-siakad-primary/10 text-siakad-primary font-semibold text-sm">

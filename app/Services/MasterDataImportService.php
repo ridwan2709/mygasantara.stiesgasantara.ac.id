@@ -34,6 +34,7 @@ class MasterDataImportService
         'nama_kelas' => 'Nama Kelas',
         'kapasitas' => 'Kapasitas',
         'angkatan' => 'Angkatan',
+        'rombel' => 'Rombel',
         'email' => 'Email',
         'password' => 'Password',
         'status' => 'Status',
@@ -64,13 +65,17 @@ class MasterDataImportService
         'ruangan' => ['kode_ruangan', 'nama_ruangan', 'kapasitas', 'gedung', 'lantai', 'fasilitas', 'is_active', 'fakultas'],
     ];
 
+    private const OPTIONAL_HEADERS = [
+        'mahasiswa' => ['rombel'],
+    ];
+
     public function headers(string $type): array
     {
         if (! isset(self::HEADERS[$type])) {
             abort(404);
         }
 
-        return self::HEADERS[$type];
+        return array_merge(self::HEADERS[$type], self::OPTIONAL_HEADERS[$type] ?? []);
     }
 
     public function templateRows(string $type): array
@@ -89,8 +94,8 @@ class MasterDataImportService
                 ['fakultas' => 'Nama Fakultas Terdaftar', 'nama' => 'Program Studi Contoh 2'],
             ],
             'mahasiswa' => [
-                ['nim' => 'CONTOH001', 'nama' => 'Mahasiswa Contoh 1', 'email' => 'mahasiswa1@example.test', 'password' => 'GantiPassword123', 'prodi' => 'Nama Prodi Terdaftar', 'angkatan' => (string) (date('Y') - 1), 'dosen_pa_nidn' => '', 'status' => 'aktif'],
-                ['nim' => 'CONTOH002', 'nama' => 'Mahasiswa Contoh 2', 'email' => 'mahasiswa2@example.test', 'password' => 'GantiPassword123', 'prodi' => 'Nama Prodi Terdaftar', 'angkatan' => (string) (date('Y') - 1), 'dosen_pa_nidn' => '', 'status' => 'aktif'],
+                ['nim' => 'CONTOH001', 'nama' => 'Mahasiswa Contoh 1', 'email' => 'mahasiswa1@example.test', 'password' => 'GantiPassword123', 'prodi' => 'Nama Prodi Terdaftar', 'angkatan' => (string) (date('Y') - 1), 'dosen_pa_nidn' => '', 'rombel' => 'A', 'status' => 'aktif'],
+                ['nim' => 'CONTOH002', 'nama' => 'Mahasiswa Contoh 2', 'email' => 'mahasiswa2@example.test', 'password' => 'GantiPassword123', 'prodi' => 'Nama Prodi Terdaftar', 'angkatan' => (string) (date('Y') - 1), 'dosen_pa_nidn' => '', 'rombel' => 'B', 'status' => 'aktif'],
             ],
             'dosen' => [
                 ['nidn' => 'NIDN-CONTOH-001', 'nama' => 'Dosen Contoh 1', 'email' => 'dosen1@example.test', 'password' => 'GantiPassword123', 'prodi' => 'Nama Prodi Terdaftar'],
@@ -273,10 +278,11 @@ class MasterDataImportService
         $seenNim = [];
         $seenEmail = [];
         $valid = $this->validateRows($rows, function (array $data) use ($user, &$seenNim, &$seenEmail): array {
-            foreach (['nim', 'nama', 'email', 'password', 'prodi', 'angkatan', 'dosen_pa_nidn', 'status'] as $field) {
+            foreach (['nim', 'nama', 'email', 'password', 'prodi', 'angkatan', 'dosen_pa_nidn', 'status', 'rombel'] as $field) {
                 $data[$field] = trim((string) ($data[$field] ?? ''));
             }
             $data['status'] = $data['status'] ?: 'aktif';
+            $data['rombel'] = $data['rombel'] === '' ? null : mb_strtoupper($data['rombel']);
             $errors = $this->validate($data, [
                 'nim' => ['required', 'string', 'max:255', 'unique:mahasiswa,nim'],
                 'nama' => ['required', 'string', 'max:255'],
@@ -284,6 +290,7 @@ class MasterDataImportService
                 'password' => ['required', 'string', 'min:8'],
                 'angkatan' => ['required', 'digits:4', 'integer', 'min:2000', 'max:'.(date('Y') + 1)],
                 'status' => ['required', 'in:aktif,cuti,lulus,do'],
+                'rombel' => ['nullable', 'string', 'max:50'],
             ]);
             $prodi = $this->resolveProdi($data['prodi'], $user, $errors);
 
@@ -319,6 +326,7 @@ class MasterDataImportService
                 'prodi_id' => $data['prodi_id'],
                 'dosen_pa_id' => $data['dosen_pa_nidn'] === '' ? null : Dosen::where('nidn', $data['dosen_pa_nidn'])->value('id'),
                 'angkatan' => $data['angkatan'],
+                'rombel' => $data['rombel'],
                 'status' => $data['status'],
             ]);
         }

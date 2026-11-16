@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\TahunAkademik;
 use App\Services\AkademikService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class TahunAkademikController extends Controller
@@ -123,11 +124,13 @@ class TahunAkademikController extends Controller
         return response()->json($this->akademikService->getActiveTahun());
     }
 
-    public function activate($id)
+    public function activate(TahunAkademik $tahunAkademik): RedirectResponse
     {
         $this->authorizeSuperAdmin();
-        
-        $this->akademikService->activateTahun($id);
-        return response()->json(['message' => 'Tahun akademik activated']);
+
+        $this->akademikService->activateTahun($tahunAkademik->id);
+
+        return redirect()->route('admin.tahun-akademik.index')
+            ->with('success', 'Tahun akademik berhasil diaktifkan.');
     }
 }
