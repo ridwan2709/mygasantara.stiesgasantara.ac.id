@@ -16,7 +16,7 @@
         }
 
         .header {
-            border-bottom: 3px solid #1d4ed8;
+            border-bottom: 3px solid #a53041;
             margin-bottom: 16px;
             padding-bottom: 10px;
         }
@@ -85,7 +85,7 @@
         }
 
         .report th {
-            background: #1e3a8a;
+            background: #a53041;
             color: #fff;
             font-size: 8px;
             font-weight: bold;

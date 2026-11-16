@@ -147,6 +147,15 @@
                 border-color: var(--border-color);
                 color: var(--text-primary);
             }
+            .input-saas option {
+                background-color: var(--bg-card);
+                color: var(--text-primary);
+            }
+            .input-saas option:checked,
+            .input-saas option:hover {
+                background: var(--primary);
+                color: var(--primary-foreground);
+            }
             .input-saas:focus {
                 border-color: var(--siakad-primary);
                 box-shadow: 0 0 0 3px rgb(var(--primary-rgb) / 0.1);

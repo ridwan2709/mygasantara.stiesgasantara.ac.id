@@ -20,7 +20,7 @@ export default {
                     DEFAULT: "rgb(var(--primary-rgb) / <alpha-value>)",
                     hover: "rgb(var(--primary-hover-rgb) / <alpha-value>)",
                     light: "rgb(var(--primary-light-rgb) / <alpha-value>)",
-                    text: "var(--primary-text)",
+                    text: "var(--primary-foreground)",
                 },
                 siakad: {
                     dark: "rgb(var(--primary-hover-rgb) / <alpha-value>)",

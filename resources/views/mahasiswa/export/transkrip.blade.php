@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transkrip Nilai - {{ $mahasiswa->nim }}</title>
+    @vite(['resources/css/app.css'])
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Times New Roman', serif; font-size: 11pt; line-height: 1.4; padding: 20mm; background: white; }
@@ -32,8 +33,8 @@
         .footer { margin-top: 40px; display: flex; justify-content: space-between; }
         .footer .signature { text-align: center; width: 200px; }
         .footer .signature .line { border-top: 1px solid #000; margin-top: 60px; padding-top: 5px; }
-        .print-btn { position: fixed; bottom: 20px; right: 20px; padding: 10px 20px; background: #4f46e5; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
-        .print-btn:hover { background: #4338ca; }
+        .print-btn { position: fixed; bottom: 20px; right: 20px; padding: 10px 20px; background: var(--primary); color: var(--primary-foreground); border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
+        .print-btn:hover { background: var(--primary-hover); }
         @media print {
             body { padding: 10mm; }
             .print-btn { display: none; }
