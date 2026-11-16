@@ -30,7 +30,7 @@
                     </div>
                     <div class="flex justify-between">
                         <span class="text-siakad-secondary dark:text-gray-400">Total SKS</span>
-                        <span class="font-bold text-siakad-primary dark:text-blue-400 text-lg">{{ $totalSks }}</span>
+                        <span class="font-bold text-siakad-primary dark:text-siakad-300 text-lg">{{ $totalSks }}</span>
                     </div>
                 </div>
 
@@ -46,7 +46,7 @@
                     </div>
                 </div>
 
-                <a href="{{ url('admin/krs-approval') }}" class="mt-6 block text-center text-sm text-siakad-secondary dark:text-gray-400 hover:text-siakad-primary dark:hover:text-blue-400 transition">
+                <a href="{{ url('admin/krs-approval') }}" class="mt-6 block text-center text-sm text-siakad-secondary dark:text-gray-400 hover:text-siakad-primary dark:hover:text-siakad-300 transition">
                     ← Kembali ke daftar
                 </a>
             </div>
@@ -71,7 +71,7 @@
                             <p class="text-sm text-siakad-secondary dark:text-gray-400">{{ $detail->kelas->mataKuliah->kode_mk ?? '-' }} • {{ $detail->kelas->dosen->user->name ?? '-' }}</p>
                         </div>
                         <div class="text-center">
-                            <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-siakad-primary/10 text-siakad-primary dark:bg-blue-500/20 dark:text-blue-400 font-bold">
+                            <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-siakad-primary/10 text-siakad-primary dark:bg-siakad-primary/20 dark:text-siakad-300 font-bold">
                                 {{ $detail->kelas->mataKuliah->sks ?? 0 }}
                             </span>
                             <p class="text-xs text-siakad-secondary dark:text-gray-400 mt-1">SKS</p>

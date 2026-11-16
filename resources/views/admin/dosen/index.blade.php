@@ -96,7 +96,7 @@
                             <span class="text-sm text-siakad-secondary dark:text-gray-400">{{ $d->prodi->nama ?? '-' }}</span>
                         </td>
                         <td class="py-4 px-5">
-                            <span class="inline-flex px-2.5 py-1 text-xs font-medium bg-siakad-primary/10 text-siakad-primary dark:bg-blue-500/10 dark:text-blue-400 rounded-full">{{ $d->kelas_count ?? $d->kelas->count() }}</span>
+                            <span class="inline-flex px-2.5 py-1 text-xs font-medium bg-siakad-primary/10 text-siakad-primary dark:bg-siakad-primary/10 dark:text-siakad-300 rounded-full">{{ $d->kelas_count ?? $d->kelas->count() }}</span>
                         </td>
                         <td class="py-4 px-5">
                             <span class="inline-flex px-2.5 py-1 text-xs font-medium bg-siakad-secondary/10 text-siakad-secondary dark:bg-gray-700 dark:text-gray-300 rounded-full">{{ $d->mahasiswa_bimbingan_count ?? $d->mahasiswaBimbingan->count() }}</span>
@@ -106,10 +106,10 @@
                                 <a href="{{ route('admin.dosen.show', $d) }}" class="p-2 text-siakad-secondary hover:text-siakad-primary hover:bg-siakad-primary/10 rounded-lg transition" title="Detail">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                 </a>
-                                <a href="{{ route('admin.dosen.dokumen.index', $d) }}" class="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-indigo-600 hover:bg-indigo-100" title="Dokumen Penunjang" aria-label="Dokumen Penunjang {{ $d->user->name }}">
+                                <a href="{{ route('admin.dosen.dokumen.index', $d) }}" class="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-siakad-primary hover:bg-siakad-primary/10" title="Dokumen Penunjang" aria-label="Dokumen Penunjang {{ $d->user->name }}">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3.5h6l5 5V20a1 1 0 01-1 1H7a2 2 0 01-2-2V5.5a2 2 0 012-2z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 3.5V9h5M8 14h8m-8 3h8"></path></svg>
                                 </a>
-                                <button onclick="openEditModal({{ json_encode(['id'=>$d->id,'name'=>$d->user->name,'email'=>$d->user->email,'nidn'=>$d->nidn,'prodi_id'=>$d->prodi_id]) }})" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg" title="Edit">
+                                <button onclick="openEditModal({{ json_encode(['id'=>$d->id,'name'=>$d->user->name,'email'=>$d->user->email,'nidn'=>$d->nidn,'prodi_id'=>$d->prodi_id]) }})" class="p-2 text-siakad-primary hover:bg-siakad-primary/10 rounded-lg" title="Edit">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                 </button>
                                 <form action="{{ route('admin.dosen.destroy', $d) }}" method="POST" class="inline" onsubmit="return confirm('Yakin?')">@csrf @method('DELETE')
@@ -170,7 +170,7 @@
                 <a href="{{ route('admin.dosen.show', $d) }}" class="flex items-center justify-center w-full py-2 bg-siakad-light dark:bg-gray-700 text-siakad-dark dark:text-white font-medium rounded-lg hover:bg-gray-200 transition text-sm">
                     Detail Dosen
                 </a>
-                <a href="{{ route('admin.dosen.dokumen.index', $d) }}" class="flex items-center justify-center gap-2 w-full py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition text-sm">
+                <a href="{{ route('admin.dosen.dokumen.index', $d) }}" class="flex items-center justify-center gap-2 w-full py-2 bg-siakad-primary text-white font-medium rounded-lg hover:bg-siakad-dark transition text-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3.5h6l5 5V20a1 1 0 01-1 1H7a2 2 0 01-2-2V5.5a2 2 0 012-2z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 3.5V9h5M8 14h8m-8 3h8"></path></svg>
                     Dokumen Penunjang
                 </a>

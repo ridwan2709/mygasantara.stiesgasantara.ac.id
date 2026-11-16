@@ -122,7 +122,7 @@
     @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const siakadPrimary = '#234C6A';
+        const siakadPrimary = getComputedStyle(document.documentElement).getPropertyValue('--siakad-primary').trim();
         const siakadLight = '#E3E3E3';
         
         const ipsData = @json($ipsHistory);
@@ -135,7 +135,7 @@
                     label: 'IPS',
                     data: ipsData.map(d => d.ips),
                     borderColor: siakadPrimary,
-                    backgroundColor: 'rgba(35, 76, 106, 0.1)',
+                    backgroundColor: `rgba(${getComputedStyle(document.documentElement).getPropertyValue('--primary-rgb').trim().split(/\s+/).join(', ')}, 0.1)`,
                     fill: true,
                     tension: 0.4,
                     pointRadius: 5,

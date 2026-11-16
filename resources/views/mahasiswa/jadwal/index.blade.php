@@ -26,7 +26,7 @@
             </div>
             <h3 class="text-lg font-bold text-slate-800 mb-2">Belum Ada Jadwal</h3>
             <p class="text-slate-500 mb-5">KRS Anda belum diapprove atau belum ada jadwal kuliah.</p>
-            <a href="{{ route('mahasiswa.krs.index') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-[#234C6A] text-white rounded-lg text-sm font-medium hover:bg-[#1B3C53] transition">
+            <a href="{{ route('mahasiswa.krs.index') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-siakad-primary text-white rounded-lg text-sm font-medium hover:bg-siakad-dark transition">
                 Lihat KRS
             </a>
         </div>
@@ -41,7 +41,7 @@
                         @php $hasClass = $jadwalPerHari->has($hari); $count = $hasClass ? $jadwalPerHari[$hari]->count() : 0; @endphp
                         <button 
                             @click="selectedDay = '{{ $hari }}'"
-                            :class="selectedDay === '{{ $hari }}' ? 'bg-[#234C6A] text-white shadow-md' : '{{ $hasClass ? 'bg-siakad-light dark:bg-slate-700 text-siakad-secondary hover:bg-siakad-light/70 dark:hover:bg-slate-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed' }}'"
+                            :class="selectedDay === '{{ $hari }}' ? 'bg-siakad-primary text-white shadow-md' : '{{ $hasClass ? 'bg-siakad-light dark:bg-slate-700 text-siakad-secondary hover:bg-siakad-light/70 dark:hover:bg-slate-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed' }}'"
                             class="px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 flex items-center gap-1.5"
                             {{ !$hasClass ? 'disabled' : '' }}>
                             <span>{{ $hari }}</span>
@@ -56,12 +56,12 @@
             <!-- View Toggle -->
             <div class="flex items-center gap-1 bg-siakad-light dark:bg-slate-700 p-1 rounded-lg self-start sm:self-auto hidden md:block">
                 <button @click="viewMode = 'card'" 
-                    :class="viewMode === 'card' ? 'bg-white shadow-sm text-[#234C6A]' : 'text-slate-400'"
+                    :class="viewMode === 'card' ? 'bg-white shadow-sm text-siakad-primary' : 'text-slate-400'"
                     class="p-2 rounded-md transition">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                 </button>
                 <button @click="viewMode = 'compact'" 
-                    :class="viewMode === 'compact' ? 'bg-white shadow-sm text-[#234C6A]' : 'text-slate-400'"
+                    :class="viewMode === 'compact' ? 'bg-white shadow-sm text-siakad-primary' : 'text-slate-400'"
                     class="p-2 rounded-md transition">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
@@ -90,7 +90,7 @@
                     </div>
                     
                     <!-- Card -->
-                    <div class="flex-1 card-saas p-4 sm:p-5 hover:shadow-md transition {{ $isOngoing ? 'border-l-[3px] border-l-[#234C6A]' : '' }}">
+                    <div class="flex-1 card-saas p-4 sm:p-5 hover:shadow-md transition {{ $isOngoing ? 'border-l-[3px] border-l-siakad-primary' : '' }}">
                         <!-- Mobile Time Header -->
                         <div class="md:hidden flex justify-between items-center mb-3 pb-3 border-b border-gray-100 dark:border-gray-700">
                             <div class="flex items-center gap-2">
@@ -128,7 +128,7 @@
                                 {{ $kelas->dosen->user->name ?? 'TBA' }}
                             </span>
                             @if($jadwal->ruangan)
-                            <span class="flex items-center gap-1.5 text-[#234C6A] bg-[#234C6A]/10 px-2 py-1 rounded font-medium">
+                            <span class="flex items-center gap-1.5 text-siakad-primary bg-siakad-primary/10 px-2 py-1 rounded font-medium">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
                                 {{ $jadwal->ruangan }}
                             </span>
@@ -138,7 +138,7 @@
                 </div>
                 
                 <!-- Compact View -->
-                <div x-show="viewMode === 'compact'" class="card-saas px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 {{ $isOngoing ? 'border-l-[3px] border-l-[#234C6A]' : '' }}">
+                <div x-show="viewMode === 'compact'" class="card-saas px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 {{ $isOngoing ? 'border-l-[3px] border-l-siakad-primary' : '' }}">
                     <div class="sm:w-24 flex-shrink-0">
                         <span class="font-semibold text-siakad-dark">{{ $jamMulai->format('H:i') }}</span>
                         <span class="text-siakad-secondary mx-1">—</span>
@@ -155,7 +155,7 @@
                         <p class="text-sm text-siakad-secondary">{{ $kelas->dosen->user->name ?? 'TBA' }} • Kelas {{ $kelas->nama_kelas }}</p>
                     </div>
                     @if($jadwal->ruangan)
-                    <span class="text-[#234C6A] bg-[#234C6A]/10 px-3 py-1.5 rounded font-medium text-sm flex-shrink-0">
+                    <span class="text-siakad-primary bg-siakad-primary/10 px-3 py-1.5 rounded font-medium text-sm flex-shrink-0">
                         {{ $jadwal->ruangan }}
                     </span>
                     @endif
@@ -166,7 +166,7 @@
         @endforeach
 
         <!-- Summary -->
-        <div class="mt-8 bg-[#1B3C53] rounded-2xl p-4 sm:p-6">
+        <div class="mt-8 bg-siakad-dark rounded-2xl p-4 sm:p-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">

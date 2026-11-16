@@ -13,7 +13,7 @@
     @endif
 
     <div class="mb-6">
-        <a href="{{ route('admin.dosen.index') }}" class="inline-flex items-center gap-2 text-sm font-medium text-siakad-primary hover:underline dark:text-blue-400">
+        <a href="{{ route('admin.dosen.index') }}" class="inline-flex items-center gap-2 text-sm font-medium text-siakad-primary hover:underline dark:text-siakad-300">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
             Kembali ke Daftar Dosen
         </a>
@@ -67,7 +67,7 @@
                                 <td class="px-5 py-4 text-sm font-medium text-siakad-dark dark:text-white">{{ $item->nama_dokumen }}</td>
                                 <td class="max-w-md px-5 py-4 text-sm">
                                     @if($item->link_url)
-                                        <a href="{{ $item->link_url }}" target="_blank" rel="noopener noreferrer" class="break-all font-medium text-indigo-600 hover:underline dark:text-indigo-400">
+                                        <a href="{{ $item->link_url }}" target="_blank" rel="noopener noreferrer" class="break-all font-medium text-siakad-primary hover:underline dark:text-siakad-300">
                                             Buka link dokumen
                                         </a>
                                     @else
@@ -78,7 +78,7 @@
                                 <td class="px-5 py-4">
                                     <div class="flex items-center justify-end gap-2">
                                         @if($item->link_url)
-                                            <a href="{{ $item->link_url }}" target="_blank" rel="noopener noreferrer" class="rounded-lg px-3 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30" aria-label="Buka {{ $item->nama_dokumen }}">
+                                            <a href="{{ $item->link_url }}" target="_blank" rel="noopener noreferrer" class="rounded-lg px-3 py-2 text-sm font-medium text-siakad-primary hover:bg-siakad-50 dark:hover:bg-siakad-900/30" aria-label="Buka {{ $item->nama_dokumen }}">
                                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                                             </a>
                                         @endif

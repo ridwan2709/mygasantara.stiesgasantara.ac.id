@@ -109,8 +109,8 @@
                     campusMarker.on('dragend', () => setCoordinates(campusMarker.getLatLng()));
                     campusRadius = L.circle(coordinates, {
                         radius: readRadius() ?? 100,
-                        color: '#234C6A',
-                        fillColor: '#3b82f6',
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--siakad-primary').trim(),
+                        fillColor: getComputedStyle(document.documentElement).getPropertyValue('--siakad-primary').trim(),
                         fillOpacity: 0.18,
                         weight: 2,
                     }).addTo(campusMap);

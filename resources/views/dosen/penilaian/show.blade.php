@@ -11,7 +11,7 @@
     </div>
 
     <!-- Class Info -->
-    <div class="card-saas p-6 mb-6 border-none" style="background-color: #1B3C53;">
+    <div class="card-saas p-6 mb-6 border-none" style="background-color: var(--siakad-dark);">
         <div class="flex items-center justify-between">
             <div>
                 <h3 class="text-xl font-bold text-white">{{ $kelas->mataKuliah->nama_mk }}</h3>

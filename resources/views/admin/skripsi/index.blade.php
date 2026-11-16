@@ -10,8 +10,8 @@
     <!-- Stats -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div class="card-saas p-4 flex items-center gap-3 dark:bg-gray-800">
-            <div class="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
-                <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <div class="w-10 h-10 rounded-lg bg-siakad-100 dark:bg-siakad-900/50 flex items-center justify-center">
+                <svg class="w-5 h-5 text-siakad-primary dark:text-siakad-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
             </div>
             <div>
                 <p class="text-2xl font-bold text-siakad-dark dark:text-white">{{ $stats['total'] }}</p>
@@ -19,8 +19,8 @@
             </div>
         </div>
         <div class="card-saas p-4 flex items-center gap-3 dark:bg-gray-800">
-            <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
-                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+            <div class="w-10 h-10 rounded-lg bg-siakad-100 dark:bg-siakad-900/50 flex items-center justify-center">
+                <svg class="w-5 h-5 text-siakad-primary dark:text-siakad-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
             </div>
             <div>
                 <p class="text-2xl font-bold text-siakad-dark dark:text-white">{{ $stats['aktif'] }}</p>
@@ -150,7 +150,7 @@
                             <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-{{ $skripsi->status_color }}-100 text-{{ $skripsi->status_color }}-700 dark:bg-{{ $skripsi->status_color }}-900/50 dark:text-{{ $skripsi->status_color }}-400">{{ $skripsi->status_label }}</span>
                         </td>
                         <td class="py-4 px-5 text-right">
-                            <a href="{{ route('admin.skripsi.show', $skripsi) }}" class="inline-flex items-center gap-1 text-sm text-siakad-primary dark:text-blue-400 hover:underline">Detail</a>
+                            <a href="{{ route('admin.skripsi.show', $skripsi) }}" class="inline-flex items-center gap-1 text-sm text-siakad-primary dark:text-siakad-300 hover:underline">Detail</a>
                         </td>
                     </tr>
                     @empty
@@ -169,7 +169,7 @@
         <div class="card-saas p-4 dark:bg-gray-800">
             <div class="flex items-start justify-between mb-3">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-siakad-primary dark:bg-blue-600 flex items-center justify-center text-white text-sm font-semibold">
+                    <div class="w-10 h-10 rounded-lg bg-siakad-primary flex items-center justify-center text-white text-sm font-semibold">
                         {{ strtoupper(substr($skripsi->mahasiswa->user->name ?? '-', 0, 1)) }}
                     </div>
                     <div>

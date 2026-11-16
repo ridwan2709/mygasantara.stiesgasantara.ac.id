@@ -18,7 +18,7 @@
     <!-- Search Bar -->
     <!-- Search Bar -->
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <p class="text-sm text-siakad-secondary">Total <span class="font-semibold text-[#234C6A]">{{ $kelasList->count() }}</span> kelas {{ auth()->user()->isAdminProdi() ? 'di program studi Anda' : (auth()->user()->role === 'admin_fakultas' ? 'di fakultas Anda' : 'yang diampu') }}</p>
+        <p class="text-sm text-siakad-secondary">Total <span class="font-semibold text-siakad-primary">{{ $kelasList->count() }}</span> kelas {{ auth()->user()->isAdminProdi() ? 'di program studi Anda' : (auth()->user()->role === 'admin_fakultas' ? 'di fakultas Anda' : 'yang diampu') }}</p>
         <div class="relative w-full sm:w-auto">
             <input type="text" id="searchInput" placeholder="Cari mata kuliah..." class="input-saas pl-9 pr-4 py-2 text-sm w-full sm:w-56">
             <svg class="w-4 h-4 text-siakad-secondary absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -141,7 +141,7 @@
     </div>
     @empty
     <div class="card-saas p-12 text-center">
-        <h3 class="text-lg font-bold text-[#1B3C53] mb-2">Tidak Ada Hasil</h3>
+        <h3 class="text-lg font-bold text-siakad-dark mb-2">Tidak Ada Hasil</h3>
         <p class="text-[#456882] text-sm">Tidak ditemukan kelas yang sesuai dengan pencarian.</p>
     </div>
     @endforelse

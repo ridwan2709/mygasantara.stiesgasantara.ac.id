@@ -119,7 +119,7 @@
                     <tr class="hover:bg-siakad-light/10 dark:hover:bg-gray-700/30 transition">
                         <td class="py-4 px-5 text-sm text-siakad-secondary dark:text-gray-400">{{ $mataKuliah->firstItem() + $idx }}</td>
                         <td class="py-4 px-5">
-                            <span class="text-sm font-mono text-siakad-primary dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded">{{ $mk->kode_mk }}</span>
+                            <span class="text-sm font-mono text-siakad-primary dark:text-siakad-300 font-medium bg-siakad-50 dark:bg-siakad-900/20 px-2 py-1 rounded">{{ $mk->kode_mk }}</span>
                         </td>
                         <td class="py-4 px-5">
                             <span class="text-sm font-medium text-siakad-dark dark:text-white">{{ $mk->nama_mk }}</span>
@@ -128,7 +128,7 @@
                             <div class="text-[10px] text-siakad-secondary mt-0.5">{{ $categories[$prefix] ?? '' }}</div>
                         </td>
                         <td class="py-4 px-5 text-center">
-                            <span class="inline-flex px-2.5 py-1 text-xs font-medium bg-siakad-primary/10 text-siakad-primary dark:bg-blue-500/10 dark:text-blue-400 rounded-full">{{ $mk->sks }}</span>
+                            <span class="inline-flex px-2.5 py-1 text-xs font-medium bg-siakad-primary/10 text-siakad-primary dark:bg-siakad-primary/10 dark:text-siakad-300 rounded-full">{{ $mk->sks }}</span>
                         </td>
                         <td class="py-4 px-5 text-center">
                             <span class="inline-flex px-2.5 py-1 text-xs font-medium bg-siakad-secondary/10 text-siakad-secondary dark:bg-gray-700 dark:text-gray-300 rounded-full">Sem {{ $mk->semester }}</span>
@@ -171,7 +171,7 @@
         <div class="card-saas p-4 dark:bg-gray-800">
             <div class="flex items-start justify-between mb-3">
                 <div>
-                    <span class="inline-flex px-2.5 py-1 text-xs font-semibold bg-blue-50 text-siakad-primary dark:bg-blue-900/20 dark:text-blue-400 rounded-md font-mono mb-2">{{ $mk->kode_mk }}</span>
+                    <span class="inline-flex px-2.5 py-1 text-xs font-semibold bg-siakad-50 text-siakad-primary dark:bg-siakad-900/20 dark:text-siakad-300 rounded-md font-mono mb-2">{{ $mk->kode_mk }}</span>
                     <h4 class="font-bold text-siakad-dark dark:text-white">{{ $mk->nama_mk }}</h4>
                     @php $prefix = substr($mk->kode_mk, 0, 2); @endphp
                     <p class="text-[10px] text-siakad-secondary mt-0.5">{{ $categories[$prefix] ?? '' }}</p>
@@ -181,7 +181,7 @@
             <div class="grid grid-cols-2 gap-3 mb-4">
                 <div class="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg text-center">
                     <span class="block text-[10px] text-siakad-secondary dark:text-gray-400 uppercase tracking-wider">SKS</span>
-                    <span class="font-bold text-siakad-primary dark:text-blue-400">{{ $mk->sks }}</span>
+                    <span class="font-bold text-siakad-primary dark:text-siakad-300">{{ $mk->sks }}</span>
                 </div>
                 <div class="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg text-center">
                     <span class="block text-[10px] text-siakad-secondary dark:text-gray-400 uppercase tracking-wider">Semester</span>

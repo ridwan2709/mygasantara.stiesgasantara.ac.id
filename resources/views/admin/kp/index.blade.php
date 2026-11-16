@@ -71,7 +71,7 @@
                 <td class="py-4 px-5 text-sm text-siakad-dark dark:text-white">{{ $kp->nama_perusahaan }}</td>
                 <td class="py-4 px-5 text-sm">@if($kp->pembimbing)<span class="text-siakad-dark dark:text-white">{{ $kp->pembimbing->user->name }}</span>@else<span class="text-amber-600 dark:text-amber-400 text-xs">Belum</span>@endif</td>
                 <td class="py-4 px-5 text-center"><span class="px-2.5 py-1 text-xs font-medium rounded-full bg-{{ $kp->status_color }}-100 text-{{ $kp->status_color }}-700 dark:bg-{{ $kp->status_color }}-900/50 dark:text-{{ $kp->status_color }}-400">{{ $kp->status_label }}</span></td>
-                <td class="py-4 px-5 text-right"><a href="{{ route('admin.kp.show', $kp) }}" class="text-sm text-siakad-primary dark:text-blue-400 hover:underline">Detail</a></td>
+                <td class="py-4 px-5 text-right"><a href="{{ route('admin.kp.show', $kp) }}" class="text-sm text-siakad-primary dark:text-siakad-300 hover:underline">Detail</a></td>
             </tr>
             @empty
             <tr><td colspan="5" class="py-12 text-center text-siakad-secondary dark:text-gray-400">Tidak ada data</td></tr>
@@ -86,7 +86,7 @@
         <div class="card-saas p-4 dark:bg-gray-800">
             <div class="flex items-start justify-between mb-3">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-siakad-primary dark:bg-blue-600 flex items-center justify-center text-white text-sm font-semibold">
+                    <div class="w-10 h-10 rounded-lg bg-siakad-primary flex items-center justify-center text-white text-sm font-semibold">
                         {{ strtoupper(substr($kp->mahasiswa->user->name ?? '-', 0, 1)) }}
                     </div>
                     <div>

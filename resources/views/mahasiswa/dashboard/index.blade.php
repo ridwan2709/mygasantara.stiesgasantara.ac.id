@@ -149,8 +149,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // SIAKAD Colors
-        const siakadPrimary = '#234C6A';
-        const siakadSecondary = '#456882';
+        const themeColors = getComputedStyle(document.documentElement);
+        const siakadPrimary = themeColors.getPropertyValue('--siakad-primary').trim();
+        const siakadSecondary = themeColors.getPropertyValue('--siakad-secondary').trim();
         
         // Detect dark mode
         const isDark = document.documentElement.classList.contains('dark');
@@ -193,7 +194,7 @@
                     label: 'IPS',
                     data: ipsData.map(d => d.ips),
                     borderColor: isDark ? '#60A5FA' : siakadPrimary,
-                    backgroundColor: isDark ? 'rgba(96, 165, 250, 0.15)' : 'rgba(35, 76, 106, 0.1)',
+                    backgroundColor: `rgba(${themeColors.getPropertyValue(isDark ? '--primary-text-rgb' : '--primary-rgb').trim().split(/\s+/).join(', ')}, 0.15)`,
                     fill: true,
                     tension: 0.4,
                     pointRadius: 5,

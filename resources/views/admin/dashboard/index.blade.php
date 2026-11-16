@@ -27,8 +27,8 @@
         @if($isSuperAdmin)
         <div class="card-saas p-5 dark:bg-gray-800">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-siakad-primary/10 dark:bg-blue-500/20 rounded-xl flex items-center justify-center">
-                    <svg class="w-5 h-5 text-siakad-primary dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                <div class="w-10 h-10 bg-siakad-primary/10 dark:bg-siakad-primary/20 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-siakad-primary dark:text-siakad-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                 </div>
                 <div>
                     <p class="text-2xl font-bold text-siakad-dark dark:text-white">{{ $stats['fakultas'] }}</p>
@@ -52,8 +52,8 @@
 
         <div class="card-saas p-5 dark:bg-gray-800">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-siakad-primary/10 dark:bg-blue-500/20 rounded-xl flex items-center justify-center">
-                    <svg class="w-5 h-5 text-siakad-primary dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <div class="w-10 h-10 bg-siakad-primary/10 dark:bg-siakad-primary/20 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-siakad-primary dark:text-siakad-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                 </div>
                 <div>
                     <p class="text-2xl font-bold text-siakad-dark dark:text-white">{{ $stats['mahasiswa'] }}</p>
@@ -88,8 +88,8 @@
 
         <div class="card-saas p-5 dark:bg-gray-800">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-siakad-primary/10 dark:bg-blue-500/20 rounded-xl flex items-center justify-center">
-                    <svg class="w-5 h-5 text-siakad-primary dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>
+                <div class="w-10 h-10 bg-siakad-primary/10 dark:bg-siakad-primary/20 rounded-xl flex items-center justify-center">
+                    <svg class="w-5 h-5 text-siakad-primary dark:text-siakad-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>
                 </div>
                 <div>
                     <p class="text-2xl font-bold text-siakad-dark dark:text-white">{{ $stats['kelas'] }}</p>
@@ -102,26 +102,26 @@
     <!-- Quick Links -->
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
         @if($isSuperAdmin)
-        <a href="{{ url('admin/fakultas') }}" class="card-saas p-4 hover:border-siakad-primary/30 dark:hover:border-blue-500/30 group flex items-center gap-3 dark:bg-gray-800">
-            <div class="w-9 h-9 bg-siakad-primary/10 dark:bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:bg-siakad-primary/20 dark:group-hover:bg-blue-500/30 transition">
-                <svg class="w-4 h-4 text-siakad-primary dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+        <a href="{{ url('admin/fakultas') }}" class="card-saas p-4 hover:border-siakad-primary/30 dark:hover:border-siakad-primary/30 group flex items-center gap-3 dark:bg-gray-800">
+            <div class="w-9 h-9 bg-siakad-primary/10 dark:bg-siakad-primary/20 rounded-lg flex items-center justify-center group-hover:bg-siakad-primary/20 dark:group-hover:bg-siakad-primary/30 transition">
+                <svg class="w-4 h-4 text-siakad-primary dark:text-siakad-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
             </div>
             <span class="text-sm font-medium text-siakad-dark dark:text-white">Kelola Fakultas</span>
         </a>
         @endif
-        <a href="{{ url('admin/prodi') }}" class="card-saas p-4 hover:border-siakad-primary/30 dark:hover:border-blue-500/30 group flex items-center gap-3 dark:bg-gray-800">
+        <a href="{{ url('admin/prodi') }}" class="card-saas p-4 hover:border-siakad-primary/30 dark:hover:border-siakad-primary/30 group flex items-center gap-3 dark:bg-gray-800">
             <div class="w-9 h-9 bg-siakad-secondary/10 dark:bg-gray-700/50 rounded-lg flex items-center justify-center group-hover:bg-siakad-secondary/20 dark:group-hover:bg-gray-600 transition">
                 <svg class="w-4 h-4 text-siakad-secondary dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
             </div>
             <span class="text-sm font-medium text-siakad-dark dark:text-white">Kelola Prodi</span>
         </a>
-        <a href="{{ url('admin/mahasiswa') }}" class="card-saas p-4 hover:border-siakad-primary/30 dark:hover:border-blue-500/30 group flex items-center gap-3 dark:bg-gray-800">
-            <div class="w-9 h-9 bg-siakad-primary/10 dark:bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:bg-siakad-primary/20 dark:group-hover:bg-blue-500/30 transition">
-                <svg class="w-4 h-4 text-siakad-primary dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        <a href="{{ url('admin/mahasiswa') }}" class="card-saas p-4 hover:border-siakad-primary/30 dark:hover:border-siakad-primary/30 group flex items-center gap-3 dark:bg-gray-800">
+            <div class="w-9 h-9 bg-siakad-primary/10 dark:bg-siakad-primary/20 rounded-lg flex items-center justify-center group-hover:bg-siakad-primary/20 dark:group-hover:bg-siakad-primary/30 transition">
+                <svg class="w-4 h-4 text-siakad-primary dark:text-siakad-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
             </div>
             <span class="text-sm font-medium text-siakad-dark dark:text-white">Kelola Mahasiswa</span>
         </a>
-        <a href="{{ url('admin/dosen') }}" class="card-saas p-4 hover:border-siakad-primary/30 dark:hover:border-blue-500/30 group flex items-center gap-3 dark:bg-gray-800">
+        <a href="{{ url('admin/dosen') }}" class="card-saas p-4 hover:border-siakad-primary/30 dark:hover:border-siakad-primary/30 group flex items-center gap-3 dark:bg-gray-800">
             <div class="w-9 h-9 bg-siakad-dark/10 dark:bg-gray-700/50 rounded-lg flex items-center justify-center group-hover:bg-siakad-dark/20 dark:group-hover:bg-gray-600 transition">
                 <svg class="w-4 h-4 text-siakad-dark dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
             </div>
@@ -184,9 +184,13 @@
     @if(count($gradeDistribution) > 0)
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const siakadPrimary = '#234C6A';
-        const siakadSecondary = '#456882';
-        const siakadDark = '#1B3C53';
+        const themeColors = getComputedStyle(document.documentElement);
+        const siakadPrimary = themeColors.getPropertyValue('--siakad-primary').trim();
+        const siakadSecondary = themeColors.getPropertyValue('--siakad-secondary').trim();
+        const siakadDark = themeColors.getPropertyValue('--siakad-dark').trim();
+        const primaryTint100 = themeColors.getPropertyValue('--primary-100').trim();
+        const primaryTint200 = themeColors.getPropertyValue('--primary-200').trim();
+        const primaryTint300 = themeColors.getPropertyValue('--primary-300').trim();
         
         // Grade Chart
         const gradeData = @json($gradeDistribution);
@@ -201,9 +205,9 @@
                         siakadPrimary,
                         siakadSecondary,
                         siakadDark,
-                        '#86c5e0',
-                        '#b9dded',
-                        '#dceef6',
+                        primaryTint300,
+                        primaryTint200,
+                        primaryTint100,
                         '#E3E3E3'
                     ],
                     borderWidth: 0,

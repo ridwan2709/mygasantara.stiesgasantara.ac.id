@@ -38,8 +38,8 @@
             <!-- Pertemuan Header -->
             <div class="px-5 py-4 border-b border-siakad-light dark:border-gray-700">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-siakad-primary/10 dark:bg-blue-500/20 rounded-full flex items-center justify-center">
-                        <span class="text-sm font-bold text-siakad-primary dark:text-blue-400">{{ $pertemuan->pertemuan_ke }}</span>
+                    <div class="w-10 h-10 bg-siakad-primary/10 dark:bg-siakad-primary/20 rounded-full flex items-center justify-center">
+                        <span class="text-sm font-bold text-siakad-primary dark:text-siakad-300">{{ $pertemuan->pertemuan_ke }}</span>
                     </div>
                     <div>
                         <h3 class="font-semibold text-siakad-dark dark:text-white">Pertemuan {{ $pertemuan->pertemuan_ke }}</h3>
@@ -62,8 +62,8 @@
                     <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
                         <div class="flex items-center gap-3">
                             @if($materi->isFile())
-                            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            <div class="w-10 h-10 bg-siakad-100 dark:bg-siakad-900/30 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-siakad-primary dark:text-siakad-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                             </div>
                             @else
                             <div class="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">

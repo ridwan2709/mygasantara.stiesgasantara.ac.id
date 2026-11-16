@@ -9,7 +9,7 @@
     </div>
 
     <!-- IPK Summary Card -->
-    <div class="rounded-2xl p-6 bg-[#1B3C53] text-white mb-8">
+    <div class="rounded-2xl p-6 bg-siakad-dark text-white mb-8">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-sm text-white/70">Indeks Prestasi Kumulatif (IPK)</p>
@@ -39,8 +39,9 @@
         @foreach($semesterList as $item)
         @php
             $ta = $item['tahun_akademik'];
-            // Use system palette colors instead of Tailwind defaults
-            $ipsColor = $item['ips'] >= 3.5 ? '#234C6A' : ($item['ips'] >= 3.0 ? '#456882' : ($item['ips'] >= 2.5 ? '#F59E0B' : '#EF4444'));
+            $ipsColor = $item['ips'] >= 3.5
+                ? 'var(--siakad-primary)'
+                : ($item['ips'] >= 3.0 ? 'var(--siakad-secondary)' : ($item['ips'] >= 2.5 ? '#F59E0B' : '#EF4444'));
         @endphp
         <a href="{{ route('mahasiswa.khs.show', $ta) }}" class="card-saas group overflow-hidden hover:ring-2 hover:ring-siakad-primary transition-all">
             <div class="p-6">

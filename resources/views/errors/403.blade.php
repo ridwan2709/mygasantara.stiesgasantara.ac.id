@@ -4,11 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>403 - Akses Ditolak</title>
+    @vite(['resources/css/app.css'])
     <style>
         body {
             font-family: 'Inter', system-ui, sans-serif;
             background-color: #f8fafc;
-            color: #1B3C53;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -48,7 +49,7 @@
         a {
             display: inline-block;
             padding: 12px 24px;
-            background: #234C6A;
+            background: var(--siakad-primary);
             color: white;
             text-decoration: none;
             border-radius: 8px;
@@ -56,7 +57,7 @@
             transition: background 0.2s;
         }
         a:hover {
-            background: #1B3C53;
+            background: var(--siakad-dark);
         }
     </style>
 </head>
