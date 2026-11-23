@@ -10,6 +10,26 @@ use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
+it('shows finance menu only for bendahara and hides it from administrator accounts', function () {
+    $this->withoutVite();
+
+    $admin = User::factory()->create(['role' => 'superadmin']);
+    $bendahara = User::factory()->create(['role' => 'bendahara']);
+
+    $this->actingAs($bendahara)
+        ->get(route('bendahara.dashboard'))
+        ->assertOk()
+        ->assertSee('Keuangan')
+        ->assertSee('Honorarium')
+        ->assertSee('Pengaturan Tarif');
+
+    $this->actingAs($admin)
+        ->get(route('admin.dashboard'))
+        ->assertOk()
+        ->assertDontSee('>Honorarium<')
+        ->assertDontSee('>Pengaturan Tarif<');
+});
+
 it('allows admins and bendahara to configure lecturer rates and employee rates per role or user', function () {
     $this->withoutVite();
 
