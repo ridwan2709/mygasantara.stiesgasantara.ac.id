@@ -17,6 +17,7 @@ class Mahasiswa extends Model
         'prodi_id',
         'dosen_pa_id',
         'angkatan',
+        'phone',
         'rombel',
         'status',
     ];

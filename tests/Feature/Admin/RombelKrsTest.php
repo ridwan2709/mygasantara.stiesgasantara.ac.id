@@ -95,11 +95,13 @@ it('allows administrators to assign a rombel when creating a student', function 
             'nim' => '20260001',
             'prodi_id' => $this->prodi->id,
             'angkatan' => '2026',
+            'phone' => '081234567890',
             'rombel' => 'b',
         ])
         ->assertRedirect();
 
-    expect(Mahasiswa::query()->where('nim', '20260001')->value('rombel'))->toBe('B');
+    expect(Mahasiswa::query()->where('nim', '20260001')->value('rombel'))->toBe('B')
+        ->and(Mahasiswa::query()->where('nim', '20260001')->value('phone'))->toBe('081234567890');
 });
 
 it('imports student rombels while remaining compatible with older student templates', function () {
@@ -111,13 +113,14 @@ it('imports student rombels while remaining compatible with older student templa
     );
     $assignedTemplate = UploadedFile::fake()->createWithContent(
         'mahasiswa-rombel.csv',
-        $headers.",rombel\n20260003,Mahasiswa Rombel,mahasiswa-rombel@example.test,password123,\"{$this->prodi->nama}\",2026,,aktif,b\n",
+        $headers.",phone,rombel\n20260003,Mahasiswa Rombel,mahasiswa-rombel@example.test,password123,\"{$this->prodi->nama}\",2026,,aktif,081234567891,b\n",
     );
 
     expect($service->import('mahasiswa', $olderTemplate, $this->admin))->toBe(1)
         ->and($service->import('mahasiswa', $assignedTemplate, $this->admin))->toBe(1)
         ->and(Mahasiswa::query()->where('nim', '20260002')->value('rombel'))->toBeNull()
-        ->and(Mahasiswa::query()->where('nim', '20260003')->value('rombel'))->toBe('B');
+        ->and(Mahasiswa::query()->where('nim', '20260003')->value('rombel'))->toBe('B')
+        ->and(Mahasiswa::query()->where('nim', '20260003')->value('phone'))->toBe('081234567891');
 });
 
 it('shows matching rombel classes and shared classes in the bulk KRS form', function () {

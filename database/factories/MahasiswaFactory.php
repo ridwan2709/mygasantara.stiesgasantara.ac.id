@@ -21,6 +21,7 @@ class MahasiswaFactory extends Factory
             'prodi_id' => Prodi::factory(),
             'nim' => fake()->unique()->numerify('##########'),
             'angkatan' => fake()->numberBetween(2020, 2024),
+            'phone' => fake()->optional()->numerify('08##########'),
             'status' => 'aktif',
         ];
     }

@@ -115,6 +115,7 @@ class MahasiswaController extends Controller
             'nim' => 'required|string|unique:mahasiswa,nim',
             'prodi_id' => ['required', $this->prodiScopeRule($request)],
             'angkatan' => 'required|numeric|min:2000|max:'.(date('Y') + 1),
+            'phone' => 'nullable|string|max:20',
             'rombel' => 'nullable|string|max:50',
             'dosen_pa_id' => 'nullable|exists:dosen,id',
         ]);
@@ -134,6 +135,7 @@ class MahasiswaController extends Controller
                 'nim' => $validated['nim'],
                 'prodi_id' => $validated['prodi_id'],
                 'angkatan' => $validated['angkatan'],
+                'phone' => $validated['phone'] ?? null,
                 'rombel' => $validated['rombel'],
                 'dosen_pa_id' => $validated['dosen_pa_id'] ?? null,
                 'status' => 'aktif',
@@ -154,6 +156,7 @@ class MahasiswaController extends Controller
             'nim' => 'required|string|unique:mahasiswa,nim,'.$mahasiswa->id,
             'prodi_id' => ['required', $this->prodiScopeRule($request)],
             'angkatan' => 'required|numeric',
+            'phone' => 'nullable|string|max:20',
             'rombel' => 'nullable|string|max:50',
             'dosen_pa_id' => 'nullable|exists:dosen,id',
             'status' => 'required|in:aktif,cuti,lulus,do',
@@ -176,6 +179,7 @@ class MahasiswaController extends Controller
                 'nim' => $validated['nim'],
                 'prodi_id' => $validated['prodi_id'],
                 'angkatan' => $validated['angkatan'],
+                'phone' => $validated['phone'] ?? null,
                 'rombel' => $validated['rombel'],
                 'dosen_pa_id' => $validated['dosen_pa_id'] ?? null,
                 'status' => $validated['status'],
@@ -233,7 +237,7 @@ class MahasiswaController extends Controller
         return response()->streamDownload(function () use ($query) {
             $handle = fopen('php://output', 'w');
             fwrite($handle, "\xEF\xBB\xBF");
-            fputcsv($handle, ['NIM', 'Nama Mahasiswa', 'Prodi', 'Angkatan', 'Rombel', 'Status', 'IPK']);
+            fputcsv($handle, ['NIM', 'Nama Mahasiswa', 'Prodi', 'Angkatan', 'Nomor HP', 'Rombel', 'Status', 'IPK']);
 
             $query->chunk(500, function ($rows) use ($handle) {
                 foreach ($rows as $row) {
@@ -242,6 +246,7 @@ class MahasiswaController extends Controller
                         $row->user->name ?? '-',
                         $row->prodi->nama ?? '-',
                         $row->angkatan,
+                        $row->phone ?? '',
                         $row->rombel ?? '',
                         $row->status,
                         $row->ipk ?? 0,

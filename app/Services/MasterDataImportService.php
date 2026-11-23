@@ -34,6 +34,7 @@ class MasterDataImportService
         'nama_kelas' => 'Nama Kelas',
         'kapasitas' => 'Kapasitas',
         'angkatan' => 'Angkatan',
+        'phone' => 'Nomor HP',
         'rombel' => 'Rombel',
         'email' => 'Email',
         'password' => 'Password',
@@ -66,7 +67,7 @@ class MasterDataImportService
     ];
 
     private const OPTIONAL_HEADERS = [
-        'mahasiswa' => ['rombel'],
+        'mahasiswa' => ['phone', 'rombel'],
     ];
 
     public function headers(string $type): array
@@ -278,10 +279,11 @@ class MasterDataImportService
         $seenNim = [];
         $seenEmail = [];
         $valid = $this->validateRows($rows, function (array $data) use ($user, &$seenNim, &$seenEmail): array {
-            foreach (['nim', 'nama', 'email', 'password', 'prodi', 'angkatan', 'dosen_pa_nidn', 'status', 'rombel'] as $field) {
+            foreach (['nim', 'nama', 'email', 'password', 'prodi', 'angkatan', 'dosen_pa_nidn', 'status', 'phone', 'rombel'] as $field) {
                 $data[$field] = trim((string) ($data[$field] ?? ''));
             }
             $data['status'] = $data['status'] ?: 'aktif';
+            $data['phone'] = $data['phone'] ?: null;
             $data['rombel'] = $data['rombel'] === '' ? null : mb_strtoupper($data['rombel']);
             $errors = $this->validate($data, [
                 'nim' => ['required', 'string', 'max:255', 'unique:mahasiswa,nim'],
@@ -290,6 +292,7 @@ class MasterDataImportService
                 'password' => ['required', 'string', 'min:8'],
                 'angkatan' => ['required', 'digits:4', 'integer', 'min:2000', 'max:'.(date('Y') + 1)],
                 'status' => ['required', 'in:aktif,cuti,lulus,do'],
+                'phone' => ['nullable', 'string', 'max:20'],
                 'rombel' => ['nullable', 'string', 'max:50'],
             ]);
             $prodi = $this->resolveProdi($data['prodi'], $user, $errors);
@@ -326,6 +329,7 @@ class MasterDataImportService
                 'prodi_id' => $data['prodi_id'],
                 'dosen_pa_id' => $data['dosen_pa_nidn'] === '' ? null : Dosen::where('nidn', $data['dosen_pa_nidn'])->value('id'),
                 'angkatan' => $data['angkatan'],
+                'phone' => $data['phone'],
                 'rombel' => $data['rombel'],
                 'status' => $data['status'],
             ]);

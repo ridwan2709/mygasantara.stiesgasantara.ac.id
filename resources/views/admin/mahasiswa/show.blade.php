@@ -31,6 +31,10 @@
                     <span class="text-sm font-medium text-siakad-dark">{{ $mahasiswa->angkatan }}</span>
                 </div>
                 <div class="flex items-center justify-between py-2 border-b border-siakad-light/50">
+                    <span class="text-sm text-siakad-secondary">Nomor HP</span>
+                    <span class="text-sm font-medium text-siakad-dark">{{ $mahasiswa->phone ?: '-' }}</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-siakad-light/50">
                     <span class="text-sm text-siakad-secondary">Dosen PA</span>
                     <span class="text-sm font-medium text-siakad-dark">{{ $mahasiswa->dosenPa->user->name ?? '-' }}</span>
                 </div>

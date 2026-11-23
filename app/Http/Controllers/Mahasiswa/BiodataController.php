@@ -45,12 +45,9 @@ class BiodataController extends Controller
             'email' => $validated['email'],
         ]);
 
-        // Update mahasiswa (if phone/address fields exist)
-        // Note: You may need to add these columns to mahasiswa table
-        // $mahasiswa->update([
-        //     'phone' => $validated['phone'],
-        //     'address' => $validated['address'],
-        // ]);
+        $mahasiswa->update([
+            'phone' => $validated['phone'] ?: null,
+        ]);
 
         return redirect()->back()->with('success', 'Biodata berhasil diperbarui');
     }

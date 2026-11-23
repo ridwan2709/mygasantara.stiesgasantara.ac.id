@@ -158,6 +158,7 @@
                             </a>
                         </th>
 
+                        <th class="text-left py-3 px-5 text-xs font-semibold text-siakad-secondary dark:text-gray-400 uppercase tracking-wider">Nomor HP</th>
                         <th class="text-left py-3 px-5 text-xs font-semibold text-siakad-secondary dark:text-gray-400 uppercase tracking-wider">Rombel</th>
                         <th class="text-left py-3 px-5 text-xs font-semibold text-siakad-secondary dark:text-gray-400 uppercase tracking-wider">IPK</th>
                         <th class="text-left py-3 px-5 text-xs font-semibold text-siakad-secondary dark:text-gray-400 uppercase tracking-wider">Status</th>
@@ -186,6 +187,9 @@
                             <span class="inline-flex px-2.5 py-1 text-xs font-medium bg-siakad-secondary/10 text-siakad-secondary dark:bg-gray-700 dark:text-gray-300 rounded-full">{{ $m->angkatan }}</span>
                         </td>
                         <td class="py-4 px-5">
+                            <span class="text-sm text-siakad-secondary dark:text-gray-400">{{ $m->phone ?: '-' }}</span>
+                        </td>
+                        <td class="py-4 px-5">
                             <span class="inline-flex px-2.5 py-1 text-xs font-semibold bg-siakad-primary/10 text-siakad-primary dark:bg-siakad-primary/20 dark:text-siakad-200 rounded-full">{{ $m->rombel ?? 'Belum diatur' }}</span>
                         </td>
                         <td class="py-4 px-5">
@@ -205,7 +209,7 @@
                                 <a href="{{ route('admin.mahasiswa.show', $m) }}" class="p-2 text-siakad-secondary hover:text-siakad-primary hover:bg-siakad-primary/10 rounded-lg transition" title="Detail">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                 </a>
-                                <button onclick="openEditModal({{ json_encode(['id'=>$m->id,'name'=>$m->user->name,'email'=>$m->user->email,'nim'=>$m->nim,'prodi_id'=>$m->prodi_id,'angkatan'=>$m->angkatan,'rombel'=>$m->rombel,'dosen_pa_id'=>$m->dosen_pa_id,'status'=>$m->status]) }})" class="p-2 text-siakad-primary hover:bg-siakad-primary/10 rounded-lg" title="Edit">
+                                <button onclick="openEditModal({{ json_encode(['id'=>$m->id,'name'=>$m->user->name,'email'=>$m->user->email,'nim'=>$m->nim,'prodi_id'=>$m->prodi_id,'angkatan'=>$m->angkatan,'phone'=>$m->phone,'rombel'=>$m->rombel,'dosen_pa_id'=>$m->dosen_pa_id,'status'=>$m->status]) }})" class="p-2 text-siakad-primary hover:bg-siakad-primary/10 rounded-lg" title="Edit">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                 </button>
                                 <form action="{{ route('admin.mahasiswa.destroy', $m) }}" method="POST" class="inline" onsubmit="return confirm('Yakin?')">@csrf @method('DELETE')
@@ -216,7 +220,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="py-12 text-center">
+                        <td colspan="10" class="py-12 text-center">
                             <div class="flex flex-col items-center">
                                 <div class="w-12 h-12 bg-siakad-light/50 dark:bg-gray-700/50 rounded-xl flex items-center justify-center mb-3">
                                     <svg class="w-6 h-6 text-siakad-secondary dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
@@ -264,6 +268,10 @@
                     <span class="font-medium text-siakad-dark dark:text-gray-200">{{ $m->angkatan }}</span>
                 </div>
                 <div>
+                    <span class="block text-xs text-gray-400">Nomor HP</span>
+                    <span class="font-medium text-siakad-dark dark:text-gray-200">{{ $m->phone ?: '-' }}</span>
+                </div>
+                <div>
                     <span class="block text-xs text-gray-400">Rombel</span>
                     <span class="font-semibold text-siakad-primary dark:text-siakad-200">{{ $m->rombel ?? 'Belum diatur' }}</span>
                 </div>
@@ -303,6 +311,7 @@
                     <div><label class="block text-sm font-medium text-siakad-secondary mb-1">NIM</label><input type="text" name="nim" required class="input-saas w-full dark:bg-gray-700"></div>
                     <div><label class="block text-sm font-medium text-siakad-secondary mb-1">Prodi</label><select name="prodi_id" required class="input-saas w-full dark:bg-gray-700">@foreach($prodiList as $p)<option value="{{ $p->id }}">{{ $p->nama }}</option>@endforeach</select></div>
                     <div><label class="block text-sm font-medium text-siakad-secondary mb-1">Angkatan</label><input type="number" name="angkatan" required value="{{ date('Y') }}" class="input-saas w-full dark:bg-gray-700"></div>
+                    <div><label class="block text-sm font-medium text-siakad-secondary mb-1">Nomor HP</label><input type="text" name="phone" maxlength="20" placeholder="Contoh: 081234567890" class="input-saas w-full dark:bg-gray-700"></div>
                     <div><label class="block text-sm font-medium text-siakad-secondary mb-1">Rombel</label><input type="text" name="rombel" maxlength="50" placeholder="Contoh: A atau B" class="input-saas w-full dark:bg-gray-700"></div>
                     <div><label class="block text-sm font-medium text-siakad-secondary mb-1">Dosen PA</label><select name="dosen_pa_id" class="input-saas w-full dark:bg-gray-700"><option value="">-- Pilih --</option>@foreach($dosenList as $d)<option value="{{ $d->id }}">{{ $d->user->name }}</option>@endforeach</select></div>
                     <div class="flex justify-end gap-3"><button type="button" onclick="closeModal('createModal')" class="px-4 py-2 text-sm text-siakad-secondary hover:bg-gray-100 rounded-lg">Batal</button><button type="submit" class="btn-primary-saas px-4 py-2 rounded-lg text-sm">Simpan</button></div>
@@ -324,6 +333,7 @@
                     <div><label class="block text-sm font-medium text-siakad-secondary mb-1">NIM</label><input type="text" name="nim" id="editNim" required class="input-saas w-full dark:bg-gray-700"></div>
                     <div><label class="block text-sm font-medium text-siakad-secondary mb-1">Prodi</label><select name="prodi_id" id="editProdiId" required class="input-saas w-full dark:bg-gray-700">@foreach($prodiList as $p)<option value="{{ $p->id }}">{{ $p->nama }}</option>@endforeach</select></div>
                     <div><label class="block text-sm font-medium text-siakad-secondary mb-1">Angkatan</label><input type="number" name="angkatan" id="editAngkatan" required class="input-saas w-full dark:bg-gray-700"></div>
+                    <div><label class="block text-sm font-medium text-siakad-secondary mb-1">Nomor HP</label><input type="text" name="phone" id="editPhone" maxlength="20" placeholder="Contoh: 081234567890" class="input-saas w-full dark:bg-gray-700"></div>
                     <div><label class="block text-sm font-medium text-siakad-secondary mb-1">Rombel</label><input type="text" name="rombel" id="editRombel" maxlength="50" placeholder="Contoh: A atau B" class="input-saas w-full dark:bg-gray-700"></div>
                     <div><label class="block text-sm font-medium text-siakad-secondary mb-1">Dosen PA</label><select name="dosen_pa_id" id="editDosenPaId" class="input-saas w-full dark:bg-gray-700"><option value="">-- Pilih --</option>@foreach($dosenList as $d)<option value="{{ $d->id }}">{{ $d->user->name }}</option>@endforeach</select></div>
                     <div><label class="block text-sm font-medium text-siakad-secondary mb-1">Status</label><select name="status" id="editStatus" required class="input-saas w-full dark:bg-gray-700"><option value="aktif">Aktif</option><option value="cuti">Cuti</option><option value="lulus">Lulus</option><option value="do">DO</option></select></div>
@@ -343,6 +353,7 @@
             document.getElementById('editNim').value = m.nim;
             document.getElementById('editProdiId').value = m.prodi_id;
             document.getElementById('editAngkatan').value = m.angkatan;
+            document.getElementById('editPhone').value = m.phone || '';
             document.getElementById('editRombel').value = m.rombel || '';
             document.getElementById('editDosenPaId').value = m.dosen_pa_id || '';
             document.getElementById('editStatus').value = m.status || 'aktif';
