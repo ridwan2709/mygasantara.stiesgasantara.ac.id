@@ -48,6 +48,10 @@ return [
         'model' => env('QWEN_MODEL', 'Qwen/Qwen3-4B-Instruct-2507'),
         'base_url' => env('QWEN_BASE_URL', 'https://api.bytez.com/models/v2'),
     ],
+    'fonnte' => [
+        'token' => env('FONNTE_TOKEN'),
+        'url' => env('FONNTE_API_URL', 'https://api.fonnte.com/send'),
+    ],
 
     // AI Provider selection: 'gemini' or 'qwen'
     'ai_provider' => env('AI_PROVIDER', 'qwen'),

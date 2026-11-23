@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\Bendahara\DashboardController as BendaharaDashboardController;
+use App\Http\Controllers\Bendahara\TagihanController as BendaharaTagihanController;
 use App\Http\Controllers\Pegawai\KehadiranController as PegawaiKehadiranController;
 use App\Http\Controllers\Staff\DashboardController as StaffDashboardController;
+use App\Http\Controllers\Staff\KhsController;
 use Illuminate\Support\Facades\Route;
 
 // Redirect root to login page
@@ -27,11 +29,16 @@ Route::get('/dashboard', function () {
 
 Route::middleware(['auth', 'role:bendahara'])->prefix('bendahara')->name('bendahara.')->group(function () {
     Route::get('/dashboard', [BendaharaDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/tagihan', [BendaharaTagihanController::class, 'index'])->name('tagihan.index');
+    Route::post('/tagihan', [BendaharaTagihanController::class, 'store'])->name('tagihan.store');
+    Route::post('/tagihan/{tagihan}/kirim-wa', [BendaharaTagihanController::class, 'resend'])->name('tagihan.resend');
+    Route::patch('/tagihan/{tagihan}/dibayar', [BendaharaTagihanController::class, 'markPaid'])->name('tagihan.paid');
+    Route::patch('/tagihan/{tagihan}/batal', [BendaharaTagihanController::class, 'cancel'])->name('tagihan.cancel');
 });
 
 Route::middleware(['auth', 'role:staff'])->prefix('staff')->name('staff.')->group(function () {
     Route::get('/dashboard', [StaffDashboardController::class, 'index'])->name('dashboard');
-    Route::get('/khs', [\App\Http\Controllers\Staff\KhsController::class, 'index'])->name('khs.index');
+    Route::get('/khs', [KhsController::class, 'index'])->name('khs.index');
 });
 
 Route::middleware(['auth', 'can.absen'])->prefix('pegawai')->name('pegawai.')->group(function () {
