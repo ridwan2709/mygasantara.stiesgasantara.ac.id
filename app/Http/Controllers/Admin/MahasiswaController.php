@@ -9,12 +9,14 @@ use App\Models\Mahasiswa;
 use App\Models\Prodi;
 use App\Models\User;
 use App\Services\AkademikCalculationService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Exists;
+use Symfony\Component\HttpFoundation\Response;
 
 class MahasiswaController extends Controller
 {
@@ -268,6 +270,84 @@ class MahasiswaController extends Controller
         $gradeDistribution = $this->calculationService->getGradeDistribution($mahasiswa);
 
         return view('admin.mahasiswa.show', compact('mahasiswa', 'ipkData', 'ipsHistory', 'gradeDistribution'));
+    }
+
+    public function kartu(Mahasiswa $mahasiswa): \Illuminate\View\View
+    {
+        $this->ensureMahasiswaScope($mahasiswa);
+        $mahasiswa = $this->accessibleMahasiswaQuery(request())
+            ->with(['user', 'prodi.fakultas'])
+            ->findOrFail($mahasiswa->id);
+
+        return view('admin.mahasiswa.kartu', compact('mahasiswa'));
+    }
+
+    public function cetakKartu(Mahasiswa $mahasiswa): Response
+    {
+        $this->ensureMahasiswaScope($mahasiswa);
+        $mahasiswa = $this->accessibleMahasiswaQuery(request())
+            ->with(['user', 'prodi.fakultas'])
+            ->findOrFail($mahasiswa->id);
+
+        $fileName = 'kartu-mahasiswa-'.$mahasiswa->nim.'.pdf';
+
+        return Pdf::loadView('admin.mahasiswa.kartu-pdf', compact('mahasiswa'))
+            ->setPaper([0, 0, 255.12, 396.85], 'portrait')
+            ->download($fileName);
+    }
+
+    public function cetakKartuMassal(Request $request): Response
+    {
+        $validated = $request->validate([
+            'prodi_id' => 'nullable|integer',
+            'angkatan' => 'nullable|integer',
+            'rombel' => 'nullable|string|max:50',
+        ]);
+
+        if (empty($validated['prodi_id']) && empty($validated['angkatan'])) {
+            abort(422, 'Pilih prodi atau angkatan untuk mencetak kartu.');
+        }
+
+        $query = $this->accessibleMahasiswaQuery($request)
+            ->with(['user', 'prodi.fakultas'])
+            ->where('status', 'aktif')
+            ->orderBy('nim');
+
+        if (! empty($validated['prodi_id'])) {
+            $query->where('prodi_id', $validated['prodi_id']);
+        }
+
+        if (! empty($validated['angkatan'])) {
+            $query->where('angkatan', $validated['angkatan']);
+        }
+
+        if (! empty($validated['rombel'])) {
+            $query->where('rombel', $validated['rombel']);
+        }
+
+        $mahasiswaList = $query->get();
+        abort_if($mahasiswaList->isEmpty(), 404, 'Tidak ada mahasiswa aktif untuk filter yang dipilih.');
+
+        $prodiName = ! empty($validated['prodi_id'])
+            ? $mahasiswaList->first()->prodi->nama
+            : null;
+        $angkatan = $validated['angkatan'] ?? null;
+        $fileName = 'kartu-mahasiswa-'.$this->buildCardFilename($prodiName, $angkatan).'.pdf';
+
+        return Pdf::loadView('admin.mahasiswa.kartu-massal-pdf', [
+            'mahasiswaList' => $mahasiswaList,
+            'prodiName' => $prodiName,
+            'angkatan' => $angkatan,
+        ])->setPaper('a4', 'portrait')->download($fileName);
+    }
+
+    private function buildCardFilename(?string $prodiName, ?int $angkatan): string
+    {
+        $name = $prodiName
+            ? strtolower(preg_replace('/[^A-Za-z0-9]+/', '-', $prodiName))
+            : 'angkatan';
+
+        return $angkatan ? trim($name.'-'.$angkatan, '-') : trim($name, '-');
     }
 
     private function accessibleMahasiswaQuery(Request $request): Builder

@@ -86,6 +86,35 @@ beforeEach(function () {
     ]);
 });
 
+it('allows administrators to preview and download a student card', function () {
+    $mahasiswa = Mahasiswa::factory()->create([
+        'prodi_id' => $this->prodi->id,
+        'angkatan' => '2026',
+        'rombel' => 'A',
+    ]);
+
+    $this->actingAs($this->admin)
+        ->get(route('admin.mahasiswa.kartu', $mahasiswa))
+        ->assertOk()
+        ->assertSee('KARTU TANDA MAHASISWA')
+        ->assertSee($mahasiswa->nim);
+
+    $this->actingAs($this->admin)
+        ->get(route('admin.mahasiswa.kartu.cetak', $mahasiswa))
+        ->assertOk()
+        ->assertDownload('kartu-mahasiswa-'.$mahasiswa->nim.'.pdf');
+});
+
+it('downloads student cards in bulk by prodi and angkatan', function () {
+    $this->actingAs($this->admin)
+        ->get(route('admin.mahasiswa.kartu.cetak-massal', [
+            'prodi_id' => $this->prodi->id,
+            'angkatan' => 2026,
+        ]))
+        ->assertOk()
+        ->assertDownload('kartu-mahasiswa-program-studi-uji-2026.pdf');
+});
+
 it('allows administrators to assign a rombel when creating a student', function () {
     $this->actingAs($this->admin)
         ->post(route('admin.mahasiswa.store'), [

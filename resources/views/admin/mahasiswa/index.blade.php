@@ -60,6 +60,16 @@
                 <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                 Export
             </a>
+            @if(request('prodi_id'))
+            <a href="{{ route('admin.mahasiswa.kartu.cetak-massal', ['prodi_id' => request('prodi_id'), 'angkatan' => request('angkatan'), 'rombel' => request('rombel')]) }}" class="btn-primary-saas px-4 py-2 rounded-lg text-sm font-medium w-full sm:w-auto text-center">
+                Cetak Kartu Prodi
+            </a>
+            @endif
+            @if(request('angkatan') && ! request('prodi_id'))
+            <a href="{{ route('admin.mahasiswa.kartu.cetak-massal', ['angkatan' => request('angkatan'), 'rombel' => request('rombel')]) }}" class="btn-primary-saas px-4 py-2 rounded-lg text-sm font-medium w-full sm:w-auto text-center">
+                Cetak Kartu Angkatan
+            </a>
+            @endif
             @if(request()->anyFilled(['search', 'fakultas_id', 'prodi_id', 'angkatan', 'rombel']))
             <a href="{{ route('admin.mahasiswa.index') }}" class="btn-ghost-saas px-4 py-2 rounded-lg text-sm font-medium w-full sm:w-auto text-center">Reset</a>
             @endif
@@ -206,6 +216,9 @@
                         </td>
                         <td class="py-4 px-5 text-right">
                             <div class="flex items-center justify-end gap-1">
+                                <a href="{{ route('admin.mahasiswa.kartu', $m) }}" target="_blank" class="p-2 text-siakad-secondary hover:text-siakad-primary hover:bg-siakad-primary/10 rounded-lg transition" title="Kartu Mahasiswa">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"></path><circle cx="8" cy="12" r="2" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11h5m-5 3h5"></path></svg>
+                                </a>
                                 <a href="{{ route('admin.mahasiswa.show', $m) }}" class="p-2 text-siakad-secondary hover:text-siakad-primary hover:bg-siakad-primary/10 rounded-lg transition" title="Detail">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                 </a>
@@ -281,9 +294,14 @@
                 </div>
             </div>
 
-            <a href="{{ route('admin.mahasiswa.show', $m) }}" class="flex items-center justify-center w-full py-2 bg-siakad-light dark:bg-gray-700 text-siakad-dark dark:text-white font-medium rounded-lg hover:bg-gray-200 transition text-sm">
-                Detail Mahasiswa
-            </a>
+            <div class="grid grid-cols-2 gap-2">
+                <a href="{{ route('admin.mahasiswa.kartu', $m) }}" target="_blank" class="flex items-center justify-center w-full py-2 border border-siakad-light dark:border-gray-600 text-siakad-dark dark:text-white font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition text-sm">
+                    Kartu
+                </a>
+                <a href="{{ route('admin.mahasiswa.show', $m) }}" class="flex items-center justify-center w-full py-2 bg-siakad-light dark:bg-gray-700 text-siakad-dark dark:text-white font-medium rounded-lg hover:bg-gray-200 transition text-sm">
+                    Detail
+                </a>
+            </div>
         </div>
         @empty
         <div class="card-saas p-8 text-center">

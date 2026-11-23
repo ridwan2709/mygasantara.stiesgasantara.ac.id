@@ -4,10 +4,16 @@
     </x-slot>
 
     <div class="mb-6">
-        <a href="{{ route('admin.mahasiswa.index') }}" class="inline-flex items-center gap-2 text-sm text-siakad-secondary hover:text-siakad-primary transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            Kembali ke Daftar
-        </a>
+        <div class="flex items-center justify-between gap-3">
+            <a href="{{ route('admin.mahasiswa.index') }}" class="inline-flex items-center gap-2 text-sm text-siakad-secondary hover:text-siakad-primary transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Kembali ke Daftar
+            </a>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('admin.mahasiswa.kartu', $mahasiswa) }}" target="_blank" class="btn-ghost-saas px-4 py-2 rounded-lg text-sm font-medium border border-siakad-light">Pratinjau Kartu</a>
+                <a href="{{ route('admin.mahasiswa.kartu.cetak', $mahasiswa) }}" class="btn-primary-saas px-4 py-2 rounded-lg text-sm font-medium">Cetak PDF</a>
+            </div>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
