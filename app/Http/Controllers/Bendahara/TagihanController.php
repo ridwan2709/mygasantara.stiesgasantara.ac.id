@@ -172,15 +172,21 @@ class TagihanController extends Controller
         }
 
         $message = implode("\n", array_filter([
+            'Assalamualaikum Wr. Wb.',
             'Yth. '.$mahasiswa->user->name,
             '',
-            'Anda memiliki tagihan:',
+            'Diinformasikan bahwa tagihan:',
             'Nama: '.$tagihan->nama,
             'Jumlah: Rp'.number_format((float) $tagihan->jumlah, 0, ',', '.'),
-            'Jatuh tempo: '.$tagihan->jatuh_tempo->locale('id')->translatedFormat('d F Y'),
-            $tagihan->keterangan ? 'Keterangan: '.$tagihan->keterangan : null,
+             $tagihan->keterangan ? 'Keterangan: '.$tagihan->keterangan : null,
+            'sudah dapat dibayarkan. Mohon segera melakukan pembayaran maksimal tanggal '. $tagihan->jatuh_tempo->locale('id')->translatedFormat('d F Y') . ' melalui transfer ke:',
             '',
-            'Mohon segera melakukan pembayaran sesuai jadwal.',
+            'Bank : BSI',
+            'No. Rekening : 3332006664',
+            'Atas Nama : STIES GASANTARA',
+            '',
+            'Setelah melakukan pembayaran, mohon kirimkan bukti transfer ke Bendahara / ke nomor ini.Terima kasih atas perhatiannya.',
+            'Wassalamualaikum Wr. Wb.',
         ]));
 
         try {
